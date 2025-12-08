@@ -899,7 +899,7 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
 
         const interestRate = 14.5; // Mock annual interest rate
         const monthlyRate = interestRate / 12 / 100;
-        const tenure = parseInt(selectedTenure);
+        const tenure = parseInt(selectedTenure, 10);
         const newEmi = Math.round(
             (eligible_loan_amount * monthlyRate * Math.pow(1 + monthlyRate, tenure)) / (Math.pow(1 + monthlyRate, tenure) - 1)
         );
@@ -911,39 +911,45 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
             reason: "Offer based on your strong credit profile.",
             tenureMonths: tenure
         };
-
-        setOffer(mockOffer);
-        if (!application.loanOffer) { // Only set initial offer
-            setApplication(prev => ({ ...prev, loanOffer: mockOffer }));
-        }
         
+        setOffer(mockOffer);
+
         if (!offer) {
             toast({ title: "Your Personalised Offer is Ready!", description: "Review your loan details and select a tenure." });
         }
     });
 
-  }, [application.underwritingResult, selectedTenure, setApplication, toast, offer, application.loanOffer]);
+  }, [application.underwritingResult, selectedTenure, offer, toast]);
 
   const onSubmit = (data: z.infer<typeof loanOfferSchema>) => {
-    const tenure = parseInt(data.tenure);
-    const { eligible_loan_amount } = application.underwritingResult;
-    const interestRate = 14.5;
-    const monthlyRate = interestRate / 12 / 100;
-    const finalEmi = Math.round(
-        (eligible_loan_amount * monthlyRate * Math.pow(1 + monthlyRate, tenure)) / (Math.pow(1 + monthlyRate, tenure) - 1)
-    );
+    if (!offer) {
+        toast({variant: "destructive", title: "Offer not finalized."})
+        return;
+    }
 
     const finalOffer = {
-        loanAmountOffered: eligible_loan_amount,
-        interestRate: interestRate,
-        monthlyPayment: finalEmi,
-        reason: "Offer based on your strong credit profile.",
-        tenureMonths: tenure
+        loanAmountOffered: offer.loanAmountOffered,
+        interestRate: offer.interestRate,
+        monthlyPayment: offer.monthlyPayment,
+        tenureMonths: offer.tenureMonths,
+        reason: offer.reason,
     };
     
     setApplication(prev => ({ ...prev, loanOffer: finalOffer }));
     onCompleted();
   };
+  
+  if (application.underwritingResult?.status !== 'APPROVED') {
+    return (
+        <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
+            <h3 className="text-xl font-semibold text-destructive">No Loan Offer Found</h3>
+            <p className="text-muted-foreground max-w-md">We could not generate a loan offer at this time.</p>
+            <Button asChild variant="outline">
+                <Link href="/">Back to Home</Link>
+            </Button>
+        </div>
+    );
+  }
 
   if (isPending && !offer) {
      return (
@@ -956,14 +962,11 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
   }
   
   if (!offer) {
+    // This can happen briefly while useEffect runs
     return (
-        <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
-            <h3 className="text-xl font-semibold text-destructive">No Loan Offer Found</h3>
-            <p className="text-muted-foreground max-w-md">We could not generate a loan offer at this time. This may be a temporary issue.</p>
-            <Button asChild variant="outline">
-                <Link href="/">Back to Home</Link>
-            </Button>
-        </div>
+      <div className="flex justify-center items-center p-12">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
     );
   }
 
@@ -1415,4 +1418,5 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
     
 
     
+
 
