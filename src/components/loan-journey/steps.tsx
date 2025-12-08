@@ -1103,7 +1103,7 @@ export function KfsStep({ onCompleted }: StepProps) {
                 <Label className={!kfsViewed ? 'text-muted-foreground' : ''}>
                     I have read and understood the Key Facts Statement and accept the loan offer.
                 </Label>
-                {!kfsViewed && <FormDescription>Please view the KFS document before accepting.</FormDescription>}
+                {!kfsViewed && <p className="text-sm text-muted-foreground">Please view the KFS document before accepting.</p>}
             </div>
         </FormItem>
         
@@ -1380,5 +1380,6 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
 
 
     
+
 
 
