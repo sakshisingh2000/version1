@@ -833,13 +833,6 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
 }
 
 
-const eligibilitySchema = z.object({
-  tenure: z.string({ required_error: "Please select a loan tenure." }),
-  consent: z.literal(true, {
-    errorMap: () => ({ message: "You must confirm you have reviewed the choice." }),
-  }),
-});
-
 export function EligibilityResultStep({ onCompleted }: StepProps) {
     const { application, setApplication } = useLoanApplication();
     const { user } = useUser();
@@ -878,12 +871,16 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
             toast({ variant: "destructive", title: "Please select a tenure." });
             return;
         }
+        if (!consentChecked) {
+            toast({ variant: "destructive", title: "Please confirm your choice." });
+            return;
+        }
 
         startTransition(() => {
             const appUpdate = {
                 selected_tenure_months: selectedTenure,
                 selected_emi_amount: calculatedEmi,
-                offer_status: 'OFFER_GENERATED',
+                offer_status: 'OFFER_GENERATED' as const,
             };
             setApplication(prev => ({ ...prev, ...appUpdate }));
 
@@ -915,7 +912,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
               <AlertCircle className="h-16 w-16 text-destructive"/>
               <h3 className="text-2xl font-headline font-bold">Application Not Approved</h3>
               <p className="text-muted-foreground max-w-md">
-                  {application.eligibility_decision_reason} We are unable to proceed with your loan application at this time.
+                  {application.eligibility_decision_reason || 'We are unable to proceed with your loan application at this time.'}
               </p>
               <Button asChild><Link href="/">Back to Home</Link></Button>
           </div>
@@ -932,7 +929,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
       );
     }
 
-    const tenureOptions = [3, 6, 9, 12];
+    const tenureOptions = application.approved_tenure_options?.map(opt => opt.tenure_months) || [3, 6, 9, 12];
 
     return (
         <div className="space-y-6">
@@ -942,7 +939,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                     <p className="text-center">You are eligible for <span className="font-bold">₹{application.approved_amount.toLocaleString('en-IN')}</span> (Mock).</p>
                     
                     <RadioGroup onValueChange={handleTenureChange} className="grid grid-cols-2 gap-4">
-                        <FormLabel>Choose your tenure</FormLabel>
+                        <Label className="col-span-2">Choose your tenure</Label>
                         {tenureOptions.map(tenure => (
                              <FormItem key={tenure}>
                                 <FormControl>
@@ -996,6 +993,7 @@ export function KfsStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
   const [isKfsOpen, setIsKfsOpen] = useState(false);
   const [kfsViewed, setKfsViewed] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof kfsSchema>>({
     resolver: zodResolver(kfsSchema),
@@ -1003,7 +1001,7 @@ export function KfsStep({ onCompleted }: StepProps) {
   });
   
   if (!application.approved_amount || !application.selected_tenure_months || !application.selected_emi_amount) {
-    return <p>Loan offer details not found.</p>;
+    return <p>Loan offer details not found. Please go back and select a tenure.</p>;
   }
 
   const { approved_amount, selected_tenure_months, selected_emi_amount } = application;
@@ -1014,6 +1012,14 @@ export function KfsStep({ onCompleted }: StepProps) {
   const apr = (((totalInterest + processingFee) / approved_amount) / (selected_tenure_months/12)) * 100;
 
   const handleAccept = (data: z.infer<typeof kfsSchema>) => {
+    if (!kfsViewed) {
+        toast({
+            variant: "destructive",
+            title: "Please View KFS",
+            description: "You must view the Key Facts Statement before accepting.",
+        });
+        return;
+    }
     if (data.consent) {
         setApplication(prev => ({
             ...prev,
@@ -1072,7 +1078,7 @@ export function KfsStep({ onCompleted }: StepProps) {
       <Card>
           <CardHeader>
               <CardTitle className="font-headline text-center text-2xl">Your Loan Offer Summary</CardTitle>
-              <p className="text-sm text-center text-muted-foreground">Please review and accept your final loan details.</p>
+              <CardDescription className="text-sm text-center text-muted-foreground">Please review and accept your final loan details.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg bg-muted/50">
@@ -1181,14 +1187,14 @@ export function BankDetailsStep({ onCompleted }: StepProps) {
           <FormField control={form.control} name="accountNumber" render={({ field }) => (
             <FormItem>
               <FormLabel>Bank Account Number</FormLabel>
-              <FormControl><Input placeholder="1234567890" {...field} value={field.value || ''} /></FormControl>
+              <FormControl><Input placeholder="1234567890" {...field} value={field.value ?? ''} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <FormField control={form.control} name="ifsc" render={({ field }) => (
             <FormItem>
               <FormLabel>IFSC Code</FormLabel>
-              <FormControl><Input placeholder="SBIN0001234" {...field} value={field.value || ''} className="uppercase" /></FormControl>
+              <FormControl><Input placeholder="SBIN0001234" {...field} value={field.value ?? ''} className="uppercase" /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
@@ -1396,5 +1402,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
+    
 
     
