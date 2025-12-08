@@ -896,7 +896,6 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
           applicationStatus: 'OFFER_GENERATED',
           finalLoanOffer: finalOffer,
           updatedAt: serverTimestamp(),
-          borrowerId: user.uid,
         };
         updateDocumentNonBlocking(loanAppRef, loanAppUpdate);
 
@@ -994,12 +993,22 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
   );
 }
 
+const kfsSchema = z.object({
+  consent: z.literal(true, {
+    errorMap: () => ({ message: "You must view the KFS and accept the terms." }),
+  }),
+});
+
 export function KfsStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
-  const [kfsConsent, setKfsConsent] = useState(false);
-  const [kfsViewed, setKfsViewed] = useState(false);
   const [isKfsOpen, setIsKfsOpen] = useState(false);
+  const [kfsViewed, setKfsViewed] = useState(false);
 
+  const form = useForm<z.infer<typeof kfsSchema>>({
+    resolver: zodResolver(kfsSchema),
+    defaultValues: { consent: false },
+  });
+  
   if (!application.loanOffer) return <p>No loan offer found.</p>;
 
   const { loanAmountOffered, interestRate, tenureMonths, monthlyPayment } = application.loanOffer;
@@ -1009,16 +1018,18 @@ export function KfsStep({ onCompleted }: StepProps) {
   const totalRepayment = loanAmountOffered + totalInterest;
   const apr = (((totalInterest + processingFee) / loanAmountOffered) / (tenureMonths/12)) * 100;
 
-  const handleAccept = () => {
-    setApplication(prev => ({
-        ...prev,
-        kfsAccepted: true,
-        loanOffer: {
-            ...prev.loanOffer!,
-            kfsDocumentUrl: '/mock/kfs.pdf',
-        },
-    }));
-    onCompleted();
+  const handleAccept = (data: z.infer<typeof kfsSchema>) => {
+    if (data.consent) {
+        setApplication(prev => ({
+            ...prev,
+            kfsAccepted: true,
+            loanOffer: {
+                ...prev.loanOffer!,
+                kfsDocumentUrl: '/mock/kfs.pdf',
+            },
+        }));
+        onCompleted();
+    }
   };
 
   const openKfs = () => {
@@ -1066,50 +1077,67 @@ export function KfsStep({ onCompleted }: StepProps) {
         </DialogContent>
       </Dialog>
         
-        <Card>
-            <CardHeader>
-                <CardTitle className="font-headline text-center text-2xl">Your Loan Offer Summary</CardTitle>
-                <CardDescription className="text-center">Please review and accept your final loan details.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg bg-muted/50">
-                    <p className="text-muted-foreground">Loan Amount</p>
-                    <p className="font-semibold text-right">₹{loanAmountOffered.toLocaleString('en-IN')}</p>
+      <Card>
+          <CardHeader>
+              <CardTitle className="font-headline text-center text-2xl">Your Loan Offer Summary</CardTitle>
+               <p className="text-sm text-center text-muted-foreground">Please review and accept your final loan details.</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg bg-muted/50">
+                  <p className="text-muted-foreground">Loan Amount</p>
+                  <p className="font-semibold text-right">₹{loanAmountOffered.toLocaleString('en-IN')}</p>
 
-                    <p className="text-muted-foreground">Processing Fee (2%)</p>
-                    <p className="font-semibold text-right">- ₹{processingFee.toLocaleString('en-IN')}</p>
+                  <p className="text-muted-foreground">Processing Fee (2%)</p>
+                  <p className="font-semibold text-right">- ₹{processingFee.toLocaleString('en-IN')}</p>
 
-                    <Separator className="col-span-2 my-1" />
+                  <Separator className="col-span-2 my-1" />
 
-                    <p className="text-muted-foreground font-bold">Net Disbursed Amount</p>
-                    <p className="font-bold text-right text-lg">₹{disbursedAmount.toLocaleString('en-IN')}</p>
-                </div>
+                  <p className="text-muted-foreground font-bold">Net Disbursed Amount</p>
+                  <p className="font-bold text-right text-lg">₹{disbursedAmount.toLocaleString('en-IN')}</p>
+              </div>
 
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg">
-                    <p className="text-muted-foreground">Monthly EMI</p>
-                    <p className="font-semibold text-right">₹{monthlyPayment.toLocaleString('en-IN')}</p>
-                    
-                    <p className="text-muted-foreground">Total Repayment</p>
-                    <p className="font-semibold text-right">₹{totalRepayment.toLocaleString('en-IN')}</p>
-                </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg">
+                  <p className="text-muted-foreground">Monthly EMI</p>
+                  <p className="font-semibold text-right">₹{monthlyPayment.toLocaleString('en-IN')}</p>
+                  
+                  <p className="text-muted-foreground">Total Repayment</p>
+                  <p className="font-semibold text-right">₹{totalRepayment.toLocaleString('en-IN')}</p>
+              </div>
 
-                 <Button variant="link" onClick={openKfs} className="p-0 h-auto">View Detailed Key Facts Statement (KFS)</Button>
-            </CardContent>
-        </Card>
-        
-        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
-            <Checkbox checked={kfsConsent} onCheckedChange={(checked) => setKfsConsent(checked as boolean)} disabled={!kfsViewed} />
-            <div className="space-y-1 leading-none">
-                <Label className={!kfsViewed ? 'text-muted-foreground' : ''}>
-                    I have read and understood the Key Facts Statement and accept the loan offer.
-                </Label>
-                {!kfsViewed && <p className="text-sm text-muted-foreground">Please view the KFS document before accepting.</p>}
-            </div>
-        </FormItem>
-        
-        <Button onClick={handleAccept} disabled={!kfsConsent || !kfsViewed} className="w-full">
-            Accept Offer & Continue
-        </Button>
+               <Button variant="link" onClick={openKfs} className="p-0 h-auto">View Detailed Key Facts Statement (KFS)</Button>
+          </CardContent>
+      </Card>
+      
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleAccept)}>
+          <FormField
+            control={form.control}
+            name="consent"
+            render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
+                    <FormControl>
+                        <Checkbox 
+                            checked={field.value} 
+                            onCheckedChange={field.onChange} 
+                            disabled={!kfsViewed}
+                        />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                        <FormLabel className={!kfsViewed ? 'text-muted-foreground' : ''}>
+                            I have read and understood the Key Facts Statement and accept the loan offer.
+                        </FormLabel>
+                        {!kfsViewed && <FormDescription>Please view the KFS document before accepting.</FormDescription>}
+                        <FormMessage/>
+                    </div>
+                </FormItem>
+            )}
+            />
+            <Button type="submit" disabled={!kfsViewed || !form.watch('consent')} className="w-full mt-6">
+                Accept Offer & Continue
+            </Button>
+        </form>
+      </Form>
+
     </div>
   );
 }
@@ -1380,6 +1408,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
 
 
     
+
 
 
 
