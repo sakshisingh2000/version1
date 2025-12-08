@@ -300,15 +300,14 @@ export function KycStep({ onCompleted }: StepProps) {
         };
         batch.set(auditRef, auditData);
         
-        batch.commit().then(() => {
-          toast({ title: "PAN Verified Successfully" });
-        }).catch(error => {
+        batch.commit().catch(error => {
             errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: kycRef.path,
                 operation: 'write',
                 requestResourceData: { kyc: kycData, audit: auditData }
             }));
         });
+        toast({ title: "PAN Verified Successfully" });
       }, 1500);
     });
   }
@@ -323,8 +322,7 @@ export function KycStep({ onCompleted }: StepProps) {
     });
   }
 
-  async function onOtpSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function onOtpSubmit() {
     if (!user) return;
     startTransition(() => {
         // Mock OTP verification
@@ -356,16 +354,14 @@ export function KycStep({ onCompleted }: StepProps) {
                 };
                 batch.set(auditRef, auditData);
                 
-                batch.commit().then(() => {
-                  toast({ title: "Aadhaar Verified" });
-                }).catch(error => {
+                batch.commit().catch(error => {
                     errorEmitter.emit('permission-error', new FirestorePermissionError({
                         path: kycRef.path,
                         operation: 'write',
                         requestResourceData: { kyc: kycData, audit: auditData }
                     }));
                 });
-
+                toast({ title: "Aadhaar Verified" });
             } else {
                 toast({ variant: "destructive", title: "Invalid OTP" });
             }
@@ -440,14 +436,14 @@ export function KycStep({ onCompleted }: StepProps) {
                     Send OTP
                   </Button>
                 ) : (
-                  <form onSubmit={onOtpSubmit} className="space-y-4">
+                  <div className="space-y-4">
                     <Label>Enter OTP</Label>
                     <Input value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="Enter 6-digit OTP" />
-                    <Button type="submit" disabled={isVerifying}>
+                    <Button type="button" onClick={onOtpSubmit} disabled={isVerifying}>
                       {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Verify OTP
                     </Button>
-                  </form>
+                  </div>
                 )}
               </form>
             </Form>
@@ -536,16 +532,6 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
                 };
 
                 updateDoc(kycDocRef, kycData)
-                .then(async () => {
-                    const auditRef = doc(collection(firestore, 'borrowers', user.uid, 'audit_logs'));
-                    const auditData = {
-                        entityType: 'KYC', entityId: kycDocRef.id, action: 'DIGILOCKER_KYC_SUCCESS_MOCK',
-                        actorType: 'SYSTEM', timestamp: serverTimestamp()
-                    };
-                    await setDoc(auditRef, auditData);
-                    setDigilockerStatus('SUCCESS');
-                    toast({ title: "DigiLocker KYC Successful", description: "Documents have been fetched and verified." });
-                })
                 .catch(error => {
                     errorEmitter.emit('permission-error', new FirestorePermissionError({
                         path: kycDocRef.path,
@@ -553,6 +539,14 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
                         requestResourceData: kycData
                     }));
                 });
+                const auditRef = doc(collection(firestore, 'borrowers', user.uid, 'audit_logs'));
+                const auditData = {
+                    entityType: 'KYC', entityId: kycDocRef.id, action: 'DIGILOCKER_KYC_SUCCESS_MOCK',
+                    actorType: 'SYSTEM', timestamp: serverTimestamp()
+                };
+                setDoc(auditRef, auditData);
+                setDigilockerStatus('SUCCESS');
+                toast({ title: "DigiLocker KYC Successful", description: "Documents have been fetched and verified." });
             }
         }
     });
