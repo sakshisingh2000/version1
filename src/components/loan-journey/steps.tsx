@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useTransition, useEffect } from "react";
-import { assessCreditRisk } from "@/ai/flows/credit-risk-assessment";
 import { getDynamicLoanOffers } from "@/ai/flows/dynamic-loan-offers";
 import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet, FileText, BadgeCheck, AlertCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -39,6 +38,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from "../ui/badge";
 import { ScrollArea } from "../ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { assessCreditRisk } from "@/ai/flows/credit-risk-assessment";
 
 interface StepProps {
   onCompleted: () => void;
@@ -857,14 +857,16 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
     application.loanOffer?.tenureMonths?.toString() || "12"
   );
   const { toast } = useToast();
+  
+  const form = useForm();
 
   useEffect(() => {
     if (application.underwritingResult?.status !== 'APPROVED' || !application.personalDetails) {
       return;
     }
     
-    // Don't re-generate if an offer already exists
-    if (offer) return;
+    // Don't re-generate if an offer already exists and tenure hasn't changed
+    if (offer && offer.tenureMonths === parseInt(selectedTenure)) return;
     
     startTransition(async () => {
       try {
@@ -876,16 +878,18 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
         });
         
         if (dynamicOffer && dynamicOffer.loanAmountOffered > 0) {
-            setOffer(dynamicOffer);
-            setApplication(prev => ({ ...prev, loanOffer: dynamicOffer }));
-            toast({ title: "Loan Offer Generated", description: "Your personalised offer is ready." });
+            const finalOffer = {...dynamicOffer, tenureMonths: parseInt(selectedTenure)};
+            setOffer(finalOffer);
+            setApplication(prev => ({ ...prev, loanOffer: finalOffer }));
+            toast({ title: "Loan Offer Updated", description: "Your personalized offer is ready." });
         } else {
              // Fallback for the demo to ensure it always proceeds
             const fallbackOffer = {
                 loanAmountOffered: application.personalDetails!.loanAmount,
                 interestRate: 14.5,
                 monthlyPayment: Math.round(application.personalDetails!.loanAmount * (0.012 * Math.pow(1.012, parseInt(selectedTenure))) / (Math.pow(1.012, parseInt(selectedTenure)) - 1)), // Basic EMI calc
-                reason: "Standard offer based on your profile."
+                reason: "Standard offer based on your profile.",
+                tenureMonths: parseInt(selectedTenure)
             };
             setOffer(fallbackOffer);
             setApplication(prev => ({ ...prev, loanOffer: fallbackOffer }));
@@ -897,15 +901,14 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
       }
     });
 
-  }, [application, selectedTenure, toast, setApplication, offer]);
+  }, [application.underwritingResult, application.personalDetails, application.bureauReport, selectedTenure, toast, setApplication, offer]);
 
   const handleSelectOffer = () => {
     if (!offer) {
         toast({ variant: "destructive", title: "Error", description: "No offer selected." });
         return;
     }
-    // The offer is already in the state, so just update the tenure and proceed.
-    setApplication(prev => ({ ...prev, loanOffer: {...prev.loanOffer!, tenureMonths: parseInt(selectedTenure)} }));
+    // The offer with the selected tenure is already in the state
     onCompleted();
   };
 
@@ -932,7 +935,8 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <Form {...form}>
+      <form className="space-y-6">
         <h3 className="text-center font-headline text-2xl font-bold">Your Personalised Loan Offer</h3>
         <Card className="bg-primary/5 border-primary shadow-lg">
             <CardContent className="pt-6">
@@ -953,18 +957,29 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
 
                 <div className="mt-6">
                     <Label>Select Tenure (Months)</Label>
-                    <RadioGroup defaultValue="12" value={selectedTenure} onValueChange={setSelectedTenure} className="mt-2 grid grid-cols-3 md:grid-cols-5 gap-4">
-                        {[3, 6, 9, 12, 18].map(t => (
-                        <FormItem key={t} className="flex-1">
-                            <FormControl>
-                            <RadioGroupItem value={String(t)} id={`t-${t}`} className="sr-only" />
-                            </FormControl>
-                            <Label htmlFor={`t-${t}`} className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                            {t} months
-                            </Label>
-                        </FormItem>
-                        ))}
-                    </RadioGroup>
+                     <FormField
+                        control={form.control}
+                        name="tenure"
+                        render={({ field }) => (
+                        <RadioGroup 
+                            defaultValue="12" 
+                            value={selectedTenure} 
+                            onValueChange={setSelectedTenure} 
+                            className="mt-2 grid grid-cols-3 md:grid-cols-5 gap-4"
+                        >
+                            {[3, 6, 9, 12, 18].map(t => (
+                            <FormItem key={t} className="flex-1">
+                                <FormControl>
+                                <RadioGroupItem value={String(t)} id={`t-${t}`} className="sr-only" />
+                                </FormControl>
+                                <Label htmlFor={`t-${t}`} className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                {t} months
+                                </Label>
+                            </FormItem>
+                            ))}
+                        </RadioGroup>
+                        )}
+                    />
                 </div>
                 <Alert className="mt-6">
                   <Banknote className="h-4 w-4" />
@@ -973,8 +988,12 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
                 </Alert>
             </CardContent>
         </Card>
-        <Button onClick={handleSelectOffer} className="w-full">Accept Offer and Proceed</Button>
-    </div>
+        <Button onClick={handleSelectOffer} className="w-full" type="button" disabled={isPending}>
+          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+          Accept Offer and Proceed
+        </Button>
+      </form>
+    </Form>
   );
 }
 
