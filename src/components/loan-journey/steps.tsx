@@ -108,7 +108,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
       
       const loanAppData = {
         id: loanAppRef.id,
-        borrower_id: user.uid,
+        borrowerId: user.uid,
         requested_amount: values.loanAmount,
         requested_tenure_months: 12, // Defaulting tenure, can be changed
         product_type: 'PERSONAL_LOAN',
@@ -266,12 +266,12 @@ export function KycStep({ onCompleted }: StepProps) {
         setApplication(prev => ({ ...prev, kyc: kycUpdate }));
         
         const kycRef = doc(firestore, 'borrowers', user.uid, 'kyc_records', application.loanApplicationId);
-        const kycData = { borrower_id: user.uid, panStatus: 'VERIFIED', kycCompleted: false, applicationId: application.loanApplicationId };
+        const kycData = { borrowerId: user.uid, panStatus: 'VERIFIED', kycCompleted: false, applicationId: application.loanApplicationId };
         setDocumentNonBlocking(kycRef, kycData, { merge: true });
         
         const auditData = { 
             entityType: 'KYC', entityId: kycRef.id, action: 'PAN_VERIFIED_MOCK', 
-            actorType: 'SYSTEM', timestamp: serverTimestamp(), borrower_id: user.uid
+            actorType: 'SYSTEM', timestamp: serverTimestamp(), borrowerId: user.uid
         };
         addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditData);
         
@@ -301,12 +301,12 @@ export function KycStep({ onCompleted }: StepProps) {
                 setApplication(prev => ({ ...prev, kyc: kycUpdate }));
 
                 const kycRef = doc(firestore, 'borrowers', user.uid, 'kyc_records', application.loanApplicationId);
-                const kycData = { aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar, borrower_id: user.uid };
+                const kycData = { aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar, borrowerId: user.uid };
                 updateDocumentNonBlocking(kycRef, kycData);
 
                 const auditData = { 
                     entityType: 'KYC', entityId: kycRef.id, action: 'AADHAAR_OTP_AUTH_SUCCESS_MOCK', 
-                    actorType: 'SYSTEM', timestamp: serverTimestamp(), borrower_id: user.uid
+                    actorType: 'SYSTEM', timestamp: serverTimestamp(), borrowerId: user.uid
                 };
                 addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditData);
                 
@@ -477,14 +477,14 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
             digilockerDocuments: mockDocuments,
             addressVerified: !!addressVerified,
             kycCompleted: kycCompleted,
-            borrower_id: user.uid
+            borrowerId: user.uid
         };
 
         updateDocumentNonBlocking(kycDocRef, kycData);
 
         const auditData = {
             entityType: 'KYC', entityId: kycDocRef.id, action: 'DIGILOCKER_KYC_SUCCESS_MOCK',
-            actorType: 'SYSTEM', timestamp: serverTimestamp(), borrower_id: user.uid
+            actorType: 'SYSTEM', timestamp: serverTimestamp(), borrowerId: user.uid
         };
         addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditData);
         setDigilockerStatus('SUCCESS');
@@ -702,7 +702,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         approved_amount: underwritingDecision.approved_amount,
         approved_tenure_options: underwritingDecision.approved_tenure_options,
         updated_at: serverTimestamp(),
-        borrower_id: user.uid,
+        borrowerId: user.uid,
       };
 
       setDocumentNonBlocking(loanAppRef, loanAppUpdateData, { merge: true });
@@ -714,7 +714,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         actorType: 'SYSTEM',
         timestamp: serverTimestamp(),
         details: { score: mockReport.score },
-        borrower_id: user.uid,
+        borrowerId: user.uid,
       };
       addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLog1Data);
       
@@ -725,7 +725,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         actorType: 'SYSTEM',
         timestamp: serverTimestamp(),
         details: { decision: underwritingDecision.status, reason: underwritingDecision.reason },
-        borrower_id: user.uid,
+        borrowerId: user.uid,
       };
       addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLog2Data);
 
@@ -884,7 +884,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                     selected_tenure_months: selectedTenure,
                     selected_emi_amount: calculatedEmi,
                 },
-                borrower_id: user.uid,
+                borrowerId: user.uid,
             };
             addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLogData);
 
@@ -931,7 +931,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                     className="grid grid-cols-2 md:grid-cols-4 gap-4"
                 >
                     {tenureOptions.map(tenure => (
-                        <Label key={tenure} htmlFor={`tenure-${tenure}`} className={cn(
+                         <Label key={tenure} htmlFor={`tenure-${tenure}`} className={cn(
                             "cursor-pointer rounded-lg border-2 p-4 text-center transition-all",
                             selectedTenure === tenure 
                                 ? "border-primary bg-primary/10 shadow-lg" 
@@ -982,20 +982,13 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
 }
 
 
-const kfsSchema = z.object({
-  consent: z.literal(true, {
-    errorMap: () => ({ message: "You must view the KFS and accept the terms." }),
-  }),
-});
-
 export function KfsStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
   const [isKfsOpen, setIsKfsOpen] = useState(false);
   const [kfsViewed, setKfsViewed] = useState(false);
   const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof kfsSchema>>({
-    resolver: zodResolver(kfsSchema),
+  const form = useForm({
     defaultValues: { consent: false },
   });
 
@@ -1010,7 +1003,7 @@ export function KfsStep({ onCompleted }: StepProps) {
   const totalRepayment = approved_amount + totalInterest;
   const apr = (((totalInterest + processingFee) / approved_amount) / (selected_tenure_months/12)) * 100;
 
-  const handleAccept = (data: z.infer<typeof kfsSchema>) => {
+  const handleAccept = (data: { consent: boolean }) => {
     if (!kfsViewed) {
         toast({
             variant: "destructive",
@@ -1077,7 +1070,7 @@ export function KfsStep({ onCompleted }: StepProps) {
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-center text-2xl">Your Loan Offer Summary</CardTitle>
-          <CardDescription className="text-center">Please review and accept your final loan details.</CardDescription>
+          <p className="text-sm text-muted-foreground text-center">Please review and accept your final loan details.</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg bg-muted/50">
@@ -1105,7 +1098,7 @@ export function KfsStep({ onCompleted }: StepProps) {
             control={form.control}
             name="consent"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
@@ -1179,14 +1172,14 @@ export function BankDetailsStep({ onCompleted }: StepProps) {
           <FormField control={form.control} name="accountNumber" render={({ field }) => (
             <FormItem>
               <FormLabel>Bank Account Number</FormLabel>
-              <FormControl><Input placeholder="1234567890" {...field} value={field.value ?? ''} /></FormControl>
+              <FormControl><Input placeholder="1234567890" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <FormField control={form.control} name="ifsc" render={({ field }) => (
             <FormItem>
               <FormLabel>IFSC Code</FormLabel>
-              <FormControl><Input placeholder="SBIN0001234" {...field} value={field.value ?? ''} className="uppercase" /></FormControl>
+              <FormControl><Input placeholder="SBIN0001234" {...field} className="uppercase" /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
@@ -1394,3 +1387,5 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
+    
