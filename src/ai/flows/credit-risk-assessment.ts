@@ -69,7 +69,27 @@ const assessCreditRiskFlow = ai.defineFlow(
     outputSchema: CreditRiskAssessmentOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        const {output} = await ai.generate({
+            model: 'googleai/gemini-pro',
+            prompt: prompt.compile(input),
+            output: {
+              schema: CreditRiskAssessmentOutputSchema,
+            },
+          });
+        return output!;
+      } catch (e) {
+        retries--;
+        if (retries === 0) {
+          throw e;
+        }
+        console.log(`Retrying assessCreditRiskFlow, ${retries} attempts left.`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    // This part should not be reachable due to the throw in the loop.
+    throw new Error('Credit risk assessment failed after multiple retries.');
   }
 );

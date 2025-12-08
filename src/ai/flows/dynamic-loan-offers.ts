@@ -74,7 +74,27 @@ const dynamicLoanOffersFlow = ai.defineFlow(
     outputSchema: DynamicLoanOffersOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        const {output} = await ai.generate({
+            model: 'googleai/gemini-pro',
+            prompt: prompt.compile(input),
+            output: {
+              schema: DynamicLoanOffersOutputSchema,
+            },
+          });
+        return output!;
+      } catch (e) {
+        retries--;
+        if (retries === 0) {
+          throw e;
+        }
+        console.log(`Retrying dynamicLoanOffersFlow, ${retries} attempts left.`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    // This part should not be reachable due to the throw in the loop.
+    throw new Error('Loan offer generation failed after multiple retries.');
   }
 );
