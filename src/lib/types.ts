@@ -1,3 +1,5 @@
+import type { User } from 'firebase/auth';
+
 export type LoanApplication = {
   personalDetails?: {
     fullName: string;
@@ -35,4 +37,26 @@ export type LoanApplication = {
     isRegistered: boolean;
   };
   isDisbursed?: boolean;
+  consents?: Record<string, boolean>;
 };
+
+
+export type AppState = {
+  user: User | null;
+  borrower: Borrower | null;
+  loanApplication: LoanApplication | null;
+  loading: boolean;
+  error: Error | null;
+};
+
+
+export type Borrower = {
+    id: string;
+    firebaseAuthUid: string;
+    fullName: string;
+    mobileNumber: string;
+    email?: string;
+    isIndianResident: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+}

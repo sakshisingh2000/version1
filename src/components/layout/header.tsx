@@ -1,10 +1,17 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/icons';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, ShieldCheck } from 'lucide-react';
+import { useUser } from '@/firebase';
+import { getAuth } from 'firebase/auth';
 
 export function Header() {
+  const { user, isUserLoading } = useUser();
+  const auth = getAuth();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
@@ -22,6 +29,13 @@ export function Header() {
             {/* Can add search here if needed */}
           </div>
           <nav className="hidden md:flex items-center gap-2">
+            {user ? (
+                <Button variant="ghost" onClick={() => auth.signOut()}>Sign Out</Button>
+            ) : (
+                <Button asChild>
+                    <Link href="/login">Sign In</Link>
+                </Button>
+            )}
             <Button variant="ghost" asChild>
               <Link href="/admin">
                 <ShieldCheck className="mr-2 h-4 w-4" />
@@ -45,6 +59,11 @@ export function Header() {
                         <span className="font-bold font-headline">LoanSwift</span>
                     </Link>
                     <nav className="flex flex-col gap-4">
+                        {user ? (
+                            <Button variant="ghost" onClick={() => auth.signOut()}>Sign Out</Button>
+                        ) : (
+                            <Link href="/login" className="flex items-center gap-2 text-sm font-medium">Sign In</Link>
+                        )}
                         <Link href="/admin" className="flex items-center gap-2 text-sm font-medium">
                             <ShieldCheck className="h-5 w-5" />
                             RE Admin Console
