@@ -19,17 +19,55 @@ type LoanApplicationContextType = {
 const LoanApplicationContext = createContext<LoanApplicationContextType | null>(null);
 
 const initialApplicationState: LoanApplication = {
-  loanApplicationId: undefined,
-  personalDetails: undefined,
-  kyc: undefined,
-  bureauReport: undefined,
-  underwritingResult: undefined,
+  loanApplicationId: "mock-app-id-12345",
+  personalDetails: {
+    fullName: "Rohan Sharma",
+    pan: "ABCDE1234F",
+    birthDate: new Date("1990-05-15"),
+    loanAmount: 150000,
+    employmentType: "Salaried",
+    monthlyIncome: 75000,
+    addressLine1: "123, Tech Park",
+    city: "Bengaluru",
+    pincode: "560100",
+    consent: true,
+  },
+  kyc: {
+    panStatus: 'VERIFIED',
+    aadhaarAuthStatus: 'OTP_SUCCESS',
+    aadhaarMaskedNumber: 'XXXX-XXXX-8901',
+    digilockerStatus: 'SUCCESS',
+    digilockerDocuments: [
+      { doc_type: 'AADHAAR_XML', doc_name: 'Aadhaar XML / e-KYC', verification_status: 'VERIFIED' },
+      { doc_type: 'PAN_CARD', doc_name: 'PAN Card (e-PAN)', verification_status: 'VERIFIED' },
+    ],
+    addressVerified: true,
+    kycCompleted: true,
+  },
+  bureauReport: {
+    bureau_name: "CIBIL (Mock)",
+    score: 750,
+    total_active_loans: 2,
+    total_overdue_amount: 0,
+    max_dpd: 0,
+    recent_enquiries_count: 1,
+    decision_summary: "ELIGIBLE",
+    bureau_raw_mock_json: JSON.stringify({ "tradelines": 5, "inquiries_last_6m": 1 }, null, 2),
+  },
+  underwritingResult: {
+    status: 'APPROVED',
+    reason: 'Strong credit profile and low FOIR.',
+    eligible_loan_amount: 150000,
+    eligible_tenure_options: [6, 9, 12, 18],
+    indicative_emi: 13509,
+    internal_risk_score: 'LOW_RISK'
+  },
 };
 
 
 export function LoanApplicationProvider({ children }: { children: ReactNode }) {
   const [application, setApplication] = useState<LoanApplication>(initialApplicationState);
-  const [step, setStep] = useState(0); // Start at Personal Details (index 0)
+  const [step, setStep] = useState(4); // Start at Loan Offer (index 4)
 
   const nextStep = () => setStep(prev => prev + 1);
   const prevStep = () => setStep(prev => prev - 1);
