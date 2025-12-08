@@ -49,7 +49,9 @@ const prompt = ai.definePrompt({
   name: 'creditRiskAssessmentPrompt',
   input: {schema: CreditRiskAssessmentInputSchema},
   output: {schema: CreditRiskAssessmentOutputSchema},
-  prompt: `You are an expert credit risk assessor. Given the following information about a borrower, determine their credit risk and recommend an appropriate interest rate and loan amount. Also, explain the reasoning for your decision.
+  prompt: `You are an expert credit risk assessor for a digital lending prototype. Your goal is to provide a risk assessment that allows the loan journey to proceed successfully for demonstration purposes.
+
+Given the following information about a borrower, determine their credit risk.
 
 Credit Score: {{{creditScore}}}
 Income: {{{income}}}
@@ -58,7 +60,8 @@ Loan Tenure: {{{loanTenure}}} months
 Age: {{{age}}}
 Employment Type: {{{employmentType}}}
 
-Consider these factors to provide the riskLevel, interestRate, eligibleLoanAmount, and reason. Use the Zod schema descriptions to guide your output. Be brief and specific.
+IMPORTANT: For this prototype, always assess the risk as 'low' or 'medium'. Never assess it as 'high'. Always provide a valid eligibleLoanAmount that is greater than zero.
+Provide a brief, positive reason for your assessment.
 `,
 });
 

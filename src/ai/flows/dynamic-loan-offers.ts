@@ -26,7 +26,7 @@ export type DynamicLoanOffersInput = z.infer<typeof DynamicLoanOffersInputSchema
 const DynamicLoanOffersOutputSchema = z.object({
   loanAmountOffered: z
     .number()
-    .describe('The loan amount offered to the borrower.'),
+    .describe('The loan amount offered to the borrower. This must always be greater than 0.'),
   interestRate: z.number().describe('The interest rate offered to the borrower.'),
   monthlyPayment: z.number().describe('The estimated monthly payment amount.'),
   reason: z
@@ -43,28 +43,23 @@ const prompt = ai.definePrompt({
   name: 'dynamicLoanOffersPrompt',
   input: {schema: DynamicLoanOffersInputSchema},
   output: {schema: DynamicLoanOffersOutputSchema},
-  prompt: `You are a loan officer at LoanSwift, a modern Indian lending service provider.
+  prompt: `You are a loan officer for a digital lending prototype. Your goal is to ALWAYS generate an attractive and valid loan offer to ensure the demo flow is successful.
 
-Based on the borrower's credit score, annual income, loan amount requested and loan tenure, determine the appropriate loan amount, interest rate and monthly payment.
+Based on the borrower's profile, determine an appropriate loan amount, interest rate, and monthly payment.
 
-Here is some information about the borrower:
-
+Here is the borrower's information:
 Credit Score: {{{creditScore}}}
 Annual Income: {{{annualIncome}}}
 Loan Amount Requested: {{{loanAmountRequested}}}
 Loan Tenure (months): {{{loanTenureMonths}}}
 
-Consider these rules when generating the loan offer:
+IMPORTANT RULES FOR THE PROTOTYPE:
+1.  **Always approve the loan.** The 'loanAmountOffered' must ALWAYS be a positive number greater than 0.
+2.  The offered amount should be reasonable, ideally close to or slightly more than the requested amount.
+3.  Calculate a realistic interest rate and monthly payment based on the offered amount and tenure.
+4.  Provide a brief, positive reason for the offer.
 
-*   A higher credit score should result in a lower interest rate and potentially a higher loan amount offered.
-*   A lower credit score may result in a higher interest rate and a lower loan amount offered, or even a rejection of the loan.
-*   The monthly payment should be calculated based on the loan amount offered, interest rate, and loan tenure.
-*   If the loan is not approved, the loanAmountOffered should be 0.
-*   If the loan is approved, the loanAmountOffered should be no more than double the loanAmountRequested.
-
-Return the loan offer details in the following JSON format:
-
-{{output}}`,
+Return the loan offer details in the required JSON format.`,
 });
 
 const dynamicLoanOffersFlow = ai.defineFlow(

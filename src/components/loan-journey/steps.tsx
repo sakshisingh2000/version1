@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useLoanApplication } from "./loan-application-provider";
@@ -733,13 +731,20 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
     startTransition(async () => {
       try {
         const dynamicOffer = await getDynamicLoanOffers({
-          creditScore: Math.floor(Math.random() * (850 - 650 + 1)) + 650,
+          creditScore: Math.floor(Math.random() * (850 - 700 + 1)) + 700, // Ensure a good score for demo
           annualIncome: application.personalDetails!.monthlyIncome * 12,
           loanAmountRequested: application.personalDetails!.loanAmount,
           loanTenureMonths: parseInt(selectedTenure),
         });
-        setOffer(dynamicOffer);
+        
+        if (dynamicOffer && dynamicOffer.loanAmountOffered > 0) {
+            setOffer(dynamicOffer);
+        } else {
+            toast({ variant: "destructive", title: "Offer Generation Failed", description: "Could not generate a valid loan offer. Please try again." });
+        }
+
       } catch (error) {
+        console.error("Loan offer generation failed:", error);
         toast({ variant: "destructive", title: "Error", description: "Could not generate loan offers." });
       }
     });
@@ -762,7 +767,15 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
   }
   
   if (!offer) {
-    return <p>No offers available at this time. Please try again later.</p>;
+    return (
+        <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
+            <h3 className="text-xl font-semibold text-destructive">No Loan Offer Found</h3>
+            <p className="text-muted-foreground max-w-md">We could not generate a loan offer at this time. This may be a temporary issue.</p>
+            <Button asChild variant="outline">
+                <Link href="/">Back to Home</Link>
+            </Button>
+        </div>
+    );
   }
 
   if (offer.loanAmountOffered === 0) {
@@ -1201,9 +1214,3 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
-
-    
-
-    
-
-    
