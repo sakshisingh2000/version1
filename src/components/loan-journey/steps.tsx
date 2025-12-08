@@ -128,10 +128,8 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
         });
         onCompleted();
       }).catch(error => {
-        // This assumes that the most likely error is a permission error on one of the writes.
-        // A more sophisticated approach might try to determine which write failed.
         errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: borrowerRef.path, // We can report on the main doc path
+            path: borrowerRef.path,
             operation: 'write',
             requestResourceData: { borrower: borrowerData, loanApplication: loanAppData }
         }));
@@ -283,7 +281,6 @@ export function KycStep({ onCompleted }: StepProps) {
   async function onPanSubmit(values: z.infer<typeof panSchema>) {
     if (!user) return;
     startTransition(() => {
-      // Mock NSDL PAN verification
       setTimeout(() => {
         setIsPanVerified(true);
         const kycUpdate = { ...application.kyc, panStatus: 'VERIFIED' };
@@ -316,7 +313,6 @@ export function KycStep({ onCompleted }: StepProps) {
 
   function onAadhaarSubmit(values: z.infer<typeof aadhaarSchema>) {
     startTransition(() => {
-      // Mock sending Aadhaar OTP
       setTimeout(() => {
         setIsOtpSent(true);
         toast({ title: "OTP Sent", description: "Mock OTP sent to your Aadhaar-linked mobile (use 123456)." });
@@ -328,7 +324,6 @@ export function KycStep({ onCompleted }: StepProps) {
      e.preventDefault();
     if (!user) return;
     startTransition(() => {
-        // Mock OTP verification
         setTimeout(async () => {
             if (otp === "123456") {
                 setIsAadhaarVerified(true);
@@ -374,7 +369,6 @@ export function KycStep({ onCompleted }: StepProps) {
 
   return (
     <div className="space-y-8">
-      {/* PAN Verification Section */}
       <Card>
         <CardHeader>
           <CardTitle>1. PAN Verification (Mock)</CardTitle>
@@ -407,7 +401,6 @@ export function KycStep({ onCompleted }: StepProps) {
         </CardContent>
       </Card>
       
-      {/* Aadhaar Verification Section */}
       <Card>
         <CardHeader>
           <CardTitle>2. Aadhaar e-KYC (Mock)</CardTitle>
@@ -689,7 +682,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
   const { toast } = useToast();
 
   const handlePullReport = () => {
-    if (!user || !application.loanApplicationId) {
+    if (!user || !application.loanApplicationId || !application.personalDetails) {
       toast({ variant: 'destructive', title: 'Error', description: 'User or application context is missing.' });
       return;
     }
@@ -699,7 +692,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
       await new Promise(resolve => setTimeout(resolve, 2000));
       const mockReport = {
         bureau_name: "CIBIL (Mock)",
-        score: Math.floor(Math.random() * (850 - 700 + 1)) + 700, // Good score for demo
+        score: Math.floor(Math.random() * (850 - 680 + 1)) + 680,
         total_active_loans: Math.floor(Math.random() * 3) + 1,
         total_overdue_amount: 0,
         max_dpd: 0,
@@ -708,44 +701,65 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         bureau_raw_mock_json: JSON.stringify({ "tradelines": 5, "inquiries_last_6m": 2 }, null, 2),
       };
       setBureauReport(mockReport);
-      setApplication(prev => ({ ...prev, bureauReport: mockReport }));
-
+      
       // 2. Perform Automated Underwriting
-      const { monthlyIncome } = application.personalDetails!;
-      const fixedObligations = 5000; // Mock existing obligations
-      const randomEmiLoad = mockReport.total_active_loans * 3000;
-      const foir = (fixedObligations + randomEmiLoad) / monthlyIncome!;
-      const threshold = 0.5;
+      const { monthlyIncome, loanAmount } = application.personalDetails!;
+      const randomEMILoad = mockReport.total_active_loans * 3000; // Mock EMI for active loans
+      const fixedObligations = 5000; // Mock other fixed monthly expenses
+      const foir = (randomEMILoad + fixedObligations) / monthlyIncome;
+      const foirThreshold = 0.45;
 
       let decision: any;
-      if (mockReport.score >= 700 && mockReport.total_overdue_amount === 0 && foir <= threshold) {
-        decision = { status: 'APPROVED', reason: 'Strong credit profile and low FOIR.' };
+      if (mockReport.score >= 700 && mockReport.total_overdue_amount === 0 && foir <= foirThreshold) {
+          decision = { 
+              status: 'APPROVED', 
+              reason: `Strong credit profile (score: ${mockReport.score}) and low FOIR (${(foir * 100).toFixed(2)}%).`,
+              eligible_loan_amount: loanAmount, // Offer requested amount
+              eligible_tenure_options: [6, 9, 12, 18],
+              indicative_emi: Math.round(loanAmount * (0.012 * Math.pow(1.012, 12)) / (Math.pow(1.012, 12) - 1)), // Sample EMI for 12 months
+              internal_risk_score: 'LOW_RISK'
+          };
       } else if (mockReport.score >= 650) {
-        decision = { status: 'PENDING_REVIEW', reason: 'Requires manual underwriting review.' };
+          decision = { status: 'PENDING_REVIEW', reason: 'Credit score is fair. Requires manual underwriting review.' };
       } else {
-        decision = { status: 'REJECTED', reason: 'Credit score below minimum threshold.' };
+          decision = { status: 'REJECTED', reason: 'Credit score below minimum threshold.' };
       }
       setUnderwritingResult(decision);
-      setApplication(prev => ({ ...prev, underwritingResult: decision }));
 
-      // 3. Firestore Writes
+      // 3. Update application state and Firestore
+      const appUpdate = {
+        bureauReport: mockReport,
+        underwritingResult: decision,
+      };
+      setApplication(prev => ({ ...prev, ...appUpdate }));
+
       const batch = writeBatch(firestore);
       const loanAppRef = doc(firestore, 'borrowers', user.uid, 'loan_applications', application.loanApplicationId);
       const auditLog1Ref = doc(collection(firestore, 'borrowers', user.uid, 'audit_logs'));
       const auditLog2Ref = doc(collection(firestore, 'borrowers', user.uid, 'audit_logs'));
-
-      batch.update(loanAppRef, {
-        application_status: decision.status,
-        bureau_score: mockReport.score,
-        eligibility_decision_reason: decision.reason,
+      
+      const loanAppUpdateData = {
+        applicationStatus: decision.status,
+        bureauScore: mockReport.score,
+        eligibilityDecisionReason: decision.reason,
+        internalRiskScore: decision.internal_risk_score,
+        ...(decision.status === 'APPROVED' && {
+            eligibleLoanAmount: decision.eligible_loan_amount,
+            eligibleTenureOptions: decision.eligible_tenure_options,
+            indicativeEMI: decision.indicative_emi,
+        }),
         updatedAt: serverTimestamp(),
-      });
+      };
+
+      batch.update(loanAppRef, loanAppUpdateData);
+      
       batch.set(auditLog1Ref, {
         entityType: 'LOAN_APPLICATION',
         entityId: application.loanApplicationId,
         action: 'BUREAU_PULL_MOCK',
         actorType: 'SYSTEM',
         timestamp: serverTimestamp(),
+        details: { score: mockReport.score }
       });
       batch.set(auditLog2Ref, {
         entityType: 'LOAN_APPLICATION',
@@ -753,7 +767,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         action: 'UNDERWRITING_DECISION_MOCK',
         actorType: 'SYSTEM',
         timestamp: serverTimestamp(),
-        details: { decision: decision.status, score: mockReport.score }
+        details: { decision: decision.status, reason: decision.reason }
       });
       
       await batch.commit().catch(error => {
@@ -794,13 +808,13 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
     );
   }
 
-  if (underwritingResult?.status === 'REJECTED') {
+  if (underwritingResult?.status === 'REJECTED' || underwritingResult?.status === 'PENDING_REVIEW') {
     return (
        <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
             <AlertCircle className="h-16 w-16 text-destructive"/>
             <h3 className="text-2xl font-headline font-bold">Application Not Approved</h3>
             <p className="text-muted-foreground max-w-md">
-                Unfortunately, we are unable to proceed with your loan application at this time based on our current lending policies. We encourage you to check back in the future.
+                {underwritingResult.reason} We are unable to proceed with your loan application at this time based on our current lending policies.
             </p>
              <Button asChild><Link href="/">Back to Home</Link></Button>
         </div>
@@ -854,13 +868,13 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
   const [offer, setOffer] = useState<any>(application.loanOffer || null);
   const [isPending, startTransition] = useTransition();
   const [selectedTenure, setSelectedTenure] = useState(
-    application.loanOffer?.tenureMonths?.toString() || "12"
+    application.loanOffer?.tenureMonths?.toString() || application.underwritingResult?.eligible_tenure_options?.[2]?.toString() || "12"
   );
   const { toast } = useToast();
-  
-  const form = useForm();
+  const form = useForm(); // Form provider for react-hook-form components
 
   useEffect(() => {
+    // Only generate/update offer if the application is approved
     if (application.underwritingResult?.status !== 'APPROVED' || !application.personalDetails) {
       return;
     }
@@ -870,24 +884,28 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
     
     startTransition(async () => {
       try {
-        const dynamicOffer = await getDynamicLoanOffers({
+        const input = {
           creditScore: application.bureauReport!.score,
           annualIncome: application.personalDetails!.monthlyIncome * 12,
           loanAmountRequested: application.personalDetails!.loanAmount,
           loanTenureMonths: parseInt(selectedTenure),
-        });
+        };
+
+        const dynamicOffer = await getDynamicLoanOffers(input);
         
         if (dynamicOffer && dynamicOffer.loanAmountOffered > 0) {
-            const finalOffer = {...dynamicOffer, tenureMonths: parseInt(selectedTenure)};
+            const finalOffer = { ...dynamicOffer, tenureMonths: parseInt(selectedTenure) };
             setOffer(finalOffer);
             setApplication(prev => ({ ...prev, loanOffer: finalOffer }));
-            toast({ title: "Loan Offer Updated", description: "Your personalized offer is ready." });
+            if (!offer) { // Only show toast on initial load
+                toast({ title: "Your Personalised Offer is Ready!", description: "Review your loan details and select a tenure." });
+            }
         } else {
              // Fallback for the demo to ensure it always proceeds
             const fallbackOffer = {
-                loanAmountOffered: application.personalDetails!.loanAmount,
+                loanAmountOffered: application.underwritingResult.eligible_loan_amount,
                 interestRate: 14.5,
-                monthlyPayment: Math.round(application.personalDetails!.loanAmount * (0.012 * Math.pow(1.012, parseInt(selectedTenure))) / (Math.pow(1.012, parseInt(selectedTenure)) - 1)), // Basic EMI calc
+                monthlyPayment: Math.round(application.underwritingResult.eligible_loan_amount * (0.012 * Math.pow(1.012, parseInt(selectedTenure))) / (Math.pow(1.012, parseInt(selectedTenure)) - 1)),
                 reason: "Standard offer based on your profile.",
                 tenureMonths: parseInt(selectedTenure)
             };
@@ -908,7 +926,6 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
         toast({ variant: "destructive", title: "Error", description: "No offer selected." });
         return;
     }
-    // The offer with the selected tenure is already in the state
     onCompleted();
   };
 
@@ -962,12 +979,12 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
                         name="tenure"
                         render={({ field }) => (
                         <RadioGroup 
-                            defaultValue="12" 
+                            defaultValue={selectedTenure}
                             value={selectedTenure} 
                             onValueChange={setSelectedTenure} 
-                            className="mt-2 grid grid-cols-3 md:grid-cols-5 gap-4"
+                            className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-4"
                         >
-                            {[3, 6, 9, 12, 18].map(t => (
+                            {(application.underwritingResult?.eligible_tenure_options || [6, 9, 12, 18]).map((t: number) => (
                             <FormItem key={t} className="flex-1">
                                 <FormControl>
                                 <RadioGroupItem value={String(t)} id={`t-${t}`} className="sr-only" />
@@ -1374,3 +1391,5 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
+    
