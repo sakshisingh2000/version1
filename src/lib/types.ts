@@ -8,6 +8,7 @@ export type DigiLockerDocument = {
 };
 
 export type LoanApplication = {
+  loanApplicationId?: string;
   personalDetails?: {
     fullName: string;
     pan: string;
@@ -28,6 +29,20 @@ export type LoanApplication = {
     digilockerDocuments?: DigiLockerDocument[];
     addressVerified?: boolean;
     kycCompleted?: boolean;
+  };
+  bureauReport?: {
+    bureau_name: string;
+    score: number;
+    total_active_loans: number;
+    total_overdue_amount: number;
+    max_dpd: number;
+    recent_enquiries_count: number;
+    decision_summary: string;
+    bureau_raw_mock_json: string;
+  };
+  underwritingResult?: {
+    status: 'APPROVED' | 'REJECTED' | 'PENDING_REVIEW';
+    reason: string;
   };
   creditAssessment?: {
     riskLevel: string;

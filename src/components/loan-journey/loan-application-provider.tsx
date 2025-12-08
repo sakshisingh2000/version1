@@ -62,7 +62,18 @@ const STEPS = [
 ];
 
 export function LoanJourney() {
-  const { step, nextStep } = useLoanApplication();
+  const { step, nextStep, application } = useLoanApplication();
+  
+  const handleStepCompletion = () => {
+    // Skip to next step
+    if(step === 3 && application.underwritingResult?.status === 'REJECTED') {
+      // If rejected at credit check, we stay on the same component which shows the rejection message.
+      // The "Continue" button won't be visible.
+      return; 
+    }
+    nextStep();
+  }
+  
   const CurrentStepComponent = STEPS[step].component;
 
   return (
@@ -70,7 +81,7 @@ export function LoanJourney() {
       <StepIndicator current={step} total={STEPS.length} titles={STEPS.map(s => s.title)} />
       <Card className="mt-8">
         <CardContent className="p-4 sm:p-8">
-          <CurrentStepComponent onCompleted={nextStep} />
+          <CurrentStepComponent onCompleted={handleStepCompletion} />
         </CardContent>
       </Card>
     </div>

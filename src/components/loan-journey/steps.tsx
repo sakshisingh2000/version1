@@ -20,7 +20,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useState, useTransition, useEffect } from "react";
 import { assessCreditRisk } from "@/ai/flows/credit-risk-assessment";
 import { getDynamicLoanOffers } from "@/ai/flows/dynamic-loan-offers";
-import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet, FileText } from "lucide-react";
+import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet, FileText, BadgeCheck, AlertCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -38,6 +38,7 @@ import { Label } from "../ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "../ui/badge";
 import { ScrollArea } from "../ui/scroll-area";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface StepProps {
   onCompleted: () => void;
@@ -107,6 +108,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
       batch.set(borrowerRef, borrowerData, { merge: true });
       
       const loanAppData = {
+        id: loanAppRef.id,
         borrowerId: user.uid,
         requestedAmount: values.loanAmount,
         requestedTenureMonths: 12, // Defaulting tenure, can be changed
@@ -116,6 +118,8 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
         updatedAt: serverTimestamp(),
       };
       batch.set(loanAppRef, loanAppData);
+      
+      setApplication(prev => ({ ...prev, loanApplicationId: loanAppRef.id }));
 
       batch.commit().then(() => {
         toast({
@@ -320,7 +324,8 @@ export function KycStep({ onCompleted }: StepProps) {
     });
   }
 
-  async function onOtpSubmit() {
+  async function onOtpSubmit(e: React.MouseEvent<HTMLButtonElement>) {
+     e.preventDefault();
     if (!user) return;
     startTransition(() => {
         // Mock OTP verification
@@ -675,41 +680,112 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
 
 
 export function CreditCheckStep({ onCompleted }: StepProps) {
-    const { application, setApplication } = useLoanApplication();
-    const [isPending, startTransition] = useTransition();
-    const { toast } = useToast();
-  
-    useEffect(() => {
-      startTransition(async () => {
-        if (!application.personalDetails || !application.personalDetails.birthDate) {
-          toast({ variant: "destructive", title: "Error", description: "Personal details are missing." });
-          return;
-        }
-        
-        try {
-          // Mock Credit Bureau fetch and use AI for assessment
-          await new Promise(resolve => setTimeout(resolve, 2000));
-  
-          const assessment = await assessCreditRisk({
-            creditScore: Math.floor(Math.random() * (850 - 650 + 1)) + 650, // Mock score between 650-850
-            income: application.personalDetails.monthlyIncome * 12,
-            loanAmount: application.personalDetails.loanAmount,
-            loanTenure: 36, // Mock tenure
-            age: new Date().getFullYear() - application.personalDetails.birthDate.getFullYear(),
-            employmentType: application.personalDetails.employmentType
-          });
-          
-          setApplication(prev => ({ ...prev, creditAssessment: assessment }));
-          toast({ title: "Credit Assessment Complete", description: `Risk level assessed as ${assessment.riskLevel.toLowerCase()}.` });
-          onCompleted();
-        } catch (error) {
-          console.error("Credit assessment failed:", error);
-          toast({ variant: "destructive", title: "Error", description: "Failed to perform credit assessment." });
-        }
+  const { application, setApplication } = useLoanApplication();
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const [isProcessing, startTransition] = useTransition();
+  const [bureauReport, setBureauReport] = useState<any>(application.bureauReport);
+  const [underwritingResult, setUnderwritingResult] = useState<any>(application.underwritingResult);
+  const { toast } = useToast();
+
+  const handlePullReport = () => {
+    if (!user || !application.loanApplicationId) {
+      toast({ variant: 'destructive', title: 'Error', description: 'User or application context is missing.' });
+      return;
+    }
+
+    startTransition(async () => {
+      // 1. Simulate Bureau Pull
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const mockReport = {
+        bureau_name: "CIBIL (Mock)",
+        score: Math.floor(Math.random() * (850 - 700 + 1)) + 700, // Good score for demo
+        total_active_loans: Math.floor(Math.random() * 3) + 1,
+        total_overdue_amount: 0,
+        max_dpd: 0,
+        recent_enquiries_count: Math.floor(Math.random() * 3),
+        decision_summary: "ELIGIBLE",
+        bureau_raw_mock_json: JSON.stringify({ "tradelines": 5, "inquiries_last_6m": 2 }, null, 2),
+      };
+      setBureauReport(mockReport);
+      setApplication(prev => ({ ...prev, bureauReport: mockReport }));
+
+      // 2. Perform Automated Underwriting
+      const { monthlyIncome } = application.personalDetails!;
+      const fixedObligations = 5000; // Mock existing obligations
+      const randomEmiLoad = mockReport.total_active_loans * 3000;
+      const foir = (fixedObligations + randomEmiLoad) / monthlyIncome!;
+      const threshold = 0.5;
+
+      let decision: any;
+      if (mockReport.score >= 700 && mockReport.total_overdue_amount === 0 && foir <= threshold) {
+        decision = { status: 'APPROVED', reason: 'Strong credit profile and low FOIR.' };
+      } else if (mockReport.score >= 650) {
+        decision = { status: 'PENDING_REVIEW', reason: 'Requires manual underwriting review.' };
+      } else {
+        decision = { status: 'REJECTED', reason: 'Credit score below minimum threshold.' };
+      }
+      setUnderwritingResult(decision);
+      setApplication(prev => ({ ...prev, underwritingResult: decision }));
+
+      // 3. Firestore Writes
+      const batch = writeBatch(firestore);
+      const loanAppRef = doc(firestore, 'borrowers', user.uid, 'loan_applications', application.loanApplicationId);
+      const auditLog1Ref = doc(collection(firestore, 'borrowers', user.uid, 'audit_logs'));
+      const auditLog2Ref = doc(collection(firestore, 'borrowers', user.uid, 'audit_logs'));
+
+      batch.update(loanAppRef, {
+        application_status: decision.status,
+        bureau_score: mockReport.score,
+        eligibility_decision_reason: decision.reason,
+        updatedAt: serverTimestamp(),
       });
-    }, [application.personalDetails, setApplication, onCompleted, toast]);
-  
+      batch.set(auditLog1Ref, {
+        entityType: 'LOAN_APPLICATION',
+        entityId: application.loanApplicationId,
+        action: 'BUREAU_PULL_MOCK',
+        actorType: 'SYSTEM',
+        timestamp: serverTimestamp(),
+      });
+      batch.set(auditLog2Ref, {
+        entityType: 'LOAN_APPLICATION',
+        entityId: application.loanApplicationId,
+        action: 'UNDERWRITING_DECISION_MOCK',
+        actorType: 'SYSTEM',
+        timestamp: serverTimestamp(),
+        details: { decision: decision.status, score: mockReport.score }
+      });
+      
+      await batch.commit().catch(error => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+              path: loanAppRef.path,
+              operation: 'write',
+              requestResourceData: { app: "update", audit1: "set", audit2: "set" }
+          }));
+      });
+
+      toast({ title: 'Credit Check Complete', description: `Your application is ${decision.status}.` });
+    });
+  };
+
+  if (!bureauReport) {
     return (
+      <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
+        <FileText className="h-16 w-16 text-primary"/>
+        <h3 className="text-2xl font-headline font-bold">Credit Bureau Check</h3>
+        <p className="text-muted-foreground max-w-md">
+          As a final step before making an offer, we need to check your credit history with your consent. This is a secure, soft inquiry and will not affect your score.
+        </p>
+        <Button onClick={handlePullReport} disabled={isProcessing} size="lg">
+          {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+          Pull My Credit Report (Mock)
+        </Button>
+      </div>
+    );
+  }
+
+  if (isProcessing) {
+     return (
       <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
         <h3 className="text-xl font-semibold">Performing Credit Assessment</h3>
@@ -718,20 +794,82 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
     );
   }
 
+  if (underwritingResult?.status === 'REJECTED') {
+    return (
+       <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
+            <AlertCircle className="h-16 w-16 text-destructive"/>
+            <h3 className="text-2xl font-headline font-bold">Application Not Approved</h3>
+            <p className="text-muted-foreground max-w-md">
+                Unfortunately, we are unable to proceed with your loan application at this time based on our current lending policies. We encourage you to check back in the future.
+            </p>
+             <Button asChild><Link href="/">Back to Home</Link></Button>
+        </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+        <Alert variant="default" className="bg-green-50 border-green-200">
+            <BadgeCheck className="h-4 w-4 !text-green-600" />
+            <AlertTitle className="text-green-800">Credit Check Complete!</AlertTitle>
+            <AlertDescription className="text-green-700">
+                Your credit profile has been reviewed and you are eligible for a loan offer.
+            </AlertDescription>
+        </Alert>
+        <Card>
+            <CardHeader>
+                <CardTitle>Your Credit Report Summary (Mock)</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="text-center p-4 rounded-lg bg-muted/50">
+                    <p className="text-sm text-muted-foreground">CIBIL Score (Mock)</p>
+                    <p className="text-4xl font-bold">{bureauReport.score}</p>
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center">
+                    <Badge variant="secondary">Active Loans: {bureauReport.total_active_loans}</Badge>
+                    <Badge variant="secondary">Overdue: ₹{bureauReport.total_overdue_amount}</Badge>
+                    <Badge variant="secondary">Recent Inquiries: {bureauReport.recent_enquiries_count}</Badge>
+                </div>
+                <Accordion type="single" collapsible>
+                    <AccordionItem value="item-1">
+                        <AccordionTrigger>View Detailed Report (Mock)</AccordionTrigger>
+                        <AccordionContent>
+                            <pre className="text-xs bg-gray-100 p-2 rounded-md overflow-x-auto">
+                                {bureauReport.bureau_raw_mock_json}
+                            </pre>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+            </CardContent>
+        </Card>
+        <Button onClick={onCompleted} className="w-full">
+            Proceed to Loan Offer
+        </Button>
+    </div>
+  );
+}
+
 export function LoanOfferStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
-  const [offer, setOffer] = useState<any>(null);
+  const [offer, setOffer] = useState<any>(application.loanOffer || null);
   const [isPending, startTransition] = useTransition();
-  const [selectedTenure, setSelectedTenure] = useState("12");
+  const [selectedTenure, setSelectedTenure] = useState(
+    application.loanOffer?.tenureMonths?.toString() || "12"
+  );
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!application.creditAssessment || !application.personalDetails) return;
+    if (application.underwritingResult?.status !== 'APPROVED' || !application.personalDetails) {
+      return;
+    }
+    
+    // Don't re-generate if an offer already exists
+    if (offer) return;
     
     startTransition(async () => {
       try {
         const dynamicOffer = await getDynamicLoanOffers({
-          creditScore: Math.floor(Math.random() * (850 - 700 + 1)) + 700, // Ensure a good score for demo
+          creditScore: application.bureauReport!.score,
           annualIncome: application.personalDetails!.monthlyIncome * 12,
           loanAmountRequested: application.personalDetails!.loanAmount,
           loanTenureMonths: parseInt(selectedTenure),
@@ -739,28 +877,35 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
         
         if (dynamicOffer && dynamicOffer.loanAmountOffered > 0) {
             setOffer(dynamicOffer);
+            setApplication(prev => ({ ...prev, loanOffer: dynamicOffer }));
+            toast({ title: "Loan Offer Generated", description: "Your personalised offer is ready." });
         } else {
-            // This is a fallback for the demo. In a real app, you might show a "rejected" screen.
+             // Fallback for the demo to ensure it always proceeds
             const fallbackOffer = {
                 loanAmountOffered: application.personalDetails!.loanAmount,
                 interestRate: 14.5,
-                monthlyPayment: Math.round(application.personalDetails!.loanAmount * 0.09), // Simplified EMI
+                monthlyPayment: Math.round(application.personalDetails!.loanAmount * (0.012 * Math.pow(1.012, parseInt(selectedTenure))) / (Math.pow(1.012, parseInt(selectedTenure)) - 1)), // Basic EMI calc
                 reason: "Standard offer based on your profile."
             };
             setOffer(fallbackOffer);
+            setApplication(prev => ({ ...prev, loanOffer: fallbackOffer }));
             toast({ variant: "default", title: "Loan Offer Generated", description: "A standard offer has been prepared for you." });
         }
-
       } catch (error) {
         console.error("Loan offer generation failed:", error);
         toast({ variant: "destructive", title: "Error", description: "Could not generate loan offers." });
       }
     });
 
-  }, [selectedTenure, application.creditAssessment, application.personalDetails, toast]);
+  }, [application, selectedTenure, toast, setApplication, offer]);
 
   const handleSelectOffer = () => {
-    setApplication(prev => ({ ...prev, loanOffer: {...offer, tenureMonths: parseInt(selectedTenure)} }));
+    if (!offer) {
+        toast({ variant: "destructive", title: "Error", description: "No offer selected." });
+        return;
+    }
+    // The offer is already in the state, so just update the tenure and proceed.
+    setApplication(prev => ({ ...prev, loanOffer: {...prev.loanOffer!, tenureMonths: parseInt(selectedTenure)} }));
     onCompleted();
   };
 
@@ -1210,5 +1355,3 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
-
-    
