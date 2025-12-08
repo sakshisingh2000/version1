@@ -77,13 +77,7 @@ const dynamicLoanOffersFlow = ai.defineFlow(
     let retries = 3;
     while (retries > 0) {
       try {
-        const {output} = await ai.generate({
-            model: 'googleai/gemini-pro',
-            prompt: prompt.compile(input),
-            output: {
-              schema: DynamicLoanOffersOutputSchema,
-            },
-          });
+        const {output} = await prompt(input);
         return output!;
       } catch (e) {
         retries--;
