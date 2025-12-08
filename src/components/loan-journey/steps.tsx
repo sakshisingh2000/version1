@@ -679,7 +679,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
               reason: `Strong credit profile (score: ${mockReport.score}) and low FOIR (${(foir * 100).toFixed(2)}%).`,
               risk_score: 'LOW_RISK',
               approved_amount: loanAmount, // Approve requested amount
-              approved_tenure_options: [{ tenure_months: 3 }, { tenure_months: 6 }, { tenure_months: 9 }, { tenure_months: 12 }]
+              approved_tenure_options: [{ tenure_months: 6 }, { tenure_months: 9 }, { tenure_months: 12 }, { tenure_months: 18 }]
           };
       } else if (mockReport.score >= 650) {
           underwritingDecision = { 
@@ -845,6 +845,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
     const [consentChecked, setConsentChecked] = useState(false);
 
     const ANNUAL_INTEREST_RATE = 24; // 24% p.a.
+    const tenureOptions = [3, 6, 9, 12];
 
     useEffect(() => {
         if (selectedTenure && application.approved_amount) {
@@ -929,8 +930,6 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
       );
     }
 
-    const tenureOptions = application.approved_tenure_options?.map(opt => opt.tenure_months) || [3, 6, 9, 12];
-
     return (
         <div className="space-y-6">
             <h3 className="text-center font-headline text-2xl font-bold">Eligibility Result – Choose Tenure & EMI</h3>
@@ -941,14 +940,12 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                     <RadioGroup onValueChange={handleTenureChange} className="grid grid-cols-2 gap-4">
                         <Label className="col-span-2">Choose your tenure</Label>
                         {tenureOptions.map(tenure => (
-                             <FormItem key={tenure}>
-                                <FormControl>
-                                    <RadioGroupItem value={String(tenure)} id={`t-${tenure}`} className="sr-only" />
-                                </FormControl>
-                                <Label htmlFor={`t-${tenure}`} className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                             <div key={tenure} className="flex items-center space-x-2">
+                                <RadioGroupItem value={String(tenure)} id={`t-${tenure}`} />
+                                <Label htmlFor={`t-${tenure}`} className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary w-full">
                                     <span className="font-bold text-lg">{tenure} Months</span>
                                 </Label>
-                            </FormItem>
+                            </div>
                         ))}
                     </RadioGroup>
 
@@ -999,7 +996,7 @@ export function KfsStep({ onCompleted }: StepProps) {
     resolver: zodResolver(kfsSchema),
     defaultValues: { consent: false },
   });
-  
+
   if (!application.approved_amount || !application.selected_tenure_months || !application.selected_emi_amount) {
     return <p>Loan offer details not found. Please go back and select a tenure.</p>;
   }
@@ -1076,38 +1073,32 @@ export function KfsStep({ onCompleted }: StepProps) {
       </Dialog>
         
       <Card>
-          <CardHeader>
-              <CardTitle className="font-headline text-center text-2xl">Your Loan Offer Summary</CardTitle>
-              <CardDescription className="text-sm text-center text-muted-foreground">Please review and accept your final loan details.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg bg-muted/50">
-                  <p className="text-muted-foreground">Loan Amount</p>
-                  <p className="font-semibold text-right">₹{approved_amount.toLocaleString('en-IN')}</p>
-
-                  <p className="text-muted-foreground">Processing Fee (2%)</p>
-                  <p className="font-semibold text-right">- ₹{processingFee.toLocaleString('en-IN')}</p>
-
-                  <Separator className="col-span-2 my-1" />
-
-                  <p className="text-muted-foreground font-bold">Net Disbursed Amount</p>
-                  <p className="font-bold text-right text-lg">₹{disbursedAmount.toLocaleString('en-IN')}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg">
-                  <p className="text-muted-foreground">Monthly EMI</p>
-                  <p className="font-semibold text-right">₹{selected_emi_amount.toLocaleString('en-IN')}</p>
-                  
-                  <p className="text-muted-foreground">Total Repayment</p>
-                  <p className="font-semibold text-right">₹{totalRepayment.toLocaleString('en-IN')}</p>
-              </div>
-
-               <Button variant="link" onClick={openKfs} className="p-0 h-auto">View Detailed Key Facts Statement (KFS)</Button>
-          </CardContent>
+        <CardHeader>
+          <CardTitle className="font-headline text-center text-2xl">Your Loan Offer Summary</CardTitle>
+          <p className="text-sm text-center text-muted-foreground">Please review and accept your final loan details.</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg bg-muted/50">
+            <p className="text-muted-foreground">Loan Amount</p>
+            <p className="font-semibold text-right">₹{approved_amount.toLocaleString('en-IN')}</p>
+            <p className="text-muted-foreground">Processing Fee (2%)</p>
+            <p className="font-semibold text-right">- ₹{processingFee.toLocaleString('en-IN')}</p>
+            <Separator className="col-span-2 my-1" />
+            <p className="text-muted-foreground font-bold">Net Disbursed Amount</p>
+            <p className="font-bold text-right text-lg">₹{disbursedAmount.toLocaleString('en-IN')}</p>
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg">
+            <p className="text-muted-foreground">Monthly EMI</p>
+            <p className="font-semibold text-right">₹{selected_emi_amount.toLocaleString('en-IN')}</p>
+            <p className="text-muted-foreground">Total Repayment</p>
+            <p className="font-semibold text-right">₹{totalRepayment.toLocaleString('en-IN')}</p>
+          </div>
+          <Button variant="link" onClick={openKfs} className="p-0 h-auto">View Detailed Key Facts Statement (KFS)</Button>
+        </CardContent>
       </Card>
       
-       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleAccept)}>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleAccept)} className="space-y-4">
           <FormField
             control={form.control}
             name="consent"
@@ -1137,7 +1128,6 @@ export function KfsStep({ onCompleted }: StepProps) {
           </Button>
         </form>
       </Form>
-
     </div>
   );
 }
