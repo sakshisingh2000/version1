@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -8,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { useAppState } from '@/components/app-state-provider';
+import { useEffect } from 'react';
 
 const applicationSteps = [
   { id: 'profile', title: 'Profile & Loan Details', icon: User, status: 'COMPLETED' },
@@ -25,13 +27,14 @@ export default function ApplicationOverviewPage() {
   const { borrower } = useAppState();
   const router = useRouter();
 
-  if (isUserLoading) {
-    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
-  }
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [isUserLoading, user, router]);
 
-  if (!user) {
-    router.push('/login');
-    return null;
+  if (isUserLoading || !user) {
+    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
 
   const getStatusIcon = (status: string) => {

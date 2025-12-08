@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -60,6 +60,12 @@ export default function ConsentPage() {
     },
   });
 
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [isUserLoading, user, router]);
+
   const onSubmit = async (values: z.infer<typeof consentSchema>) => {
     if (!user) {
       toast({ variant: 'destructive', title: 'You are not logged in.' });
@@ -99,17 +105,12 @@ export default function ConsentPage() {
     }
   };
   
-  if (isUserLoading) {
+  if (isUserLoading || !user) {
       return (
           <div className="flex h-screen items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin" />
           </div>
       )
-  }
-
-  if (!user) {
-    router.push('/login');
-    return null;
   }
 
   return (
