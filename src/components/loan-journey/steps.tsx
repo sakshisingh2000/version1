@@ -20,7 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useState, useTransition, useEffect } from "react";
 import { assessCreditRisk } from "@/ai/flows/credit-risk-assessment";
 import { getDynamicLoanOffers } from "@/ai/flows/dynamic-loan-offers";
-import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle } from "lucide-react";
+import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -31,6 +31,10 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "../ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUser, useFirestore } from "@/firebase";
+import { doc, setDoc, serverTimestamp, writeBatch } from "firebase/firestore";
+import { Label } from "../ui/label";
 
 interface StepProps {
   onCompleted: () => void;
@@ -40,32 +44,77 @@ const personalDetailsSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters."),
   pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN format."),
   birthDate: z.date({ required_error: "A date of birth is required." }),
-  annualIncome: z.coerce.number().min(100000, "Annual income must be at least ₹1,00,000."),
-  loanAmount: z.coerce.number().min(10000, "Loan amount must be at least ₹10,000.").max(5000000, "Maximum loan amount is ₹50,00,000."),
+  loanAmount: z.coerce.number().min(10000, "Loan amount must be at least ₹10,000.").max(200000, "Maximum loan amount is ₹2,00,000."),
+  employmentType: z.string({ required_error: "Please select an employment type." }),
+  monthlyIncome: z.coerce.number().min(10000, "Monthly income must be at least ₹10,000."),
+  addressLine1: z.string().min(5, "Address is too short."),
+  city: z.string().min(2, "City is too short."),
+  pincode: z.string().regex(/^\d{6}$/, "Invalid pincode."),
   consent: z.literal(true, { errorMap: () => ({ message: "You must accept the terms and conditions." }) }),
 });
 
 export function PersonalDetailsStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
+  const { user } = useUser();
+  const firestore = useFirestore();
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof personalDetailsSchema>>({
     resolver: zodResolver(personalDetailsSchema),
-    defaultValues: application.personalDetails || { consent: false },
+    defaultValues: { ...application.personalDetails, consent: application.personalDetails?.consent || false },
   });
 
   function onSubmit(values: z.infer<typeof personalDetailsSchema>) {
-    setApplication(prev => ({ ...prev, personalDetails: values }));
-    startTransition(() => {
-      // Mock PAN verification
-      setTimeout(() => {
+    if (!user) {
+      toast({ variant: "destructive", title: "You are not logged in." });
+      return;
+    }
+    
+    startTransition(async () => {
+      setApplication(prev => ({ ...prev, personalDetails: values }));
+      
+      const batch = writeBatch(firestore);
+      const borrowerRef = doc(firestore, 'borrowers', user.uid);
+      const loanAppRef = doc(collection(firestore, 'borrowers', user.uid, 'loan_applications'));
+
+      batch.set(borrowerRef, {
+        pan: values.pan,
+        dateOfBirth: values.birthDate,
+        employmentType: values.employmentType,
+        monthlyIncome: values.monthlyIncome,
+        currentAddress: {
+          addressLine1: values.addressLine1,
+          city: values.city,
+          pincode: values.pincode
+        },
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+      
+      batch.set(loanAppRef, {
+        borrowerId: user.uid,
+        requestedAmount: values.loanAmount,
+        requestedTenureMonths: 12, // Defaulting tenure, can be changed
+        productType: 'PERSONAL_LOAN',
+        applicationStatus: 'DRAFT',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      try {
+        await batch.commit();
         toast({
-          title: "PAN Verified",
-          description: "Your PAN details have been successfully verified.",
+          title: "Details Saved",
+          description: "Your personal and loan details have been saved.",
         });
         onCompleted();
-      }, 1500);
+      } catch (error: any) {
+        toast({
+          variant: "destructive",
+          title: "Error saving details",
+          description: error.message,
+        });
+      }
     });
   }
 
@@ -106,20 +155,50 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
               <FormMessage />
             </FormItem>
           )} />
-           <FormField control={form.control} name="annualIncome" render={({ field }) => (
+          <FormField control={form.control} name="employmentType" render={({ field }) => (
             <FormItem>
-              <FormLabel>Annual Income (₹)</FormLabel>
-              <FormControl><Input type="number" placeholder="500000" {...field} /></FormControl>
+              <FormLabel>Employment Type</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger><SelectValue placeholder="Select your employment type" /></SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Salaried">Salaried</SelectItem>
+                  <SelectItem value="Self-employed">Self-employed</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <FormField control={form.control} name="monthlyIncome" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Monthly Net Income (₹)</FormLabel>
+              <FormControl><Input type="number" placeholder="40000" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <FormField control={form.control} name="loanAmount" render={({ field }) => (
-            <FormItem className="md:col-span-2">
+            <FormItem>
               <FormLabel>Loan Amount Required (₹)</FormLabel>
               <FormControl><Input type="number" placeholder="100000" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
+          <div className="md:col-span-2 space-y-4">
+            <h3 className="text-sm font-medium">Current Address</h3>
+            <FormField control={form.control} name="addressLine1" render={({ field }) => (
+              <FormItem><FormControl><Input placeholder="Address Line" {...field} /></FormControl><FormMessage /></FormItem>
+            )} />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="city" render={({ field }) => (
+                <FormItem><FormControl><Input placeholder="City" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="pincode" render={({ field }) => (
+                <FormItem><FormControl><Input placeholder="Pincode" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+            </div>
+          </div>
         </div>
         <FormField control={form.control} name="consent" render={({ field }) => (
           <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
@@ -133,7 +212,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
         )} />
         <Button type="submit" disabled={isPending} className="w-full md:w-auto">
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isPending ? "Verifying..." : "Save and Continue"}
+          {isPending ? "Saving..." : "Save and Continue"}
         </Button>
       </form>
     </Form>
@@ -141,146 +220,195 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
 }
 
 
-const kycSchema = z.object({
+const panSchema = z.object({
+  pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN format."),
+  fullName: z.string().min(2, "Full name is required."),
+});
+
+const aadhaarSchema = z.object({
   aadhaar: z.string().regex(/^\d{12}$/, "Invalid Aadhaar number."),
 });
 
 export function KycStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const [isPanVerified, setIsPanVerified] = useState(application.kyc?.panStatus === 'VERIFIED');
+  const [isAadhaarVerified, setIsAadhaarVerified] = useState(application.kyc?.aadhaarAuthStatus === 'OTP_SUCCESS');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [isVerified, setIsVerified] = useState(application.kyc?.isVerified || false);
-  const [isFetchingDocs, setIsFetchingDocs] = useState(false);
-  const [docs, setDocs] = useState<{type:string, name: string, url: string}[]>(application.kyc?.documents || []);
+  const [isVerifying, startTransition] = useTransition();
   const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof kycSchema>>({
-    resolver: zodResolver(kycSchema),
-    defaultValues: { aadhaar: application.kyc?.aadhaar || "" },
+  const panForm = useForm<z.infer<typeof panSchema>>({
+    resolver: zodResolver(panSchema),
+    defaultValues: { pan: application.personalDetails?.pan || "", fullName: application.personalDetails?.fullName || "" },
   });
 
-  function onAadhaarSubmit(values: z.infer<typeof kycSchema>) {
-    setIsVerifying(true);
-    // Mock Aadhaar OTP sending
-    setTimeout(() => {
-      setApplication(prev => ({ ...prev, kyc: { ...prev.kyc!, aadhaar: values.aadhaar } }));
-      setIsOtpSent(true);
-      setIsVerifying(false);
-      toast({ title: "OTP Sent", description: "An OTP has been sent to your Aadhaar-linked mobile number." });
-    }, 1000);
+  const aadhaarForm = useForm<z.infer<typeof aadhaarSchema>>({
+    resolver: zodResolver(aadhaarSchema),
+    defaultValues: { aadhaar: "" },
+  });
+
+  async function onPanSubmit(values: z.infer<typeof panSchema>) {
+    if (!user) return;
+    startTransition(() => {
+      // Mock NSDL PAN verification
+      setTimeout(async () => {
+        setIsPanVerified(true);
+        const kycUpdate = { ...application.kyc, panStatus: 'VERIFIED' };
+        setApplication(prev => ({ ...prev, kyc: kycUpdate }));
+        
+        const batch = writeBatch(firestore);
+        const kycRef = doc(collection(firestore, 'borrowers', user.uid, 'kyc_records'));
+        const auditRef = doc(collection(firestore, 'borrowers', user.uid, 'audit_logs'));
+
+        batch.set(kycRef, { borrowerId: user.uid, panStatus: 'VERIFIED', kycCompleted: false }, { merge: true });
+        batch.set(auditRef, { 
+            entityType: 'KYC', entityId: kycRef.id, action: 'PAN_VERIFIED_MOCK', 
+            actorType: 'SYSTEM', timestamp: serverTimestamp() 
+        });
+        
+        await batch.commit();
+        toast({ title: "PAN Verified Successfully" });
+      }, 1500);
+    });
+  }
+
+  function onAadhaarSubmit(values: z.infer<typeof aadhaarSchema>) {
+    startTransition(() => {
+      // Mock sending Aadhaar OTP
+      setTimeout(() => {
+        setIsOtpSent(true);
+        toast({ title: "OTP Sent", description: "Mock OTP sent to your Aadhaar-linked mobile (use 123456)." });
+      }, 1000);
+    });
   }
 
   function onOtpSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setIsVerifying(true);
-    // Mock OTP verification
-    setTimeout(() => {
-      if (otp === "123456") {
-        setIsVerified(true);
-        setApplication(prev => ({ ...prev, kyc: { ...prev.kyc!, isVerified: true } }));
-        toast({ title: "Aadhaar Verified", description: "Your Aadhaar has been successfully verified." });
-      } else {
-        toast({ variant: "destructive", title: "Invalid OTP", description: "The OTP you entered is incorrect." });
-      }
-      setIsVerifying(false);
-    }, 1500);
-  }
+    if (!user) return;
+    startTransition(() => {
+      // Mock OTP verification
+      setTimeout(async () => {
+        if (otp === "123456") {
+          setIsAadhaarVerified(true);
+          const maskedAadhaar = `XXXX-XXXX-${aadhaarForm.getValues("aadhaar").slice(-4)}`;
+          const kycUpdate = { ...application.kyc, aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar, kycCompleted: true };
+          setApplication(prev => ({ ...prev, kyc: kycUpdate }));
 
-  function fetchDigilockerDocs() {
-    setIsFetchingDocs(true);
-    // Mock DigiLocker document fetch
-    setTimeout(() => {
-      const fetchedDocs = [
-        { type: "PAN Card", name: "pan-card.pdf", url: "#" },
-        { type: "Aadhaar Card", name: "aadhaar-card.pdf", url: "#" },
-      ];
-      setDocs(fetchedDocs);
-      setApplication(prev => ({ ...prev, kyc: { ...prev.kyc!, documents: fetchedDocs } }));
-      setIsFetchingDocs(false);
-      toast({ title: "Documents Fetched", description: "Successfully fetched documents from DigiLocker." });
-    }, 2000);
-  }
+          const batch = writeBatch(firestore);
+          const kycQuery = (await getDocs(query(collection(firestore, 'borrowers', user.uid, 'kyc_records'))));
+          const kycRef = kycQuery.docs[0].ref;
+          const auditRef = doc(collection(firestore, 'borrowers', user.uid, 'audit_logs'));
+          
+          batch.update(kycRef, { aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar, kycCompleted: true });
+          batch.set(auditRef, { 
+              entityType: 'KYC', entityId: kycRef.id, action: 'AADHAAR_OTP_AUTH_SUCCESS_MOCK', 
+              actorType: 'SYSTEM', timestamp: serverTimestamp() 
+          });
+          
+          await batch.commit();
 
-  if (!isVerified) {
-    return (
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onAadhaarSubmit)} className="space-y-6">
-          <FormField control={form.control} name="aadhaar" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Aadhaar Number</FormLabel>
-              <FormControl>
-                <Input placeholder="1234 5678 9012" {...field} disabled={isOtpSent} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          {!isOtpSent ? (
-            <Button type="submit" disabled={isVerifying}>
-              {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Send OTP
-            </Button>
-          ) : (
-            <div className="space-y-4">
-              <Input value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="Enter 6-digit OTP (123456)" />
-              <Button onClick={onOtpSubmit} disabled={isVerifying}>
-                {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Verify OTP
-              </Button>
-            </div>
-          )}
-        </form>
-      </Form>
-    );
+          toast({ title: "Aadhaar Verified" });
+        } else {
+          toast({ variant: "destructive", title: "Invalid OTP" });
+        }
+      }, 1500);
+    });
   }
 
   return (
-    <div className="space-y-6">
-      <Alert variant="default" className="bg-green-50 border-green-200">
-        <UserCheck className="h-4 w-4 !text-green-600" />
-        <AlertTitle className="text-green-800">Aadhaar Verified</AlertTitle>
-        <AlertDescription className="text-green-700">
-          Your Aadhaar verification is complete. You can now fetch your documents from DigiLocker.
-        </AlertDescription>
-      </Alert>
-
+    <div className="space-y-8">
+      {/* PAN Verification Section */}
       <Card>
         <CardHeader>
-          <CardTitle>DigiLocker Documents</CardTitle>
-          <CardDescription>Fetch your e-documents to complete KYC.</CardDescription>
+          <CardTitle>1. PAN Verification (Mock)</CardTitle>
         </CardHeader>
         <CardContent>
-          {docs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border-2 border-dashed p-12 text-center">
-              <p className="text-muted-foreground">No documents fetched yet.</p>
-              <Button onClick={fetchDigilockerDocs} disabled={isFetchingDocs}>
-                {isFetchingDocs && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Fetch from DigiLocker
-              </Button>
-            </div>
+          {isPanVerified ? (
+            <Alert variant="default" className="bg-green-50 border-green-200">
+                <Verified className="h-4 w-4 !text-green-600" />
+                <AlertTitle className="text-green-800">PAN Verified</AlertTitle>
+                <AlertDescription className="text-green-700">
+                    Your PAN has been successfully verified against mock NSDL records.
+                </AlertDescription>
+            </Alert>
           ) : (
-            <ul className="space-y-2">
-              {docs.map(doc => (
-                <li key={doc.name} className="flex items-center justify-between rounded-md border p-3">
-                  <div className="flex items-center gap-3">
-                    <FileCheck2 className="h-5 w-5 text-primary" />
-                    <span>{doc.name}</span>
-                  </div>
-                  <Button variant="link" asChild><Link href={doc.url}>View</Link></Button>
-                </li>
-              ))}
-            </ul>
+            <Form {...panForm}>
+              <form onSubmit={panForm.handleSubmit(onPanSubmit)} className="space-y-4">
+                <FormField control={panForm.control} name="pan" render={({ field }) => (
+                  <FormItem><FormLabel>PAN</FormLabel><FormControl><Input {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={panForm.control} name="fullName" render={({ field }) => (
+                  <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <Button type="submit" disabled={isVerifying}>
+                  {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Verify PAN
+                </Button>
+              </form>
+            </Form>
           )}
         </CardContent>
       </Card>
-      {docs.length > 0 && (
+      
+      {/* Aadhaar Verification Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>2. Aadhaar e-KYC (Mock)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!isPanVerified ? (
+            <p className="text-sm text-muted-foreground">Please complete PAN verification first.</p>
+          ) : isAadhaarVerified ? (
+            <Alert variant="default" className="bg-green-50 border-green-200">
+                <UserCheck className="h-4 w-4 !text-green-600" />
+                <AlertTitle className="text-green-800">Aadhaar Verified</AlertTitle>
+                <AlertDescription className="text-green-700">
+                    Your Aadhaar e-KYC is complete.
+                </AlertDescription>
+            </Alert>
+          ) : (
+            <Form {...aadhaarForm}>
+              <form onSubmit={aadhaarForm.handleSubmit(onAadhaarSubmit)} className="space-y-4">
+                <FormField control={aadhaarForm.control} name="aadhaar" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Aadhaar Number</FormLabel>
+                    <FormControl><Input placeholder="1234 5678 9012" {...field} disabled={isOtpSent} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                {!isOtpSent ? (
+                  <Button type="submit" disabled={isVerifying}>
+                    {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Send OTP
+                  </Button>
+                ) : (
+                  <div className="space-y-4">
+                    <Label>Enter OTP</Label>
+                    <Input value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="Enter 6-digit OTP" />
+                    <Button onClick={onOtpSubmit} disabled={isVerifying}>
+                      {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Verify OTP
+                    </Button>
+                  </div>
+                )}
+              </form>
+            </Form>
+          )}
+        </CardContent>
+      </Card>
+
+      {(isPanVerified && isAadhaarVerified) && (
         <Button onClick={onCompleted} className="w-full md:w-auto">
-          Continue
+          Continue to DigiLocker KYC
         </Button>
       )}
     </div>
   );
 }
+
 
 export function CreditCheckStep({ onCompleted }: StepProps) {
     const { application, setApplication } = useLoanApplication();
@@ -289,7 +417,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
   
     useEffect(() => {
       startTransition(async () => {
-        if (!application.personalDetails) {
+        if (!application.personalDetails || !application.personalDetails.birthDate) {
           toast({ variant: "destructive", title: "Error", description: "Personal details are missing." });
           return;
         }
@@ -300,11 +428,11 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
   
           const assessment = await assessCreditRisk({
             creditScore: Math.floor(Math.random() * (850 - 650 + 1)) + 650, // Mock score between 650-850
-            income: application.personalDetails.annualIncome,
+            income: application.personalDetails.monthlyIncome * 12,
             loanAmount: application.personalDetails.loanAmount,
             loanTenure: 36, // Mock tenure
             age: new Date().getFullYear() - application.personalDetails.birthDate.getFullYear(),
-            employmentType: 'Salaried' // Mock employment type
+            employmentType: application.personalDetails.employmentType
           });
           
           setApplication(prev => ({ ...prev, creditAssessment: assessment }));
@@ -315,7 +443,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
           toast({ variant: "destructive", title: "Error", description: "Failed to perform credit assessment." });
         }
       });
-    }, []);
+    }, [application.personalDetails, setApplication, onCompleted, toast]);
   
     return (
       <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
@@ -330,7 +458,7 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
   const [offer, setOffer] = useState<any>(null);
   const [isPending, startTransition] = useTransition();
-  const [selectedTenure, setSelectedTenure] = useState("36");
+  const [selectedTenure, setSelectedTenure] = useState("12");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -340,7 +468,7 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
       try {
         const dynamicOffer = await getDynamicLoanOffers({
           creditScore: Math.floor(Math.random() * (850 - 650 + 1)) + 650,
-          annualIncome: application.personalDetails!.annualIncome,
+          annualIncome: application.personalDetails!.monthlyIncome * 12,
           loanAmountRequested: application.personalDetails!.loanAmount,
           loanTenureMonths: parseInt(selectedTenure),
         });
@@ -350,7 +478,7 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
       }
     });
 
-  }, [selectedTenure]);
+  }, [selectedTenure, application.creditAssessment, application.personalDetails, toast]);
 
   const handleSelectOffer = () => {
     setApplication(prev => ({ ...prev, loanOffer: {...offer, tenureMonths: parseInt(selectedTenure)} }));
@@ -368,7 +496,7 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
   }
   
   if (!offer) {
-    return <p>No offers available.</p>;
+    return <p>No offers available at this time. Please try again later.</p>;
   }
 
   if (offer.loanAmountOffered === 0) {
@@ -405,13 +533,13 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
 
                 <div className="mt-6">
                     <Label>Select Tenure (Months)</Label>
-                    <RadioGroup defaultValue="36" value={selectedTenure} onValueChange={setSelectedTenure} className="mt-2 grid grid-cols-3 gap-4">
-                        {[12, 24, 36, 48, 60].map(t => (
+                    <RadioGroup defaultValue="12" value={selectedTenure} onValueChange={setSelectedTenure} className="mt-2 grid grid-cols-3 md:grid-cols-5 gap-4">
+                        {[3, 6, 9, 12, 18].map(t => (
                         <FormItem key={t} className="flex-1">
                             <FormControl>
                             <RadioGroupItem value={String(t)} id={`t-${t}`} className="sr-only" />
                             </FormControl>
-                            <Label htmlFor={`t-${t}`} className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                            <Label htmlFor={`t-${t}`} className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                             {t} months
                             </Label>
                         </FormItem>
@@ -623,7 +751,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
                 The amount will be credited to your account shortly. Your first EMI is due next month.
             </p>
             <Button asChild>
-                <Link href="/">Back to Dashboard</Link>
+                <Link href="/application">Back to Dashboard</Link>
             </Button>
         </div>
     );

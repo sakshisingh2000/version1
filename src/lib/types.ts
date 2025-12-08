@@ -5,14 +5,19 @@ export type LoanApplication = {
     fullName: string;
     pan: string;
     birthDate: Date;
-    annualIncome: number;
     loanAmount: number;
+    employmentType: string;
+    monthlyIncome: number;
+    addressLine1: string;
+    city: string;
+    pincode: string;
     consent: boolean;
   };
   kyc?: {
-    aadhaar: string;
-    isVerified: boolean;
-    documents: { type: string; name: string; url: string }[];
+    panStatus: 'VERIFIED' | 'MISMATCH' | 'FAILED';
+    aadhaarAuthStatus: 'OTP_SUCCESS' | 'FAILED';
+    aadhaarMaskedNumber: string;
+    kycCompleted: boolean;
   };
   creditAssessment?: {
     riskLevel: string;
