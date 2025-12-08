@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useLoanApplication } from "./loan-application-provider";
@@ -19,7 +20,6 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useTransition, useEffect } from "react";
-import { getDynamicLoanOffers } from "@/ai/flows/dynamic-loan-offers";
 import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet, FileText, BadgeCheck, AlertCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
@@ -39,7 +39,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from "../ui/badge";
 import { ScrollArea } from "../ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { assessCreditRisk } from "@/ai/flows/credit-risk-assessment";
 
 interface StepProps {
   onCompleted: () => void;
@@ -869,30 +868,40 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
   );
 }
 
+const loanOfferSchema = z.object({
+  tenure: z.string({
+    required_error: "Please select a loan tenure.",
+  }),
+});
+
 export function LoanOfferStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
-  const [offer, setOffer] = useState<any>(application.loanOffer || null);
+  const [offer, setOffer] = useState<any>(null);
   const [isPending, startTransition] = useTransition();
-  const [selectedTenure, setSelectedTenure] = useState(
-    application.loanOffer?.tenureMonths?.toString() || application.underwritingResult?.eligible_tenure_options?.[2]?.toString() || "12"
-  );
   const { toast } = useToast();
-  const form = useForm();
+
+  const form = useForm<z.infer<typeof loanOfferSchema>>({
+    resolver: zodResolver(loanOfferSchema),
+    defaultValues: {
+      tenure: application.underwritingResult?.eligible_tenure_options?.[2]?.toString() || "12",
+    }
+  });
+
+  const selectedTenure = form.watch("tenure");
 
   useEffect(() => {
     if (application.underwritingResult?.status !== 'APPROVED') {
       return;
     }
-    
-    startTransition(() => {
-        const { eligible_loan_amount, indicative_emi } = application.underwritingResult;
 
-        // Simplified EMI calculation for tenure change
+    startTransition(() => {
+        const { eligible_loan_amount } = application.underwritingResult;
+
         const interestRate = 14.5; // Mock annual interest rate
         const monthlyRate = interestRate / 12 / 100;
         const tenure = parseInt(selectedTenure);
         const newEmi = Math.round(
-            eligible_loan_amount * monthlyRate * Math.pow(1 + monthlyRate, tenure) / (Math.pow(1 + monthlyRate, tenure) - 1)
+            (eligible_loan_amount * monthlyRate * Math.pow(1 + monthlyRate, tenure)) / (Math.pow(1 + monthlyRate, tenure) - 1)
         );
 
         const mockOffer = {
@@ -904,20 +913,35 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
         };
 
         setOffer(mockOffer);
-        setApplication(prev => ({ ...prev, loanOffer: mockOffer }));
-
+        if (!application.loanOffer) { // Only set initial offer
+            setApplication(prev => ({ ...prev, loanOffer: mockOffer }));
+        }
+        
         if (!offer) {
             toast({ title: "Your Personalised Offer is Ready!", description: "Review your loan details and select a tenure." });
         }
     });
 
-  }, [application.underwritingResult, selectedTenure, setApplication, offer, toast]);
+  }, [application.underwritingResult, selectedTenure, setApplication, toast, offer, application.loanOffer]);
 
-  const handleSelectOffer = () => {
-    if (!offer) {
-        toast({ variant: "destructive", title: "Error", description: "No offer selected." });
-        return;
-    }
+  const onSubmit = (data: z.infer<typeof loanOfferSchema>) => {
+    const tenure = parseInt(data.tenure);
+    const { eligible_loan_amount } = application.underwritingResult;
+    const interestRate = 14.5;
+    const monthlyRate = interestRate / 12 / 100;
+    const finalEmi = Math.round(
+        (eligible_loan_amount * monthlyRate * Math.pow(1 + monthlyRate, tenure)) / (Math.pow(1 + monthlyRate, tenure) - 1)
+    );
+
+    const finalOffer = {
+        loanAmountOffered: eligible_loan_amount,
+        interestRate: interestRate,
+        monthlyPayment: finalEmi,
+        reason: "Offer based on your strong credit profile.",
+        tenureMonths: tenure
+    };
+    
+    setApplication(prev => ({ ...prev, loanOffer: finalOffer }));
     onCompleted();
   };
 
@@ -945,7 +969,7 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
 
   return (
     <Form {...form}>
-      <form className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <h3 className="text-center font-headline text-2xl font-bold">Your Personalised Loan Offer</h3>
         <Card className="bg-primary/5 border-primary shadow-lg">
             <CardContent className="pt-6">
@@ -965,28 +989,32 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
                 </div>
 
                 <div className="mt-6">
-                    <Label>Select Tenure (Months)</Label>
-                     <FormField
+                    <FormField
                         control={form.control}
                         name="tenure"
                         render={({ field }) => (
-                        <RadioGroup 
-                            defaultValue={selectedTenure}
-                            value={selectedTenure} 
-                            onValueChange={setSelectedTenure} 
-                            className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-4"
-                        >
-                            {(application.underwritingResult?.eligible_tenure_options || [6, 9, 12, 18]).map((t: number) => (
-                            <FormItem key={t} className="flex-1">
-                                <FormControl>
-                                <RadioGroupItem value={String(t)} id={`t-${t}`} className="sr-only" />
-                                </FormControl>
-                                <Label htmlFor={`t-${t}`} className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                {t} months
-                                </Label>
-                            </FormItem>
-                            ))}
-                        </RadioGroup>
+                          <FormItem className="space-y-3">
+                            <FormLabel>Select Tenure (Months)</FormLabel>
+                            <FormControl>
+                              <RadioGroup
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                              >
+                                {(application.underwritingResult?.eligible_tenure_options || [6, 9, 12, 18]).map((t: number) => (
+                                <FormItem key={t} className="flex-1">
+                                    <FormControl>
+                                      <RadioGroupItem value={String(t)} id={`t-${t}`} className="sr-only" />
+                                    </FormControl>
+                                    <Label htmlFor={`t-${t}`} className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    {t} months
+                                    </Label>
+                                </FormItem>
+                                ))}
+                              </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                         )}
                     />
                 </div>
@@ -997,7 +1025,7 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
                 </Alert>
             </CardContent>
         </Card>
-        <Button onClick={handleSelectOffer} className="w-full" type="button" disabled={isPending}>
+        <Button type="submit" className="w-full" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
           Accept Offer and Proceed
         </Button>
@@ -1387,3 +1415,4 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
     
 
     
+
