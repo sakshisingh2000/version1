@@ -44,7 +44,7 @@ const initialApplicationState: LoanApplication = {
     addressVerified: true,
     kycCompleted: true,
   },
-   bureauReport: undefined,
+  bureauReport: undefined,
   underwritingResult: undefined,
 };
 
