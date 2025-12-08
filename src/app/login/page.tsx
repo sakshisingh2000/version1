@@ -28,7 +28,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -51,6 +51,7 @@ const signInSchema = z.object({
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   const { firebaseApp } = useFirebaseApp();
@@ -200,9 +201,25 @@ export default function LoginPage() {
                             )} />
                             <FormField control={signUpForm.control} name="password" render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Password</FormLabel>
-                                <FormControl><Input type="password" {...field} /></FormControl>
-                                <FormMessage />
+                                  <FormLabel>Password</FormLabel>
+                                  <div className="relative">
+                                    <FormControl>
+                                      <Input
+                                        type={showPassword ? 'text' : 'password'}
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5">
+                                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-gray-500">
+                                        {showPassword ? (
+                                          <EyeOff className="h-5 w-5" />
+                                        ) : (
+                                          <Eye className="h-5 w-5" />
+                                        )}
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <FormMessage />
                                 </FormItem>
                             )} />
                             <FormField control={signUpForm.control} name="confirm" render={({ field }) => (
