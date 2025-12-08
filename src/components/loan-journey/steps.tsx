@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useLoanApplication } from "./loan-application-provider";
@@ -65,7 +66,18 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
 
   const form = useForm<z.infer<typeof personalDetailsSchema>>({
     resolver: zodResolver(personalDetailsSchema),
-    defaultValues: { ...application.personalDetails, consent: application.personalDetails?.consent || false },
+    defaultValues: {
+      fullName: application.personalDetails?.fullName || "",
+      pan: application.personalDetails?.pan || "",
+      birthDate: application.personalDetails?.birthDate,
+      loanAmount: application.personalDetails?.loanAmount || 10000,
+      employmentType: application.personalDetails?.employmentType,
+      monthlyIncome: application.personalDetails?.monthlyIncome,
+      addressLine1: application.personalDetails?.addressLine1 || "",
+      city: application.personalDetails?.city || "",
+      pincode: application.personalDetails?.pincode || "",
+      consent: application.personalDetails?.consent || false
+    },
   });
 
   function onSubmit(values: z.infer<typeof personalDetailsSchema>) {
@@ -804,8 +816,8 @@ export function KfsStep({ onCompleted }: StepProps) {
     <div className="space-y-6">
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline text-center text-2xl">Loan Offer Summary</CardTitle>
-                <CardDescription className="text-center">Please review your final loan offer details.</CardDescription>
+                <CardTitle className="font-headline text-center text-2xl">Key Facts Statement</CardTitle>
+                <CardDescription className="text-center">Please review your final loan details. This is a binding offer.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg">
@@ -839,59 +851,16 @@ export function KfsStep({ onCompleted }: StepProps) {
                     <p className="text-muted-foreground font-bold">Total Repayment Amount</p>
                     <p className="font-bold text-right">₹{totalRepayment.toLocaleString('en-IN')}</p>
                 </div>
-
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button variant="outline" className="w-full" onClick={() => setKfsViewed(true)}>
-                            <FileText className="mr-2 h-4 w-4" /> View Key Facts Statement (KFS)
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                        <DialogHeader>
-                        <DialogTitle>Key Facts Statement (KFS)</DialogTitle>
-                        <DialogDescription>
-                            This is a mock KFS document as per RBI guidelines.
-                        </DialogDescription>
-                        </DialogHeader>
-                        <ScrollArea className="h-96 pr-4">
-                            <div className="space-y-4 text-sm">
-                                <p><strong>Lender:</strong> LoanSwift Partner NBFC</p>
-                                <p><strong>Loan Amount:</strong> ₹{loanAmountOffered.toLocaleString('en-IN')}</p>
-                                <p><strong>Annual Percentage Rate (APR):</strong> {apr.toFixed(2)}%</p>
-                                <p><strong>Interest Rate:</strong> {interestRate}% p.a.</p>
-                                <p><strong>Tenure:</strong> {tenureMonths} months</p>
-                                <p><strong>Processing Fee:</strong> ₹{processingFee.toLocaleString('en-IN')}</p>
-                                <p><strong>Net Disbursed Amount:</strong> ₹{disbursedAmount.toLocaleString('en-IN')}</p>
-                                <h4 className="font-bold">Repayment Schedule</h4>
-                                <p><strong>EMI:</strong> ₹{monthlyPayment.toLocaleString('en-IN')} x {tenureMonths} months</p>
-                                <h4 className="font-bold">Penal Charges</h4>
-                                <p>Late Payment Fee: ₹500 + GST</p>
-                                <p>Bounce Charges: ₹750 + GST</p>
-                                <h4 className="font-bold">Foreclosure Terms</h4>
-                                <p>Allowed after 3 EMIs with 4% charge on principal outstanding.</p>
-                                <h4 className="font-bold">Grievance Redressal</h4>
-                                <p>Contact: grievance@loanswift-mock.com</p>
-                            </div>
-                        </ScrollArea>
-                        <CardFooter>
-                           <Button asChild variant="outline" className="w-full">
-                                <a href="/mock/kfs.pdf" download>Download KFS (Mock PDF)</a>
-                           </Button>
-                        </CardFooter>
-                    </DialogContent>
-                </Dialog>
             </CardContent>
         </Card>
         
-        {kfsViewed && (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
-                <Checkbox checked={kfsConsent} onCheckedChange={(checked) => setKfsConsent(checked as boolean)} />
-                <div className="space-y-1 leading-none">
-                    <Label>I have read and understood the Key Facts Statement.</Label>
-                </div>
-            </FormItem>
-        )}
-
+        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
+            <Checkbox checked={kfsConsent} onCheckedChange={(checked) => setKfsConsent(checked as boolean)} />
+            <div className="space-y-1 leading-none">
+                <Label>I have read and understood the Key Facts Statement and accept the loan offer.</Label>
+            </div>
+        </FormItem>
+        
         <Button onClick={handleAccept} disabled={!kfsConsent} className="w-full">
             Accept Offer & Continue
         </Button>
@@ -999,7 +968,7 @@ export function EMandateStep({ onCompleted }: StepProps) {
 }
 
 export function AgreementStep({ onCompleted }: StepProps) {
-  const { setApplication } = useLoanApplication();
+  const { setApplication, application } = useLoanApplication();
   const [isSigning, startTransition] = useTransition();
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
@@ -1047,9 +1016,9 @@ export function AgreementStep({ onCompleted }: StepProps) {
           <ScrollArea className="h-64 w-full rounded-md border p-4 text-xs text-muted-foreground">
             <h3 className="font-bold mb-2">Mock Loan Agreement</h3>
             <p className="mb-2">This is a legally binding agreement between you (the Borrower) and LoanSwift Partner NBFC (the Lender)...</p>
-            <p>1. Loan Amount: ₹{useLoanApplication().application.loanOffer?.loanAmountOffered.toLocaleString('en-IN')}</p>
-            <p>2. Tenure: {useLoanApplication().application.loanOffer?.tenureMonths} months</p>
-            <p>3. Repayment: You agree to repay the loan via monthly EMIs of ₹{useLoanApplication().application.loanOffer?.monthlyPayment.toLocaleString('en-IN')} as per the e-mandate.</p>
+            <p>1. Loan Amount: ₹{application.loanOffer?.loanAmountOffered.toLocaleString('en-IN')}</p>
+            <p>2. Tenure: {application.loanOffer?.tenureMonths} months</p>
+            <p>3. Repayment: You agree to repay the loan via monthly EMIs of ₹{application.loanOffer?.monthlyPayment.toLocaleString('en-IN')} as per the e-mandate.</p>
             <p className="mt-4">By signing, you confirm your acceptance of all terms...</p>
           </ScrollArea>
         </CardContent>
@@ -1078,7 +1047,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
     const { application, setApplication } = useLoanApplication();
     const [isDisbursing, setIsDisbursing] = useState(false);
     const [isDisbursed, setIsDisbursed] = useState(application.isDisbursed);
-    const toast = useToast();
+    const { toast } = useToast();
 
     const handleDisburse = () => {
         setIsDisbursing(true);
@@ -1087,7 +1056,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
             setApplication(prev => ({ ...prev, isDisbursed: true }));
             setIsDisbursed(true);
             setIsDisbursing(false);
-            toast.toast({ title: "Loan Disbursed!", description: "The amount has been sent to your bank account." });
+            toast({ title: "Loan Disbursed!", description: "The amount has been sent to your bank account." });
         }, 2000);
     }
 
@@ -1156,3 +1125,5 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
+    
