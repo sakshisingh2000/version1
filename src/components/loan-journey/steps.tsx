@@ -670,23 +670,16 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
           reason: string;
           risk_score: 'LOW_RISK' | 'MEDIUM_RISK' | 'HIGH_RISK';
           approved_amount?: number;
-          approved_tenure_options?: TenureOption[];
+          approved_tenure_options?: { tenure_months: number }[];
       };
       
       if (mockReport.score >= 700 && mockReport.total_overdue_amount === 0 && foir <= foirThreshold) {
-          const approvedAmount = loanAmount; // Approve requested amount
-          const approvedTenureOptions = [3, 6, 9, 12].map(tenure => {
-              const interest = 14.0; // annual interest
-              const monthlyRate = interest / 12 / 100;
-              const emi = (approvedAmount * monthlyRate * Math.pow(1 + monthlyRate, tenure)) / (Math.pow(1 + monthlyRate, tenure) - 1);
-              return { tenure_months: tenure, emi_amount: Math.round(emi), interest_rate_annual: interest };
-          });
           underwritingDecision = { 
               status: 'APPROVED', 
               reason: `Strong credit profile (score: ${mockReport.score}) and low FOIR (${(foir * 100).toFixed(2)}%).`,
               risk_score: 'LOW_RISK',
-              approved_amount: approvedAmount,
-              approved_tenure_options: approvedTenureOptions,
+              approved_amount: loanAmount, // Approve requested amount
+              approved_tenure_options: [{ tenure_months: 3 }, { tenure_months: 6 }, { tenure_months: 9 }, { tenure_months: 12 }]
           };
       } else if (mockReport.score >= 650) {
           underwritingDecision = { 
@@ -848,158 +841,150 @@ const eligibilitySchema = z.object({
 });
 
 export function EligibilityResultStep({ onCompleted }: StepProps) {
-  const { application, setApplication } = useLoanApplication();
-  const { user } = useUser();
-  const firestore = useFirestore();
-  const [isPending, startTransition] = useTransition();
-  const { toast } = useToast();
+    const { application, setApplication } = useLoanApplication();
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const [isPending, startTransition] = useTransition();
+    const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof eligibilitySchema>>({
-    resolver: zodResolver(eligibilitySchema),
-    defaultValues: { tenure: undefined, consent: false },
-  });
+    const [selectedTenure, setSelectedTenure] = useState<number | null>(null);
+    const [calculatedEmi, setCalculatedEmi] = useState<number | null>(null);
+    const [consentChecked, setConsentChecked] = useState(false);
 
-  const onSubmit = (data: z.infer<typeof eligibilitySchema>) => {
-    if (!user || !application.loanApplicationId) {
-      toast({ variant: "destructive", title: "User session expired." });
-      return;
+    const ANNUAL_INTEREST_RATE = 24; // 24% p.a.
+
+    useEffect(() => {
+        if (selectedTenure && application.approved_amount) {
+            const P = application.approved_amount;
+            const r = (ANNUAL_INTEREST_RATE / 12) / 100; // Monthly interest rate
+            const n = selectedTenure;
+            const emi = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+            setCalculatedEmi(Math.round(emi));
+        } else {
+            setCalculatedEmi(null);
+        }
+    }, [selectedTenure, application.approved_amount]);
+
+    const handleTenureChange = (value: string) => {
+        setSelectedTenure(Number(value));
+    };
+
+    const handleConfirmAndContinue = () => {
+        if (!user || !application.loanApplicationId) {
+            toast({ variant: "destructive", title: "User session expired." });
+            return;
+        }
+        if (!selectedTenure || !calculatedEmi) {
+            toast({ variant: "destructive", title: "Please select a tenure." });
+            return;
+        }
+
+        startTransition(() => {
+            const appUpdate = {
+                selected_tenure_months: selectedTenure,
+                selected_emi_amount: calculatedEmi,
+                offer_status: 'OFFER_GENERATED',
+            };
+            setApplication(prev => ({ ...prev, ...appUpdate }));
+
+            const loanAppRef = doc(firestore, 'borrowers', user.uid, 'loan_applications', application.loanApplicationId);
+            updateDocumentNonBlocking(loanAppRef, { ...appUpdate, updated_at: serverTimestamp() });
+            
+            const auditLogData = {
+                entityType: 'LOAN_APP',
+                entityId: application.loanApplicationId,
+                action: 'TENURE_SELECTED_MOCK',
+                actorType: 'USER',
+                timestamp: serverTimestamp(),
+                new_value: {
+                    selected_tenure_months: selectedTenure,
+                    selected_emi_amount: calculatedEmi,
+                },
+                borrower_id: user.uid,
+            };
+            addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLogData);
+
+            toast({ title: "Tenure Confirmed", description: "Proceeding to next step." });
+            onCompleted();
+        });
+    };
+    
+    if (application.application_status === 'REJECTED') {
+      return (
+         <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
+              <AlertCircle className="h-16 w-16 text-destructive"/>
+              <h3 className="text-2xl font-headline font-bold">Application Not Approved</h3>
+              <p className="text-muted-foreground max-w-md">
+                  {application.eligibility_decision_reason} We are unable to proceed with your loan application at this time.
+              </p>
+              <Button asChild><Link href="/">Back to Home</Link></Button>
+          </div>
+      );
+    }
+    
+    if (application.application_status !== 'APPROVED' || !application.approved_amount) {
+      return (
+        <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <h3 className="text-xl font-semibold">Finalizing Eligibility...</h3>
+          <p className="text-muted-foreground">This should only take a moment.</p>
+        </div>
+      );
     }
 
-    startTransition(() => {
-      const selectedTenure = application.approved_tenure_options?.find(
-        (opt) => opt.tenure_months.toString() === data.tenure
-      );
+    const tenureOptions = [3, 6, 9, 12];
 
-      if (!selectedTenure) {
-        toast({ variant: "destructive", title: "Invalid tenure selected." });
-        return;
-      }
-
-      const appUpdate = {
-        selected_tenure_months: selectedTenure.tenure_months,
-        selected_emi_amount: selectedTenure.emi_amount,
-        offer_status: 'OFFER_GENERATED',
-      };
-      setApplication(prev => ({ ...prev, ...appUpdate }));
-
-      const loanAppRef = doc(firestore, 'borrowers', user.uid, 'loan_applications', application.loanApplicationId);
-      updateDocumentNonBlocking(loanAppRef, { ...appUpdate, updated_at: serverTimestamp() });
-      
-      const auditLogData = {
-        entityType: 'LOAN_APP',
-        entityId: application.loanApplicationId,
-        action: 'TENURE_SELECTION',
-        actorType: 'USER',
-        timestamp: serverTimestamp(),
-        new_value: {
-          selected_tenure_months: selectedTenure.tenure_months,
-          selected_emi_amount: selectedTenure.emi_amount,
-        },
-        borrower_id: user.uid,
-      };
-      addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLogData);
-
-      toast({ title: "Tenure Confirmed", description: "Proceeding to next step." });
-      onCompleted();
-    });
-  };
-
-  if (application.application_status === 'REJECTED') {
     return (
-       <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
-            <AlertCircle className="h-16 w-16 text-destructive"/>
-            <h3 className="text-2xl font-headline font-bold">Application Not Approved</h3>
-            <p className="text-muted-foreground max-w-md">
-                {application.eligibility_decision_reason} We are unable to proceed with your loan application at this time.
-            </p>
-            <Button asChild><Link href="/">Back to Home</Link></Button>
-        </div>
-    );
-  }
-  
-  if (application.application_status !== 'APPROVED' || !application.approved_amount) {
-    return (
-      <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <h3 className="text-xl font-semibold">Finalizing Eligibility...</h3>
-        <p className="text-muted-foreground">This should only take a moment.</p>
-      </div>
-    );
-  }
+        <div className="space-y-6">
+            <h3 className="text-center font-headline text-2xl font-bold">Eligibility Result – Choose Tenure & EMI</h3>
+            <Card>
+                <CardContent className="pt-6 space-y-4">
+                    <p className="text-center">You are eligible for <span className="font-bold">₹{application.approved_amount.toLocaleString('en-IN')}</span> (Mock).</p>
+                    
+                    <RadioGroup onValueChange={handleTenureChange} className="grid grid-cols-2 gap-4">
+                        <FormLabel>Choose your tenure</FormLabel>
+                        {tenureOptions.map(tenure => (
+                             <FormItem key={tenure}>
+                                <FormControl>
+                                    <RadioGroupItem value={String(tenure)} id={`t-${tenure}`} className="sr-only" />
+                                </FormControl>
+                                <Label htmlFor={`t-${tenure}`} className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    <span className="font-bold text-lg">{tenure} Months</span>
+                                </Label>
+                            </FormItem>
+                        ))}
+                    </RadioGroup>
 
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <h3 className="text-center font-headline text-2xl font-bold">Your Eligibility Result</h3>
-        <Card className="bg-primary/5 border-primary shadow-lg">
-          <CardContent className="pt-6">
-            <div className="text-center mb-6">
-              <p className="text-sm text-muted-foreground">You are eligible for a loan of</p>
-              <p className="text-4xl font-bold font-headline">₹{application.approved_amount.toLocaleString('en-IN')}</p>
+                    {calculatedEmi ? (
+                        <p className="text-center font-semibold">Estimated EMI for {selectedTenure} months: ₹{calculatedEmi.toLocaleString('en-IN')} per month (Mock).</p>
+                    ) : (
+                        <p className="text-center text-muted-foreground">Select a tenure to see your EMI.</p>
+                    )}
+                </CardContent>
+            </Card>
+
+            <div className="flex items-center space-x-2 rounded-md border p-4 shadow">
+                <Checkbox id="terms" checked={consentChecked} onCheckedChange={(checked) => setConsentChecked(checked as boolean)} />
+                <label htmlFor="terms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    I confirm that I have reviewed and chosen this loan tenure and EMI.
+                </label>
             </div>
             
-            <FormField
-              control={form.control}
-              name="tenure"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Select a tenure that works for you</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                    >
-                      {application.approved_tenure_options?.map((option) => (
-                        <FormItem key={option.tenure_months}>
-                          <FormControl>
-                            <RadioGroupItem value={String(option.tenure_months)} id={`t-${option.tenure_months}`} className="sr-only" />
-                          </FormControl>
-                          <Label htmlFor={`t-${option.tenure_months}`} className="flex flex-col items-start justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                            <span className="font-bold text-lg">{option.tenure_months} Months</span>
-                            <span className="text-sm">EMI: ₹{option.emi_amount.toLocaleString('en-IN')}/mo</span>
-                            <span className="text-xs text-muted-foreground">Rate: {option.interest_rate_annual}% p.a.</span>
-                          </Label>
-                        </FormItem>
-                      ))}
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
-
-         <FormField
-          control={form.control}
-          name="consent"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>
-                  I confirm that I have reviewed and chosen this loan tenure and EMI.
-                </FormLabel>
-                <FormMessage />
-              </div>
-            </FormItem>
-          )}
-        />
-        
-        <Button type="submit" className="w-full" disabled={isPending || !form.formState.isValid}>
-          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Confirm Tenure & Proceed
-        </Button>
-      </form>
-    </Form>
-  );
+            <Button 
+                onClick={handleConfirmAndContinue} 
+                className="w-full" 
+                disabled={isPending || !selectedTenure || !consentChecked}
+            >
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Confirm Tenure & Continue
+            </Button>
+            {!selectedTenure || !consentChecked && (
+                 <p className="text-sm text-destructive text-center">Please select a tenure and confirm before continuing.</p>
+            )}
+        </div>
+    );
 }
+
 
 const kfsSchema = z.object({
   consent: z.literal(true, {
@@ -1087,7 +1072,7 @@ export function KfsStep({ onCompleted }: StepProps) {
       <Card>
           <CardHeader>
               <CardTitle className="font-headline text-center text-2xl">Your Loan Offer Summary</CardTitle>
-               <p className="text-sm text-center text-muted-foreground">Please review and accept your final loan details.</p>
+              <p className="text-sm text-center text-muted-foreground">Please review and accept your final loan details.</p>
           </CardHeader>
           <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg bg-muted/50">
@@ -1196,14 +1181,14 @@ export function BankDetailsStep({ onCompleted }: StepProps) {
           <FormField control={form.control} name="accountNumber" render={({ field }) => (
             <FormItem>
               <FormLabel>Bank Account Number</FormLabel>
-              <FormControl><Input placeholder="1234567890" {...field} /></FormControl>
+              <FormControl><Input placeholder="1234567890" {...field} value={field.value || ''} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <FormField control={form.control} name="ifsc" render={({ field }) => (
             <FormItem>
               <FormLabel>IFSC Code</FormLabel>
-              <FormControl><Input placeholder="SBIN0001234" {...field} className="uppercase" /></FormControl>
+              <FormControl><Input placeholder="SBIN0001234" {...field} value={field.value || ''} className="uppercase" /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
