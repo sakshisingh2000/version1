@@ -272,22 +272,20 @@ export function KycStep({ onCompleted }: StepProps) {
   });
 
   async function onPanSubmit(values: z.infer<typeof panSchema>) {
-    if (!user) return;
+    if (!user || !application.loanApplicationId) return;
     startTransition(() => {
       setTimeout(() => {
         setIsPanVerified(true);
         const kycUpdate = { ...application.kyc, panStatus: 'VERIFIED' };
         setApplication(prev => ({ ...prev, kyc: kycUpdate }));
         
-        const kycRef = doc(collection(firestore, 'borrowers', user.uid, 'kyc_records'));
-        const auditRef = doc(collection(firestore, 'borrowers', user.uid, 'audit_logs'));
-
-        const kycData = { borrowerId: user.uid, panStatus: 'VERIFIED', kycCompleted: false };
+        const kycRef = doc(firestore, 'borrowers', user.uid, 'kyc_records', application.loanApplicationId);
+        const kycData = { borrowerId: user.uid, panStatus: 'VERIFIED', kycCompleted: false, applicationId: application.loanApplicationId };
         setDocumentNonBlocking(kycRef, kycData, { merge: true });
         
         const auditData = { 
             entityType: 'KYC', entityId: kycRef.id, action: 'PAN_VERIFIED_MOCK', 
-            actorType: 'SYSTEM', timestamp: serverTimestamp() 
+            actorType: 'SYSTEM', timestamp: serverTimestamp(), borrowerId: user.uid
         };
         addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditData);
         
@@ -307,7 +305,7 @@ export function KycStep({ onCompleted }: StepProps) {
 
   async function onOtpSubmit(e: React.MouseEvent<HTMLButtonElement>) {
      e.preventDefault();
-    if (!user) return;
+    if (!user || !application.loanApplicationId) return;
     startTransition(() => {
         setTimeout(async () => {
             if (otp === "123456") {
@@ -316,21 +314,13 @@ export function KycStep({ onCompleted }: StepProps) {
                 const kycUpdate = { ...application.kyc, aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar };
                 setApplication(prev => ({ ...prev, kyc: kycUpdate }));
 
-                const kycQuery = await getDocs(query(collection(firestore, 'borrowers', user.uid, 'kyc_records')));
-
-                let kycRef;
-                if (kycQuery.empty) {
-                    kycRef = doc(collection(firestore, 'borrowers', user.uid, 'kyc_records'));
-                } else {
-                    kycRef = kycQuery.docs[0].ref;
-                }
-                
-                const kycData = { aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar };
-                setDocumentNonBlocking(kycRef, kycData, { merge: true });
+                const kycRef = doc(firestore, 'borrowers', user.uid, 'kyc_records', application.loanApplicationId);
+                const kycData = { aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar, borrowerId: user.uid };
+                updateDocumentNonBlocking(kycRef, kycData);
 
                 const auditData = { 
                     entityType: 'KYC', entityId: kycRef.id, action: 'AADHAAR_OTP_AUTH_SUCCESS_MOCK', 
-                    actorType: 'SYSTEM', timestamp: serverTimestamp() 
+                    actorType: 'SYSTEM', timestamp: serverTimestamp(), borrowerId: user.uid
                 };
                 addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditData);
                 
@@ -463,6 +453,8 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
 
   const onSubmit = (data: z.infer<typeof digilockerSchema>) => {
     startTransition(async () => {
+        if (!user || !application.loanApplicationId) return;
+
         setIsModalOpen(false);
         await new Promise(resolve => setTimeout(resolve, 2000));
         
@@ -489,30 +481,26 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
         };
 
         setApplication(prev => ({ ...prev, kyc: kycUpdate }));
+        
+        const kycDocRef = doc(firestore, 'borrowers', user.uid, 'kyc_records', application.loanApplicationId);
+        
+        const kycData = {
+            digilockerStatus: 'SUCCESS',
+            digilockerDocuments: mockDocuments,
+            addressVerified: !!addressVerified,
+            kycCompleted: kycUpdate.kycCompleted,
+            borrowerId: user.uid
+        };
 
-        if (user) {
-            const kycQuery = await getDocs(query(collection(firestore, 'borrowers', user.uid, 'kyc_records')));
-            if (!kycQuery.empty) {
-                const kycDocRef = kycQuery.docs[0].ref;
-                
-                const kycData = {
-                    digilockerStatus: 'SUCCESS',
-                    digilockerDocuments: mockDocuments,
-                    addressVerified: !!addressVerified,
-                    kycCompleted: kycUpdate.kycCompleted
-                };
+        updateDocumentNonBlocking(kycDocRef, kycData);
 
-                updateDocumentNonBlocking(kycDocRef, kycData);
-
-                const auditData = {
-                    entityType: 'KYC', entityId: kycDocRef.id, action: 'DIGILOCKER_KYC_SUCCESS_MOCK',
-                    actorType: 'SYSTEM', timestamp: serverTimestamp()
-                };
-                addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditData);
-                setDigilockerStatus('SUCCESS');
-                toast({ title: "DigiLocker KYC Successful", description: "Documents have been fetched and verified." });
-            }
-        }
+        const auditData = {
+            entityType: 'KYC', entityId: kycDocRef.id, action: 'DIGILOCKER_KYC_SUCCESS_MOCK',
+            actorType: 'SYSTEM', timestamp: serverTimestamp(), borrowerId: user.uid
+        };
+        addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditData);
+        setDigilockerStatus('SUCCESS');
+        toast({ title: "DigiLocker KYC Successful", description: "Documents have been fetched and verified." });
     });
   }
   
@@ -722,7 +710,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
             indicativeEMI: decision.indicative_emi,
         }),
         updatedAt: serverTimestamp(),
-        borrowerId: user.uid, // Add this line
+        borrowerId: user.uid,
       };
 
       updateDocumentNonBlocking(loanAppRef, loanAppUpdateData);
@@ -733,7 +721,8 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         action: 'BUREAU_PULL_MOCK',
         actorType: 'SYSTEM',
         timestamp: serverTimestamp(),
-        details: { score: mockReport.score }
+        details: { score: mockReport.score },
+        borrowerId: user.uid,
       };
       addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLog1Data);
       
@@ -743,7 +732,8 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         action: 'UNDERWRITING_DECISION_MOCK',
         actorType: 'SYSTEM',
         timestamp: serverTimestamp(),
-        details: { decision: decision.status, reason: decision.reason }
+        details: { decision: decision.status, reason: decision.reason },
+        borrowerId: user.uid,
       };
       addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLog2Data);
 
@@ -840,6 +830,8 @@ const loanOfferSchema = z.object({
 
 export function LoanOfferStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
+  const { user } = useUser();
+  const firestore = useFirestore();
   const [offer, setOffer] = useState<any>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
@@ -848,7 +840,7 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
     resolver: zodResolver(loanOfferSchema),
     defaultValues: {
       tenure: application.underwritingResult?.eligible_tenure_options?.[2]?.toString() || "12",
-    }
+    },
   });
 
   const selectedTenure = form.watch("tenure");
@@ -878,29 +870,39 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
         
         setOffer(mockOffer);
 
-        if (!offer) {
-            toast({ title: "Your Personalised Offer is Ready!", description: "Review your loan details and select a tenure." });
-        }
     });
 
-  }, [application.underwritingResult, selectedTenure, offer, toast]);
+  }, [application.underwritingResult, selectedTenure]);
 
   const onSubmit = (data: z.infer<typeof loanOfferSchema>) => {
-    if (!offer) {
-        toast({variant: "destructive", title: "Offer not finalized."})
+    if (!offer || !user || !application.loanApplicationId) {
+        toast({variant: "destructive", title: "Offer not finalized or user session expired."})
         return;
     }
-
-    const finalOffer = {
-        loanAmountOffered: offer.loanAmountOffered,
-        interestRate: offer.interestRate,
-        monthlyPayment: offer.monthlyPayment,
-        tenureMonths: offer.tenureMonths,
-        reason: offer.reason,
-    };
     
-    setApplication(prev => ({ ...prev, loanOffer: finalOffer }));
-    onCompleted();
+    startTransition(() => {
+        const finalOffer = {
+            loanAmountOffered: offer.loanAmountOffered,
+            interestRate: offer.interestRate,
+            monthlyPayment: offer.monthlyPayment,
+            tenureMonths: offer.tenureMonths,
+            reason: offer.reason,
+        };
+        
+        setApplication(prev => ({ ...prev, loanOffer: finalOffer }));
+
+        const loanAppRef = doc(firestore, 'borrowers', user.uid, 'loan_applications', application.loanApplicationId);
+        const loanAppUpdate = {
+          applicationStatus: 'OFFER_GENERATED',
+          finalLoanOffer: finalOffer,
+          updatedAt: serverTimestamp(),
+          borrowerId: user.uid,
+        };
+        updateDocumentNonBlocking(loanAppRef, loanAppUpdate);
+
+        toast({ title: "Offer Accepted", description: "Proceeding to Key Facts Statement." });
+        onCompleted();
+    });
   };
   
   if (application.underwritingResult?.status !== 'APPROVED') {
@@ -915,21 +917,12 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
     );
   }
 
-  if (isPending && !offer) {
+  if (!offer) {
      return (
       <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
         <h3 className="text-xl font-semibold">Generating Your Custom Offer</h3>
         <p className="text-muted-foreground">Based on your profile, we are crafting the best possible loan offers for you.</p>
-      </div>
-    );
-  }
-  
-  if (!offer) {
-    // This can happen briefly while useEffect runs
-    return (
-      <div className="flex justify-center items-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
@@ -992,8 +985,9 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
                 </Alert>
             </CardContent>
         </Card>
-        <Button type="submit" className="w-full">
-          Accept Offer and Proceed
+        <Button type="submit" className="w-full" disabled={isPending}>
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Accept Offer and Proceed
         </Button>
       </form>
     </Form>
@@ -1386,3 +1380,4 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
 
 
     
+
