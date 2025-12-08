@@ -1,5 +1,12 @@
 import type { User } from 'firebase/auth';
 
+export type DigiLockerDocument = {
+  doc_type: string;
+  doc_name: string;
+  verification_status: 'VERIFIED' | 'NOT_PROVIDED' | 'FAILED';
+  expiry_date?: string;
+};
+
 export type LoanApplication = {
   personalDetails?: {
     fullName: string;
@@ -14,10 +21,13 @@ export type LoanApplication = {
     consent: boolean;
   };
   kyc?: {
-    panStatus: 'VERIFIED' | 'MISMATCH' | 'FAILED';
-    aadhaarAuthStatus: 'OTP_SUCCESS' | 'FAILED';
-    aadhaarMaskedNumber: string;
-    kycCompleted: boolean;
+    panStatus?: 'VERIFIED' | 'MISMATCH' | 'FAILED';
+    aadhaarAuthStatus?: 'OTP_SUCCESS' | 'FAILED';
+    aadhaarMaskedNumber?: string;
+    digilockerStatus?: 'SUCCESS' | 'FAILED' | 'PENDING';
+    digilockerDocuments?: DigiLockerDocument[];
+    addressVerified?: boolean;
+    kycCompleted?: boolean;
   };
   creditAssessment?: {
     riskLevel: string;

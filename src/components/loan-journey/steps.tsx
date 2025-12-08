@@ -20,7 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useState, useTransition, useEffect } from "react";
 import { assessCreditRisk } from "@/ai/flows/credit-risk-assessment";
 import { getDynamicLoanOffers } from "@/ai/flows/dynamic-loan-offers";
-import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified } from "lucide-react";
+import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -33,8 +33,10 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "../ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUser, useFirestore } from "@/firebase";
-import { doc, setDoc, serverTimestamp, writeBatch } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, writeBatch, collection, getDocs, query, updateDoc } from "firebase/firestore";
 import { Label } from "../ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "../ui/badge";
 
 interface StepProps {
   onCompleted: () => void;
@@ -285,36 +287,43 @@ export function KycStep({ onCompleted }: StepProps) {
     });
   }
 
-  function onOtpSubmit(e: React.FormEvent) {
+  async function onOtpSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
     startTransition(() => {
-      // Mock OTP verification
-      setTimeout(async () => {
-        if (otp === "123456") {
-          setIsAadhaarVerified(true);
-          const maskedAadhaar = `XXXX-XXXX-${aadhaarForm.getValues("aadhaar").slice(-4)}`;
-          const kycUpdate = { ...application.kyc, aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar, kycCompleted: true };
-          setApplication(prev => ({ ...prev, kyc: kycUpdate }));
+        // Mock OTP verification
+        setTimeout(async () => {
+            if (otp === "123456") {
+                setIsAadhaarVerified(true);
+                const maskedAadhaar = `XXXX-XXXX-${aadhaarForm.getValues("aadhaar").slice(-4)}`;
+                const kycUpdate = { ...application.kyc, aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar };
+                setApplication(prev => ({ ...prev, kyc: kycUpdate }));
 
-          const batch = writeBatch(firestore);
-          const kycQuery = (await getDocs(query(collection(firestore, 'borrowers', user.uid, 'kyc_records'))));
-          const kycRef = kycQuery.docs[0].ref;
-          const auditRef = doc(collection(firestore, 'borrowers', user.uid, 'audit_logs'));
-          
-          batch.update(kycRef, { aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar, kycCompleted: true });
-          batch.set(auditRef, { 
-              entityType: 'KYC', entityId: kycRef.id, action: 'AADHAAR_OTP_AUTH_SUCCESS_MOCK', 
-              actorType: 'SYSTEM', timestamp: serverTimestamp() 
-          });
-          
-          await batch.commit();
+                const batch = writeBatch(firestore);
+                const kycQuery = await getDocs(query(collection(firestore, 'borrowers', user.uid, 'kyc_records')));
 
-          toast({ title: "Aadhaar Verified" });
-        } else {
-          toast({ variant: "destructive", title: "Invalid OTP" });
-        }
-      }, 1500);
+                let kycRef;
+                if (kycQuery.empty) {
+                    kycRef = doc(collection(firestore, 'borrowers', user.uid, 'kyc_records'));
+                } else {
+                    kycRef = kycQuery.docs[0].ref;
+                }
+
+                const auditRef = doc(collection(firestore, 'borrowers', user.uid, 'audit_logs'));
+                
+                batch.set(kycRef, { aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar }, { merge: true });
+                batch.set(auditRef, { 
+                    entityType: 'KYC', entityId: kycRef.id, action: 'AADHAAR_OTP_AUTH_SUCCESS_MOCK', 
+                    actorType: 'SYSTEM', timestamp: serverTimestamp() 
+                });
+                
+                await batch.commit();
+
+                toast({ title: "Aadhaar Verified" });
+            } else {
+                toast({ variant: "destructive", title: "Invalid OTP" });
+            }
+        }, 1500);
     });
   }
 
@@ -385,14 +394,14 @@ export function KycStep({ onCompleted }: StepProps) {
                     Send OTP
                   </Button>
                 ) : (
-                  <div className="space-y-4">
+                  <form onSubmit={onOtpSubmit} className="space-y-4">
                     <Label>Enter OTP</Label>
                     <Input value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="Enter 6-digit OTP" />
-                    <Button onClick={onOtpSubmit} disabled={isVerifying}>
+                    <Button type="submit" disabled={isVerifying}>
                       {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Verify OTP
                     </Button>
-                  </div>
+                  </form>
                 )}
               </form>
             </Form>
@@ -405,6 +414,212 @@ export function KycStep({ onCompleted }: StepProps) {
           Continue to DigiLocker KYC
         </Button>
       )}
+    </div>
+  );
+}
+
+const availableDocs = [
+    { id: 'AADHAAR_XML', label: 'Aadhaar XML / e-KYC' },
+    { id: 'DRIVING_LICENSE', label: 'Driving License' },
+    { id: 'PAN_CARD', label: 'PAN Card (e-PAN)' },
+    { id: 'PASSPORT', label: 'Passport' },
+    { id: 'VOTER_ID', label: 'Voter ID' },
+    { id: 'UTILITY_BILL', label: 'Utility Bill (e.g., Electricity)' },
+    { id: 'BANK_STATEMENT', label: 'Bank Statement (last 3 months)' },
+];
+
+const digilockerSchema = z.object({
+  selectedDocs: z.array(z.string()).refine(value => value.some(item => item), {
+    message: "You have to select at least one document.",
+  })
+});
+
+export function DigiLockerStep({ onCompleted }: StepProps) {
+  const { application, setApplication } = useLoanApplication();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isVerifying, startTransition] = useTransition();
+  const [digilockerStatus, setDigilockerStatus] = useState(application.kyc?.digilockerStatus);
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof digilockerSchema>>({
+    resolver: zodResolver(digilockerSchema),
+    defaultValues: { selectedDocs: [] },
+  });
+
+  const onSubmit = (data: z.infer<typeof digilockerSchema>) => {
+    startTransition(async () => {
+        setIsModalOpen(false);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const mockDocuments = data.selectedDocs.map(docId => {
+            const docInfo = availableDocs.find(d => d.id === docId);
+            return {
+                doc_type: docId,
+                doc_name: docInfo?.label || "Unknown Document",
+                verification_status: "VERIFIED",
+                ...(docId === 'DRIVING_LICENSE' && { expiry_date: "2030-12-31" })
+            };
+        });
+
+        // Mock address verification
+        const aadhaarInDocs = mockDocuments.some(d => d.doc_type === 'AADHAAR_XML');
+        const addressVerified = aadhaarInDocs && application.personalDetails?.pincode;
+
+        const kycUpdate = {
+            ...application.kyc,
+            digilockerStatus: 'SUCCESS',
+            digilockerDocuments: mockDocuments,
+            addressVerified: !!addressVerified,
+            kycCompleted: application.kyc?.panStatus === 'VERIFIED' && application.kyc?.aadhaarAuthStatus === 'OTP_SUCCESS' && !!addressVerified
+        };
+
+        setApplication(prev => ({ ...prev, kyc: kycUpdate }));
+
+        if (user) {
+            const kycQuery = await getDocs(query(collection(firestore, 'borrowers', user.uid, 'kyc_records')));
+            if (!kycQuery.empty) {
+                const kycDocRef = kycQuery.docs[0].ref;
+                await updateDoc(kycDocRef, {
+                    digilockerStatus: 'SUCCESS',
+                    digilockerDocuments: mockDocuments,
+                    addressVerified: !!addressVerified,
+                    kycCompleted: kycUpdate.kycCompleted
+                });
+
+                const auditRef = doc(collection(firestore, 'borrowers', user.uid, 'audit_logs'));
+                await setDoc(auditRef, {
+                    entityType: 'KYC', entityId: kycDocRef.id, action: 'DIGILOCKER_KYC_SUCCESS_MOCK',
+                    actorType: 'SYSTEM', timestamp: serverTimestamp()
+                });
+            }
+        }
+
+        setDigilockerStatus('SUCCESS');
+        toast({ title: "DigiLocker KYC Successful", description: "Documents have been fetched and verified." });
+    });
+  }
+  
+  if (digilockerStatus === 'SUCCESS') {
+    const kycCompleted = application.kyc?.kycCompleted;
+    return (
+        <div className="space-y-6">
+             <Alert variant="default" className="bg-green-50 border-green-200">
+                <Verified className="h-4 w-4 !text-green-600" />
+                <AlertTitle className="text-green-800">DigiLocker Connected</AlertTitle>
+                <AlertDescription className="text-green-700">
+                    We have successfully fetched your documents from DigiLocker.
+                </AlertDescription>
+            </Alert>
+            <Card>
+                <CardHeader><CardTitle>Fetched Documents</CardTitle></CardHeader>
+                <CardContent className="space-y-2">
+                    {application.kyc?.digilockerDocuments?.map(doc => (
+                        <div key={doc.doc_type} className="flex justify-between items-center p-2 border rounded-md">
+                            <span>{doc.doc_name}</span>
+                            <Badge variant={doc.verification_status === 'VERIFIED' ? 'default' : 'destructive'} className={doc.verification_status === 'VERIFIED' ? 'bg-accent text-accent-foreground' : ''}>
+                                {doc.verification_status}
+                            </Badge>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+            {kycCompleted && (
+                 <Alert>
+                    <CheckCircle className="h-4 w-4" />
+                    <AlertTitle>KYC Completed!</AlertTitle>
+                    <AlertDescription>
+                       All your KYC steps including PAN, Aadhaar, and Address verification are complete.
+                    </AlertDescription>
+                </Alert>
+            )}
+            <Button onClick={onCompleted} className="w-full">Continue to Credit Check</Button>
+        </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Share Documents from DigiLocker (Mock)</DialogTitle>
+                    <DialogDescription>
+                        Select the documents you want to share for KYC verification.
+                    </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                        control={form.control}
+                        name="selectedDocs"
+                        render={() => (
+                            <FormItem>
+                            {availableDocs.map((item) => (
+                                <FormField
+                                key={item.id}
+                                control={form.control}
+                                name="selectedDocs"
+                                render={({ field }) => {
+                                    return (
+                                    <FormItem
+                                        key={item.id}
+                                        className="flex flex-row items-start space-x-3 space-y-0"
+                                    >
+                                        <FormControl>
+                                        <Checkbox
+                                            checked={field.value?.includes(item.id)}
+                                            onCheckedChange={(checked) => {
+                                            return checked
+                                                ? field.onChange([...field.value, item.id])
+                                                : field.onChange(
+                                                    field.value?.filter(
+                                                    (value) => value !== item.id
+                                                    )
+                                                )
+                                            }}
+                                        />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">
+                                        {item.label}
+                                        </FormLabel>
+                                    </FormItem>
+                                    )
+                                }}
+                                />
+                            ))}
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <Button type="submit" disabled={isVerifying} className="w-full">
+                            {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                            Share Selected Documents (Mock)
+                        </Button>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+
+        {isVerifying ? (
+            <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <h3 className="text-xl font-semibold">Connecting to DigiLocker...</h3>
+                <p className="text-muted-foreground">Please wait while we securely connect and fetch your documents.</p>
+            </div>
+        ) : (
+             <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
+                <Wallet className="h-16 w-16 text-primary"/>
+                <h3 className="text-2xl font-headline font-bold">Connect with DigiLocker</h3>
+                <p className="text-muted-foreground max-w-md">
+                    To complete your KYC, we need to fetch your official documents (like Aadhaar, PAN) from your DigiLocker account with your consent. This is a secure and RBI-approved method.
+                </p>
+                <Button onClick={() => setIsModalOpen(true)} size="lg">
+                    Connect to DigiLocker (Mock)
+                </Button>
+            </div>
+        )}
     </div>
   );
 }

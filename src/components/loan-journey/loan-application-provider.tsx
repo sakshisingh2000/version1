@@ -3,7 +3,7 @@
 import type { LoanApplication } from '@/lib/types';
 import { createContext, useContext, useState, useMemo, type Dispatch, type SetStateAction, type ReactNode } from 'react';
 import { StepIndicator } from './step-indicator';
-import { BankDetailsStep, CreditCheckStep, DisbursementStep, EMandateStep, KfsStep, KycStep, LoanOfferStep, PersonalDetailsStep } from './steps';
+import { BankDetailsStep, CreditCheckStep, DigiLockerStep, DisbursementStep, EMandateStep, KfsStep, KycStep, LoanOfferStep, PersonalDetailsStep } from './steps';
 import { Card, CardContent } from '../ui/card';
 
 type LoanApplicationContextType = {
@@ -51,6 +51,7 @@ export function useLoanApplication() {
 const STEPS = [
   { title: "Personal Details", component: PersonalDetailsStep },
   { title: "KYC Verification", component: KycStep },
+  { title: "DigiLocker KYC", component: DigiLockerStep },
   { title: "Credit Check", component: CreditCheckStep },
   { title: "Loan Offer", component: LoanOfferStep },
   { title: "Key Facts", component: KfsStep },
