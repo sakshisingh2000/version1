@@ -1,7 +1,6 @@
+
 import Link from 'next/link';
-import {
-  ArrowRight,
-} from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
@@ -14,8 +13,13 @@ export default function Home() {
       <main className="flex-1">
         <section className="bg-background py-12 sm:py-24">
           <div className="container mx-auto px-4 text-center">
+            <div className="mb-8">
+              <p className="font-semibold text-muted-foreground">
+                Powered by <span className="text-primary font-bold">LoanSwift (LSP)</span>, Loan provided by <span className="font-bold">FairFinance NBFC (RE)</span>
+              </p>
+            </div>
             <h1 className="font-headline text-4xl font-bold tracking-tighter text-foreground sm:text-5xl md:text-6xl">
-              Welcome to LoanSwift
+              Fast, Fair, and Transparent Digital Loans
             </h1>
             <p className="mt-4 mx-auto max-w-2xl text-lg text-muted-foreground md:text-xl">
               Your trusted lending partner. In partnership with <strong>RBI-approved NBFCs/Banks</strong>.
@@ -32,12 +36,13 @@ export default function Home() {
                     <CardDescription>For your planned and unplanned financial needs. Quick approval and disbursal.</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ul className="text-sm text-muted-foreground space-y-2">
-                        <li>- Up to ₹5,00,000</li>
-                        <li>- Flexible tenure</li>
-                        <li>- 100% Digital</li>
+                    <ul className="text-sm text-muted-foreground space-y-2 mb-4">
+                        <li className='font-semibold text-foreground'>- ₹10,000 – ₹2,00,000</li>
+                        <li>- 100% digital process</li>
+                        <li>- Instant decision</li>
+                        <li>- No physical paperwork</li>
                     </ul>
-                    <Button asChild className="mt-4">
+                    <Button asChild className="w-full">
                       <Link href="/login">
                         Check My Eligibility <ArrowRight className="ml-2 h-5 w-5" />
                       </Link>
@@ -50,12 +55,12 @@ export default function Home() {
                     <CardDescription>Finance your next big purchase with easy EMIs. (Coming Soon)</CardDescription>
                   </CardHeader>
                    <CardContent>
-                    <ul className="text-sm text-muted-foreground space-y-2">
+                    <ul className="text-sm text-muted-foreground space-y-2 mb-4">
                         <li>- Instant approval at checkout</li>
                         <li>- No-cost EMI options</li>
                         <li>- Wide range of products</li>
                     </ul>
-                    <Button className="mt-4" disabled>
+                    <Button className="w-full" disabled>
                         Check My Eligibility
                     </Button>
                   </CardContent>
