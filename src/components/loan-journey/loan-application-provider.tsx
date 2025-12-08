@@ -44,30 +44,14 @@ const initialApplicationState: LoanApplication = {
     addressVerified: true,
     kycCompleted: true,
   },
-  bureauReport: {
-    bureau_name: "CIBIL (Mock)",
-    score: 750,
-    total_active_loans: 2,
-    total_overdue_amount: 0,
-    max_dpd: 0,
-    recent_enquiries_count: 1,
-    decision_summary: "ELIGIBLE",
-    bureau_raw_mock_json: JSON.stringify({ "tradelines": 5, "inquiries_last_6m": 1 }, null, 2),
-  },
-  underwritingResult: {
-    status: 'APPROVED',
-    reason: 'Strong credit profile and low FOIR.',
-    eligible_loan_amount: 150000,
-    eligible_tenure_options: [6, 9, 12, 18],
-    indicative_emi: 13509,
-    internal_risk_score: 'LOW_RISK'
-  },
+   bureauReport: undefined,
+  underwritingResult: undefined,
 };
 
 
 export function LoanApplicationProvider({ children }: { children: ReactNode }) {
   const [application, setApplication] = useState<LoanApplication>(initialApplicationState);
-  const [step, setStep] = useState(4); // Start at Loan Offer (index 4)
+  const [step, setStep] = useState(3); // Start at Credit Check (index 3)
 
   const nextStep = () => setStep(prev => prev + 1);
   const prevStep = () => setStep(prev => prev - 1);
