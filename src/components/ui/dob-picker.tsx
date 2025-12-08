@@ -81,8 +81,9 @@ export function DobPicker({ value, onChange }: DobPickerProps) {
   };
 
   const dayGrid = React.useMemo(() => {
+    if (selectedYear === undefined || selectedMonth === undefined) return [];
     const grid = [];
-    const firstDayOfMonth = new Date(selectedYear ?? CURRENT_YEAR, selectedMonth ?? 0, 1).getDay();
+    const firstDayOfMonth = new Date(selectedYear, selectedMonth, 1).getDay();
     // Add empty cells for days before the 1st of the month
     for (let i = 0; i < firstDayOfMonth; i++) {
         grid.push(<div key={`empty-${i}`} />);
@@ -105,9 +106,22 @@ export function DobPicker({ value, onChange }: DobPickerProps) {
 
   const dayHeadings = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
+  const formattedDate = React.useMemo(() => {
+    if (selectedDay !== undefined && selectedMonth !== undefined && selectedYear !== undefined) {
+      const day = selectedDay.toString().padStart(2, '0');
+      const month = (selectedMonth + 1).toString().padStart(2, '0');
+      return `${day}/${month}/${selectedYear}`;
+    }
+    return "Please select a date";
+  }, [selectedDay, selectedMonth, selectedYear]);
+
+
   return (
     <div className="space-y-4 rounded-md border p-4">
-        <div className="flex space-x-2">
+      <div className="text-center font-medium text-foreground">
+        {formattedDate}
+      </div>
+      <div className="flex space-x-2">
         <Select onValueChange={handleYearChange} value={selectedYear?.toString()}>
           <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
           <SelectContent>
