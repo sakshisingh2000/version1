@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useLoanApplication } from "./loan-application-provider";
@@ -725,7 +724,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         approved_amount: underwritingDecision.approved_amount,
         approved_tenure_options: underwritingDecision.approved_tenure_options,
         updated_at: serverTimestamp(),
-        borrower_id: user.uid,
+        borrowerId: user.uid,
       };
 
       setDocumentNonBlocking(loanAppRef, loanAppUpdateData, { merge: true });
@@ -1135,7 +1134,7 @@ export function KfsStep({ onCompleted }: StepProps) {
                     I have read and understood the Key Facts Statement and accept the loan offer.
                   </FormLabel>
                   {!kfsViewed && (
-                    <FormDescription>Please view the KFS document before accepting.</FormDescription>
+                    <p className="text-sm text-muted-foreground">Please view the KFS document before accepting.</p>
                   )}
                   <FormMessage />
                 </div>
@@ -1164,7 +1163,10 @@ export function BankDetailsStep({ onCompleted }: StepProps) {
   
     const form = useForm<z.infer<typeof bankDetailsSchema>>({
       resolver: zodResolver(bankDetailsSchema),
-      defaultValues: application.bankDetails || {},
+      defaultValues: {
+        accountNumber: application.bankDetails?.accountNumber || "",
+        ifsc: application.bankDetails?.ifsc || "",
+      },
     });
   
     function onSubmit(values: z.infer<typeof bankDetailsSchema>) {
@@ -1409,3 +1411,5 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
+    
