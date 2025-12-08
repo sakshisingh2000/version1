@@ -1,0 +1,174 @@
+/**
+ * Firestore Security Rules for LoanSwift Application
+ *
+ * Core Philosophy:
+ * This ruleset implements a strict user-ownership security model. All data is
+ * partitioned by user, ensuring that an authenticated user can only ever access
+ * their own information. The default security posture is deny-all, with
+ * permissions explicitly granted only where necessary.
+ *
+ * Data Structure:
+ * All user-specific data, including profiles, consent logs, loan applications,
+ * and bank accounts, is nested under the top-level `/borrowers` collection.
+ * The document ID for each borrower (`borrowerId`) directly corresponds to their
+ * Firebase Authentication UID. This path-based ownership is the cornerstone of
+ * the security model.
+ * Example: /borrowers/{userId}/loan_applications/{appId}
+ *
+ * Key Security Decisions:
+ * - User Enumeration Blocked: Listing the top-level `/borrowers` collection is
+ *   explicitly forbidden to prevent malicious actors from discovering the list
+ *   of all users on the platform.
+ * - Path-Based Security: Authorization is primarily determined by matching the
+ *   `borrowerId` in the document path with the authenticated user's UID. This
+ *   is highly performant and secure.
+ * - Relational Integrity: On document creation, rules enforce that internal
+ *   ID fields (e.g., `borrower.id`, `consent_log.borrowerId`) match the IDs in
+ *   the path, creating a consistent and unbreakable link between a document's
+ *   location and its content. These IDs are immutable on update.
+ * - Flexible Data Schema: In line with a prototyping approach, these rules do
+ *   not validate the specific shape or data types of most fields, allowing for
+ *   rapid iteration on the app's features. Validation is strictly limited to
+ *   fields critical for authorization.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --------------------------------------------------------------------
+    // Helper Functions
+    // --------------------------------------------------------------------
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the currently authenticated user's UID matches the given userId.
+     * This is the primary function for enforcing data ownership.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+    * Combines ownership check with a document existence check for safe updates and deletes.
+    * This prevents modifying or deleting documents that do not exist.
+    */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * On create, validates that the borrower document's internal 'id' field
+     * matches the document's ID in the path, which is the user's UID.
+     */
+    function hasValidBorrowerDataOnCreate(borrowerId) {
+      return request.resource.data.id == borrowerId;
+    }
+
+    /**
+     * On update, ensures the internal 'id' field of a borrower document cannot be changed.
+     */
+    function hasImmutableBorrowerData() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+    /**
+     * On create, validates that a subcollection document's internal 'borrowerId'
+     * field correctly points back to the parent borrower document's ID.
+     */
+    function hasValidSubcollectionDataOnCreate(borrowerId) {
+      return request.resource.data.borrowerId == borrowerId;
+    }
+
+    /**
+     * On update, ensures the internal 'borrowerId' field of a subcollection
+     * document cannot be changed, preserving the ownership link.
+     */
+    function hasImmutableSubcollectionData() {
+      return request.resource.data.borrowerId == resource.data.borrowerId;
+    }
+
+
+    // --------------------------------------------------------------------
+    // Collection Rules
+    // --------------------------------------------------------------------
+
+    /**
+     * @description Manages borrower profile documents. A user can create their own
+     *              profile and can only read or modify their own document thereafter.
+     *              Listing all borrowers is explicitly denied to prevent user enumeration.
+     * @path        /borrowers/{borrowerId}
+     * @allow       (create) A newly signed-up user (auth.uid: 'user123') creating their own
+     *              profile document at `/borrowers/user123`.
+     * @deny        (list) Any user, signed in or not, attempting to query the `/borrowers`
+     *              collection to get a list of all users.
+     * @principle   Restricts access to a user's own data tree and enforces self-creation.
+     */
+    match /borrowers/{borrowerId} {
+      allow get: if isOwner(borrowerId);
+      allow list: if false;
+      allow create: if isOwner(borrowerId) && hasValidBorrowerDataOnCreate(borrowerId);
+      allow update: if isExistingOwner(borrowerId) && hasImmutableBorrowerData();
+      allow delete: if isExistingOwner(borrowerId);
+
+      /**
+       * @description Manages a borrower's consent log records. Only the borrower who
+       *              owns the parent document can manage their own consent entries.
+       * @path        /borrowers/{borrowerId}/consent_logs/{consentLogId}
+       * @allow       (create) An authenticated user (auth.uid: 'user123') creating a new
+       *              consent log document within their own path at `/borrowers/user123/consent_logs/log456`.
+       * @deny        (get) An authenticated user (auth.uid: 'userABC') trying to read a consent
+       *              log from another user's path, e.g., `/borrowers/user123/consent_logs/log456`.
+       * @principle   Enforces document ownership based on the parent path.
+       */
+      match /consent_logs/{consentLogId} {
+        allow get: if isOwner(borrowerId);
+        allow list: if isOwner(borrowerId);
+        allow create: if isOwner(borrowerId) && hasValidSubcollectionDataOnCreate(borrowerId);
+        allow update: if isExistingOwner(borrowerId) && hasImmutableSubcollectionData();
+        allow delete: if isExistingOwner(borrowerId);
+      }
+
+      /**
+       * @description Manages a borrower's loan applications. Access is strictly limited
+       *              to the borrower who owns the parent document.
+       * @path        /borrowers/{borrowerId}/loan_applications/{loanApplicationId}
+       * @allow       (list) An authenticated user (auth.uid: 'user123') listing all of their
+       *              own loan applications under `/borrowers/user123/loan_applications`.
+       * @deny        (update) An authenticated user (auth.uid: 'userABC') trying to update a
+       *              loan application from another user's path.
+       * @principle   Enforces document ownership based on the parent path.
+       */
+      match /loan_applications/{loanApplicationId} {
+        allow get: if isOwner(borrowerId);
+        allow list: if isOwner(borrowerId);
+        allow create: if isOwner(borrowerId) && hasValidSubcollectionDataOnCreate(borrowerId);
+        allow update: if isExistingOwner(borrowerId) && hasImmutableSubcollectionData();
+        allow delete: if isExistingOwner(borrowerId);
+      }
+
+      /**
+       * @description Manages a borrower's bank account details. Access is strictly limited
+       *              to the borrower who owns the parent document.
+       * @path        /borrowers/{borrowerId}/bank_accounts/{bankAccountId}
+       * @allow       (delete) An authenticated user (auth.uid: 'user123') deleting their own
+       *              bank account document.
+       * @deny        (create) An authenticated user (auth.uid: 'userABC') trying to create a
+       *              bank account document under another user's path.
+       * @principle   Enforces document ownership based on the parent path.
+       */
+      match /bank_accounts/{bankAccountId} {
+        allow get: if isOwner(borrowerId);
+        allow list: if isOwner(borrowerId);
+        allow create: if isOwner(borrowerId);
+        allow update: if isExistingOwner(borrowerId);
+        allow delete: if isExistingOwner(borrowerId);
+      }
+    }
+  }
+}
