@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useLoanApplication } from "./loan-application-provider";
@@ -720,9 +721,17 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
               internal_risk_score: 'LOW_RISK'
           };
       } else if (mockReport.score >= 650) {
-          decision = { status: 'PENDING_REVIEW', reason: 'Credit score is fair. Requires manual underwriting review.' };
+          decision = { 
+            status: 'PENDING_REVIEW', 
+            reason: 'Credit score is fair. Requires manual underwriting review.',
+            internal_risk_score: 'MEDIUM_RISK'
+          };
       } else {
-          decision = { status: 'REJECTED', reason: 'Credit score below minimum threshold.' };
+          decision = { 
+            status: 'REJECTED', 
+            reason: 'Credit score below minimum threshold.',
+            internal_risk_score: 'HIGH_RISK'
+          };
       }
       setUnderwritingResult(decision);
 
@@ -771,11 +780,8 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
       });
       
       await batch.commit().catch(error => {
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-              path: loanAppRef.path,
-              operation: 'write',
-              requestResourceData: { app: "update", audit1: "set", audit2: "set" }
-          }));
+          console.error("Firestore batch commit failed:", error);
+          toast({ variant: 'destructive', title: 'Error Saving Data', description: 'Could not update loan application.' });
       });
 
       toast({ title: 'Credit Check Complete', description: `Your application is ${decision.status}.` });
@@ -1391,5 +1397,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
+    
 
     
