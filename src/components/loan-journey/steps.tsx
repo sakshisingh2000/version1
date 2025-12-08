@@ -40,6 +40,8 @@ import { Badge } from "../ui/badge";
 import { ScrollArea } from "../ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { addDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { TenureOption } from "@/lib/types";
+
 
 interface StepProps {
   onCompleted: () => void;
@@ -88,7 +90,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
     }
     
     startTransition(() => {
-      setApplication(prev => ({ ...prev, personalDetails: values }));
+      setApplication(prev => ({ ...prev, personalDetails: values, requested_amount: values.loanAmount }));
       
       const borrowerRef = doc(firestore, 'borrowers', user.uid);
       const loanAppCollection = collection(firestore, 'borrowers', user.uid, 'loan_applications');
@@ -110,13 +112,13 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
       
       const loanAppData = {
         id: loanAppRef.id,
-        borrowerId: user.uid,
-        requestedAmount: values.loanAmount,
-        requestedTenureMonths: 12, // Defaulting tenure, can be changed
-        productType: 'PERSONAL_LOAN',
-        applicationStatus: 'DRAFT',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
+        borrower_id: user.uid,
+        requested_amount: values.loanAmount,
+        requested_tenure_months: 12, // Defaulting tenure, can be changed
+        product_type: 'PERSONAL_LOAN',
+        application_status: 'DRAFT',
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp(),
       };
       setDocumentNonBlocking(loanAppRef, loanAppData, {});
       
@@ -280,12 +282,12 @@ export function KycStep({ onCompleted }: StepProps) {
         setApplication(prev => ({ ...prev, kyc: kycUpdate }));
         
         const kycRef = doc(firestore, 'borrowers', user.uid, 'kyc_records', application.loanApplicationId);
-        const kycData = { borrowerId: user.uid, panStatus: 'VERIFIED', kycCompleted: false, applicationId: application.loanApplicationId };
+        const kycData = { borrower_id: user.uid, panStatus: 'VERIFIED', kycCompleted: false, applicationId: application.loanApplicationId };
         setDocumentNonBlocking(kycRef, kycData, { merge: true });
         
         const auditData = { 
             entityType: 'KYC', entityId: kycRef.id, action: 'PAN_VERIFIED_MOCK', 
-            actorType: 'SYSTEM', timestamp: serverTimestamp(), borrowerId: user.uid
+            actorType: 'SYSTEM', timestamp: serverTimestamp(), borrower_id: user.uid
         };
         addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditData);
         
@@ -315,12 +317,12 @@ export function KycStep({ onCompleted }: StepProps) {
                 setApplication(prev => ({ ...prev, kyc: kycUpdate }));
 
                 const kycRef = doc(firestore, 'borrowers', user.uid, 'kyc_records', application.loanApplicationId);
-                const kycData = { aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar, borrowerId: user.uid };
+                const kycData = { aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar, borrower_id: user.uid };
                 updateDocumentNonBlocking(kycRef, kycData);
 
                 const auditData = { 
                     entityType: 'KYC', entityId: kycRef.id, action: 'AADHAAR_OTP_AUTH_SUCCESS_MOCK', 
-                    actorType: 'SYSTEM', timestamp: serverTimestamp(), borrowerId: user.uid
+                    actorType: 'SYSTEM', timestamp: serverTimestamp(), borrower_id: user.uid
                 };
                 addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditData);
                 
@@ -472,15 +474,17 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
         const aadhaarInDocs = mockDocuments.some(d => d.doc_type === 'AADHAAR_XML');
         const addressVerified = aadhaarInDocs && application.personalDetails?.pincode;
 
+        const kycCompleted = application.kyc?.panStatus === 'VERIFIED' && application.kyc?.aadhaarAuthStatus === 'OTP_SUCCESS' && !!addressVerified;
+
         const kycUpdate = {
             ...application.kyc,
             digilockerStatus: 'SUCCESS',
             digilockerDocuments: mockDocuments,
             addressVerified: !!addressVerified,
-            kycCompleted: application.kyc?.panStatus === 'VERIFIED' && application.kyc?.aadhaarAuthStatus === 'OTP_SUCCESS' && !!addressVerified
+            kycCompleted: kycCompleted
         };
-
-        setApplication(prev => ({ ...prev, kyc: kycUpdate }));
+        
+        setApplication(prev => ({ ...prev, kyc: kycUpdate, kyc_completed: kycCompleted }));
         
         const kycDocRef = doc(firestore, 'borrowers', user.uid, 'kyc_records', application.loanApplicationId);
         
@@ -488,15 +492,15 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
             digilockerStatus: 'SUCCESS',
             digilockerDocuments: mockDocuments,
             addressVerified: !!addressVerified,
-            kycCompleted: kycUpdate.kycCompleted,
-            borrowerId: user.uid
+            kycCompleted: kycCompleted,
+            borrower_id: user.uid
         };
 
         updateDocumentNonBlocking(kycDocRef, kycData);
 
         const auditData = {
             entityType: 'KYC', entityId: kycDocRef.id, action: 'DIGILOCKER_KYC_SUCCESS_MOCK',
-            actorType: 'SYSTEM', timestamp: serverTimestamp(), borrowerId: user.uid
+            actorType: 'SYSTEM', timestamp: serverTimestamp(), borrower_id: user.uid
         };
         addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditData);
         setDigilockerStatus('SUCCESS');
@@ -633,8 +637,6 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const [isProcessing, startTransition] = useTransition();
-  const [bureauReport, setBureauReport] = useState<any>(application.bureauReport);
-  const [underwritingResult, setUnderwritingResult] = useState<any>(application.underwritingResult);
   const { toast } = useToast();
 
   const handlePullReport = () => {
@@ -656,61 +658,74 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         decision_summary: "ELIGIBLE",
         bureau_raw_mock_json: JSON.stringify({ "tradelines": 5, "inquiries_last_6m": 2 }, null, 2),
       };
-      setBureauReport(mockReport);
-      
-      // 2. Perform Automated Underwriting
-      const { monthlyIncome, loanAmount } = application.personalDetails!;
-      const randomEMILoad = mockReport.total_active_loans * 3000; // Mock EMI for active loans
-      const fixedObligations = 5000; // Mock other fixed monthly expenses
-      const foir = (randomEMILoad + fixedObligations) / monthlyIncome;
-      const foirThreshold = 0.45;
 
-      let decision: any;
+      // 2. Perform Automated Underwriting Logic
+      const { monthlyIncome, loanAmount } = application.personalDetails!;
+      const randomEMILoad = mockReport.total_active_loans * 3000;
+      const fixedObligations = 5000;
+      const foir = (randomEMILoad + fixedObligations) / monthlyIncome;
+      const foirThreshold = 0.55;
+
+      let underwritingDecision: {
+          status: 'APPROVED' | 'REJECTED' | 'PENDING_REVIEW';
+          reason: string;
+          risk_score: 'LOW_RISK' | 'MEDIUM_RISK' | 'HIGH_RISK';
+          approved_amount?: number;
+          approved_tenure_options?: TenureOption[];
+      };
+      
       if (mockReport.score >= 700 && mockReport.total_overdue_amount === 0 && foir <= foirThreshold) {
-          decision = { 
+          const approvedAmount = loanAmount; // Approve requested amount
+          const approvedTenureOptions = [3, 6, 9, 12].map(tenure => {
+              const interest = 14.0; // annual interest
+              const monthlyRate = interest / 12 / 100;
+              const emi = (approvedAmount * monthlyRate * Math.pow(1 + monthlyRate, tenure)) / (Math.pow(1 + monthlyRate, tenure) - 1);
+              return { tenure_months: tenure, emi_amount: Math.round(emi), interest_rate_annual: interest };
+          });
+          underwritingDecision = { 
               status: 'APPROVED', 
               reason: `Strong credit profile (score: ${mockReport.score}) and low FOIR (${(foir * 100).toFixed(2)}%).`,
-              eligible_loan_amount: loanAmount, // Offer requested amount
-              eligible_tenure_options: [6, 9, 12, 18],
-              indicative_emi: Math.round(loanAmount * (0.012 * Math.pow(1.012, 12)) / (Math.pow(1.012, 12) - 1)), // Sample EMI for 12 months
-              internal_risk_score: 'LOW_RISK'
+              risk_score: 'LOW_RISK',
+              approved_amount: approvedAmount,
+              approved_tenure_options: approvedTenureOptions,
           };
       } else if (mockReport.score >= 650) {
-          decision = { 
+          underwritingDecision = { 
             status: 'PENDING_REVIEW', 
             reason: 'Credit score is fair. Requires manual underwriting review.',
-            internal_risk_score: 'MEDIUM_RISK'
+            risk_score: 'MEDIUM_RISK'
           };
       } else {
-          decision = { 
+          underwritingDecision = { 
             status: 'REJECTED', 
             reason: 'Credit score below minimum threshold.',
-            internal_risk_score: 'HIGH_RISK'
+            risk_score: 'HIGH_RISK'
           };
       }
-      setUnderwritingResult(decision);
 
       // 3. Update application state and Firestore
       const appUpdate = {
         bureauReport: mockReport,
-        underwritingResult: decision,
+        application_status: underwritingDecision.status,
+        internal_risk_score: underwritingDecision.risk_score,
+        bureau_score: mockReport.score,
+        eligibility_decision_reason: underwritingDecision.reason,
+        approved_amount: underwritingDecision.approved_amount,
+        approved_tenure_options: underwritingDecision.approved_tenure_options,
       };
       setApplication(prev => ({ ...prev, ...appUpdate }));
 
       const loanAppRef = doc(firestore, 'borrowers', user.uid, 'loan_applications', application.loanApplicationId);
       
       const loanAppUpdateData = {
-        applicationStatus: decision.status,
-        bureauScore: mockReport.score,
-        eligibilityDecisionReason: decision.reason,
-        internalRiskScore: decision.internal_risk_score,
-        ...(decision.status === 'APPROVED' && {
-            eligibleLoanAmount: decision.eligible_loan_amount,
-            eligibleTenureOptions: decision.eligible_tenure_options,
-            indicativeEMI: decision.indicative_emi,
-        }),
-        updatedAt: serverTimestamp(),
-        borrowerId: user.uid,
+        application_status: underwritingDecision.status,
+        bureau_score: mockReport.score,
+        eligibility_decision_reason: underwritingDecision.reason,
+        internal_risk_score: underwritingDecision.risk_score,
+        approved_amount: underwritingDecision.approved_amount,
+        approved_tenure_options: underwritingDecision.approved_tenure_options,
+        updated_at: serverTimestamp(),
+        borrower_id: user.uid,
       };
 
       setDocumentNonBlocking(loanAppRef, loanAppUpdateData, { merge: true });
@@ -722,7 +737,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         actorType: 'SYSTEM',
         timestamp: serverTimestamp(),
         details: { score: mockReport.score },
-        borrowerId: user.uid,
+        borrower_id: user.uid,
       };
       addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLog1Data);
       
@@ -732,16 +747,20 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         action: 'UNDERWRITING_DECISION_MOCK',
         actorType: 'SYSTEM',
         timestamp: serverTimestamp(),
-        details: { decision: decision.status, reason: decision.reason },
-        borrowerId: user.uid,
+        details: { decision: underwritingDecision.status, reason: underwritingDecision.reason },
+        borrower_id: user.uid,
       };
       addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLog2Data);
 
-      toast({ title: 'Credit Check Complete', description: `Your application is ${decision.status}.` });
+      toast({ title: 'Credit Check Complete', description: `Your application is ${underwritingDecision.status}.` });
+      
+      if (underwritingDecision.status !== 'REJECTED') {
+          onCompleted();
+      }
     });
   };
 
-  if (!bureauReport) {
+  if (!application.bureauReport) {
     return (
       <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
         <FileText className="h-16 w-16 text-primary"/>
@@ -756,7 +775,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
       </div>
     );
   }
-
+  
   if (isProcessing) {
      return (
       <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
@@ -767,26 +786,27 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
     );
   }
 
-  if (underwritingResult?.status === 'REJECTED' || underwritingResult?.status === 'PENDING_REVIEW') {
+  if (application.application_status === 'REJECTED') {
     return (
        <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
             <AlertCircle className="h-16 w-16 text-destructive"/>
             <h3 className="text-2xl font-headline font-bold">Application Not Approved</h3>
             <p className="text-muted-foreground max-w-md">
-                {underwritingResult.reason} We are unable to proceed with your loan application at this time based on our current lending policies.
+                {application.eligibility_decision_reason} We are unable to proceed with your loan application at this time based on our current lending policies.
             </p>
              <Button asChild><Link href="/">Back to Home</Link></Button>
         </div>
     );
   }
 
+  // This part is now just for display before automatically moving on.
   return (
     <div className="space-y-6">
         <Alert variant="default" className="bg-green-50 border-green-200">
             <BadgeCheck className="h-4 w-4 !text-green-600" />
             <AlertTitle className="text-green-800">Credit Check Complete!</AlertTitle>
             <AlertDescription className="text-green-700">
-                Your credit profile has been reviewed and you are eligible for a loan offer.
+                Your credit profile has been reviewed. Proceed to view your eligibility.
             </AlertDescription>
         </Alert>
         <Card>
@@ -796,132 +816,114 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
             <CardContent className="space-y-4">
                 <div className="text-center p-4 rounded-lg bg-muted/50">
                     <p className="text-sm text-muted-foreground">CIBIL Score (Mock)</p>
-                    <p className="text-4xl font-bold">{bureauReport.score}</p>
+                    <p className="text-4xl font-bold">{application.bureauReport.score}</p>
                 </div>
                 <div className="flex flex-wrap gap-2 justify-center">
-                    <Badge variant="secondary">Active Loans: {bureauReport.total_active_loans}</Badge>
-                    <Badge variant="secondary">Overdue: ₹{bureauReport.total_overdue_amount}</Badge>
-                    <Badge variant="secondary">Recent Inquiries: {bureauReport.recent_enquiries_count}</Badge>
+                    <Badge variant="secondary">Active Loans: {application.bureauReport.total_active_loans}</Badge>
+                    <Badge variant="secondary">Overdue: ₹{application.bureauReport.total_overdue_amount}</Badge>
+                    <Badge variant="secondary">Recent Inquiries: {application.bureauReport.recent_enquiries_count}</Badge>
                 </div>
                 <Accordion type="single" collapsible>
                     <AccordionItem value="item-1">
                         <AccordionTrigger>View Detailed Report (Mock)</AccordionTrigger>
                         <AccordionContent>
                             <pre className="text-xs bg-gray-100 p-2 rounded-md overflow-x-auto">
-                                {bureauReport.bureau_raw_mock_json}
+                                {application.bureauReport.bureau_raw_mock_json}
                             </pre>
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
             </CardContent>
         </Card>
-        <Button onClick={onCompleted} className="w-full">
-            Proceed to Loan Offer
-        </Button>
+        {/* Button to proceed is handled by the automatic onCompleted call */}
     </div>
   );
 }
 
-const loanOfferSchema = z.object({
-  tenure: z.string({
-    required_error: "Please select a loan tenure.",
+
+const eligibilitySchema = z.object({
+  tenure: z.string({ required_error: "Please select a loan tenure." }),
+  consent: z.literal(true, {
+    errorMap: () => ({ message: "You must confirm you have reviewed the choice." }),
   }),
 });
 
-export function LoanOfferStep({ onCompleted }: StepProps) {
+export function EligibilityResultStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
   const { user } = useUser();
   const firestore = useFirestore();
-  const [offer, setOffer] = useState<any>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof loanOfferSchema>>({
-    resolver: zodResolver(loanOfferSchema),
-    defaultValues: {
-      tenure: application.underwritingResult?.eligible_tenure_options?.[2]?.toString() || "12",
-    },
+  const form = useForm<z.infer<typeof eligibilitySchema>>({
+    resolver: zodResolver(eligibilitySchema),
+    defaultValues: { tenure: undefined, consent: false },
   });
 
-  const selectedTenure = form.watch("tenure");
-
-  useEffect(() => {
-    if (application.underwritingResult?.status !== 'APPROVED') {
+  const onSubmit = (data: z.infer<typeof eligibilitySchema>) => {
+    if (!user || !application.loanApplicationId) {
+      toast({ variant: "destructive", title: "User session expired." });
       return;
     }
 
     startTransition(() => {
-        const { eligible_loan_amount } = application.underwritingResult;
+      const selectedTenure = application.approved_tenure_options?.find(
+        (opt) => opt.tenure_months.toString() === data.tenure
+      );
 
-        const interestRate = 14.5; // Mock annual interest rate
-        const monthlyRate = interestRate / 12 / 100;
-        const tenure = parseInt(selectedTenure, 10);
-        const newEmi = Math.round(
-            (eligible_loan_amount * monthlyRate * Math.pow(1 + monthlyRate, tenure)) / (Math.pow(1 + monthlyRate, tenure) - 1)
-        );
-
-        const mockOffer = {
-            loanAmountOffered: eligible_loan_amount,
-            interestRate: interestRate,
-            monthlyPayment: newEmi,
-            reason: "Offer based on your strong credit profile.",
-            tenureMonths: tenure
-        };
-        
-        setOffer(mockOffer);
-
-    });
-
-  }, [application.underwritingResult, selectedTenure]);
-
-  const onSubmit = (data: z.infer<typeof loanOfferSchema>) => {
-    if (!offer || !user || !application.loanApplicationId) {
-        toast({variant: "destructive", title: "Offer not finalized or user session expired."})
+      if (!selectedTenure) {
+        toast({ variant: "destructive", title: "Invalid tenure selected." });
         return;
-    }
-    
-    startTransition(() => {
-        const finalOffer = {
-            loanAmountOffered: offer.loanAmountOffered,
-            interestRate: offer.interestRate,
-            monthlyPayment: offer.monthlyPayment,
-            tenureMonths: offer.tenureMonths,
-            reason: offer.reason,
-        };
-        
-        setApplication(prev => ({ ...prev, loanOffer: finalOffer }));
+      }
 
-        const loanAppRef = doc(firestore, 'borrowers', user.uid, 'loan_applications', application.loanApplicationId);
-        const loanAppUpdate = {
-          applicationStatus: 'OFFER_GENERATED',
-          finalLoanOffer: finalOffer,
-          updatedAt: serverTimestamp(),
-        };
-        updateDocumentNonBlocking(loanAppRef, loanAppUpdate);
+      const appUpdate = {
+        selected_tenure_months: selectedTenure.tenure_months,
+        selected_emi_amount: selectedTenure.emi_amount,
+        offer_status: 'OFFER_GENERATED',
+      };
+      setApplication(prev => ({ ...prev, ...appUpdate }));
 
-        toast({ title: "Offer Accepted", description: "Proceeding to Key Facts Statement." });
-        onCompleted();
+      const loanAppRef = doc(firestore, 'borrowers', user.uid, 'loan_applications', application.loanApplicationId);
+      updateDocumentNonBlocking(loanAppRef, { ...appUpdate, updated_at: serverTimestamp() });
+      
+      const auditLogData = {
+        entityType: 'LOAN_APP',
+        entityId: application.loanApplicationId,
+        action: 'TENURE_SELECTION',
+        actorType: 'USER',
+        timestamp: serverTimestamp(),
+        new_value: {
+          selected_tenure_months: selectedTenure.tenure_months,
+          selected_emi_amount: selectedTenure.emi_amount,
+        },
+        borrower_id: user.uid,
+      };
+      addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLogData);
+
+      toast({ title: "Tenure Confirmed", description: "Proceeding to next step." });
+      onCompleted();
     });
   };
-  
-  if (application.underwritingResult?.status !== 'APPROVED') {
+
+  if (application.application_status === 'REJECTED') {
     return (
-        <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
-            <h3 className="text-xl font-semibold text-destructive">No Loan Offer Found</h3>
-            <p className="text-muted-foreground max-w-md">We could not generate a loan offer at this time.</p>
-            <Button asChild variant="outline">
-                <Link href="/">Back to Home</Link>
-            </Button>
+       <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
+            <AlertCircle className="h-16 w-16 text-destructive"/>
+            <h3 className="text-2xl font-headline font-bold">Application Not Approved</h3>
+            <p className="text-muted-foreground max-w-md">
+                {application.eligibility_decision_reason} We are unable to proceed with your loan application at this time.
+            </p>
+            <Button asChild><Link href="/">Back to Home</Link></Button>
         </div>
     );
   }
-
-  if (!offer) {
-     return (
+  
+  if (application.application_status !== 'APPROVED' || !application.approved_amount) {
+    return (
       <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <h3 className="text-xl font-semibold">Generating Your Custom Offer</h3>
-        <p className="text-muted-foreground">Based on your profile, we are crafting the best possible loan offers for you.</p>
+        <h3 className="text-xl font-semibold">Finalizing Eligibility...</h3>
+        <p className="text-muted-foreground">This should only take a moment.</p>
       </div>
     );
   }
@@ -929,64 +931,71 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <h3 className="text-center font-headline text-2xl font-bold">Your Personalised Loan Offer</h3>
+        <h3 className="text-center font-headline text-2xl font-bold">Your Eligibility Result</h3>
         <Card className="bg-primary/5 border-primary shadow-lg">
-            <CardContent className="pt-6">
-                <div className="text-center mb-6">
-                    <p className="text-sm text-muted-foreground">You are eligible for a loan up to</p>
-                    <p className="text-4xl font-bold font-headline">₹{offer.loanAmountOffered.toLocaleString('en-IN')}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                        <p className="text-sm text-muted-foreground">Interest Rate</p>
-                        <p className="text-lg font-semibold">{offer.interestRate}% p.a.</p>
-                    </div>
-                     <div>
-                        <p className="text-sm text-muted-foreground">Monthly EMI</p>
-                        <p className="text-lg font-semibold">₹{offer.monthlyPayment.toLocaleString('en-IN')}</p>
-                    </div>
-                </div>
-
-                <div className="mt-6">
-                    <FormField
-                        control={form.control}
-                        name="tenure"
-                        render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormLabel>Select Tenure (Months)</FormLabel>
-                            <FormControl>
-                              <RadioGroup
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                className="grid grid-cols-2 md:grid-cols-4 gap-4"
-                              >
-                                {(application.underwritingResult?.eligible_tenure_options || [6, 9, 12, 18]).map((t: number) => (
-                                <FormItem key={t} className="flex-1">
-                                    <FormControl>
-                                      <RadioGroupItem value={String(t)} id={`t-${t}`} className="sr-only" />
-                                    </FormControl>
-                                    <Label htmlFor={`t-${t}`} className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                    {t} months
-                                    </Label>
-                                </FormItem>
-                                ))}
-                              </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                    />
-                </div>
-                <Alert className="mt-6">
-                  <Banknote className="h-4 w-4" />
-                  <AlertTitle>Why this offer?</AlertTitle>
-                  <AlertDescription>{offer.reason}</AlertDescription>
-                </Alert>
-            </CardContent>
+          <CardContent className="pt-6">
+            <div className="text-center mb-6">
+              <p className="text-sm text-muted-foreground">You are eligible for a loan of</p>
+              <p className="text-4xl font-bold font-headline">₹{application.approved_amount.toLocaleString('en-IN')}</p>
+            </div>
+            
+            <FormField
+              control={form.control}
+              name="tenure"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>Select a tenure that works for you</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                    >
+                      {application.approved_tenure_options?.map((option) => (
+                        <FormItem key={option.tenure_months}>
+                          <FormControl>
+                            <RadioGroupItem value={String(option.tenure_months)} id={`t-${option.tenure_months}`} className="sr-only" />
+                          </FormControl>
+                          <Label htmlFor={`t-${option.tenure_months}`} className="flex flex-col items-start justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                            <span className="font-bold text-lg">{option.tenure_months} Months</span>
+                            <span className="text-sm">EMI: ₹{option.emi_amount.toLocaleString('en-IN')}/mo</span>
+                            <span className="text-xs text-muted-foreground">Rate: {option.interest_rate_annual}% p.a.</span>
+                          </Label>
+                        </FormItem>
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
         </Card>
-        <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Accept Offer and Proceed
+
+         <FormField
+          control={form.control}
+          name="consent"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  I confirm that I have reviewed and chosen this loan tenure and EMI.
+                </FormLabel>
+                <FormMessage />
+              </div>
+            </FormItem>
+          )}
+        />
+        
+        <Button type="submit" className="w-full" disabled={isPending || !form.formState.isValid}>
+          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Confirm Tenure & Proceed
         </Button>
       </form>
     </Form>
@@ -1009,24 +1018,23 @@ export function KfsStep({ onCompleted }: StepProps) {
     defaultValues: { consent: false },
   });
   
-  if (!application.loanOffer) return <p>No loan offer found.</p>;
+  if (!application.approved_amount || !application.selected_tenure_months || !application.selected_emi_amount) {
+    return <p>Loan offer details not found.</p>;
+  }
 
-  const { loanAmountOffered, interestRate, tenureMonths, monthlyPayment } = application.loanOffer;
-  const processingFee = loanAmountOffered * 0.02; // 2% processing fee
-  const disbursedAmount = loanAmountOffered - processingFee;
-  const totalInterest = (monthlyPayment * tenureMonths) - loanAmountOffered;
-  const totalRepayment = loanAmountOffered + totalInterest;
-  const apr = (((totalInterest + processingFee) / loanAmountOffered) / (tenureMonths/12)) * 100;
+  const { approved_amount, selected_tenure_months, selected_emi_amount } = application;
+  const processingFee = approved_amount * 0.02; // 2% processing fee
+  const disbursedAmount = approved_amount - processingFee;
+  const totalInterest = (selected_emi_amount * selected_tenure_months) - approved_amount;
+  const totalRepayment = approved_amount + totalInterest;
+  const apr = (((totalInterest + processingFee) / approved_amount) / (selected_tenure_months/12)) * 100;
 
   const handleAccept = (data: z.infer<typeof kfsSchema>) => {
     if (data.consent) {
         setApplication(prev => ({
             ...prev,
-            kfsAccepted: true,
-            loanOffer: {
-                ...prev.loanOffer!,
-                kfsDocumentUrl: '/mock/kfs.pdf',
-            },
+            offer_status: 'OFFER_ACCEPTED',
+            kfs_document_url: '/mock/kfs.pdf',
         }));
         onCompleted();
     }
@@ -1050,10 +1058,10 @@ export function KfsStep({ onCompleted }: StepProps) {
                 <div className="space-y-1">
                   <h3 className="font-semibold">Loan Details</h3>
                   <div className="grid grid-cols-2 text-sm">
-                    <p>Loan Amount:</p><p className="font-medium">₹{loanAmountOffered.toLocaleString('en-IN')}</p>
+                    <p>Loan Amount:</p><p className="font-medium">₹{approved_amount.toLocaleString('en-IN')}</p>
                     <p>Net Disbursed Amount:</p><p className="font-medium">₹{disbursedAmount.toLocaleString('en-IN')}</p>
-                    <p>Tenure:</p><p className="font-medium">{tenureMonths} months</p>
-                    <p>EMI:</p><p className="font-medium">₹{monthlyPayment.toLocaleString('en-IN')}</p>
+                    <p>Tenure:</p><p className="font-medium">{selected_tenure_months} months</p>
+                    <p>EMI:</p><p className="font-medium">₹{selected_emi_amount.toLocaleString('en-IN')}</p>
                   </div>
                 </div>
                 <Separator/>
@@ -1085,7 +1093,7 @@ export function KfsStep({ onCompleted }: StepProps) {
           <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg bg-muted/50">
                   <p className="text-muted-foreground">Loan Amount</p>
-                  <p className="font-semibold text-right">₹{loanAmountOffered.toLocaleString('en-IN')}</p>
+                  <p className="font-semibold text-right">₹{approved_amount.toLocaleString('en-IN')}</p>
 
                   <p className="text-muted-foreground">Processing Fee (2%)</p>
                   <p className="font-semibold text-right">- ₹{processingFee.toLocaleString('en-IN')}</p>
@@ -1098,7 +1106,7 @@ export function KfsStep({ onCompleted }: StepProps) {
 
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg">
                   <p className="text-muted-foreground">Monthly EMI</p>
-                  <p className="font-semibold text-right">₹{monthlyPayment.toLocaleString('en-IN')}</p>
+                  <p className="font-semibold text-right">₹{selected_emi_amount.toLocaleString('en-IN')}</p>
                   
                   <p className="text-muted-foreground">Total Repayment</p>
                   <p className="font-semibold text-right">₹{totalRepayment.toLocaleString('en-IN')}</p>
@@ -1108,33 +1116,35 @@ export function KfsStep({ onCompleted }: StepProps) {
           </CardContent>
       </Card>
       
-      <Form {...form}>
+       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleAccept)}>
           <FormField
             control={form.control}
             name="consent"
             render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
-                    <FormControl>
-                        <Checkbox 
-                            checked={field.value} 
-                            onCheckedChange={field.onChange} 
-                            disabled={!kfsViewed}
-                        />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                        <FormLabel className={!kfsViewed ? 'text-muted-foreground' : ''}>
-                            I have read and understood the Key Facts Statement and accept the loan offer.
-                        </FormLabel>
-                        {!kfsViewed && <FormDescription>Please view the KFS document before accepting.</FormDescription>}
-                        <FormMessage/>
-                    </div>
-                </FormItem>
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={!kfsViewed}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel className={!kfsViewed ? 'text-muted-foreground' : ''}>
+                    I have read and understood the Key Facts Statement and accept the loan offer.
+                  </FormLabel>
+                  {!kfsViewed && (
+                    <FormDescription>Please view the KFS document before accepting.</FormDescription>
+                  )}
+                  <FormMessage />
+                </div>
+              </FormItem>
             )}
-            />
-            <Button type="submit" disabled={!kfsViewed || !form.watch('consent')} className="w-full mt-6">
-                Accept Offer & Continue
-            </Button>
+          />
+          <Button type="submit" disabled={!form.formState.isValid} className="w-full mt-6">
+            Accept Offer & Continue
+          </Button>
         </form>
       </Form>
 
@@ -1231,7 +1241,7 @@ export function EMandateStep({ onCompleted }: StepProps) {
                 To automate your monthly EMI payments, please set up an e-mandate. This is a secure process handled by your bank.
             </p>
             <p className="font-semibold">
-              EMI Amount: ₹{application.loanOffer?.monthlyPayment.toLocaleString('en-IN')}
+              EMI Amount: ₹{application.selected_emi_amount?.toLocaleString('en-IN')}
             </p>
             <Button onClick={handleMandate} disabled={isPending} size="lg">
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -1290,9 +1300,9 @@ export function AgreementStep({ onCompleted }: StepProps) {
           <ScrollArea className="h-64 w-full rounded-md border p-4 text-xs text-muted-foreground">
             <h3 className="font-bold mb-2">Mock Loan Agreement</h3>
             <p className="mb-2">This is a legally binding agreement between you (the Borrower) and LoanSwift Partner NBFC (the Lender)...</p>
-            <p>1. Loan Amount: ₹{application.loanOffer?.loanAmountOffered.toLocaleString('en-IN')}</p>
-            <p>2. Tenure: {application.loanOffer?.tenureMonths} months</p>
-            <p>3. Repayment: You agree to repay the loan via monthly EMIs of ₹{application.loanOffer?.monthlyPayment.toLocaleString('en-IN')} as per the e-mandate.</p>
+            <p>1. Loan Amount: ₹{application.approved_amount?.toLocaleString('en-IN')}</p>
+            <p>2. Tenure: {application.selected_tenure_months} months</p>
+            <p>3. Repayment: You agree to repay the loan via monthly EMIs of ₹{application.selected_emi_amount?.toLocaleString('en-IN')} as per the e-mandate.</p>
             <p className="mt-4">By signing, you confirm your acceptance of all terms...</p>
           </ScrollArea>
         </CardContent>
@@ -1327,7 +1337,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         setIsDisbursing(true);
         // Mock disbursement process
         setTimeout(() => {
-            setApplication(prev => ({ ...prev, isDisbursed: true }));
+            setApplication(prev => ({ ...prev, isDisbursed: true, application_status: 'DISBURSED' }));
             setIsDisbursed(true);
             setIsDisbursing(false);
             toast({ title: "Loan Disbursed!", description: "The amount has been sent to your bank account." });
@@ -1349,7 +1359,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
                     <CardContent className="space-y-2">
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">Amount:</span>
-                            <span className="font-bold">₹{(application.loanOffer!.loanAmountOffered - (application.loanOffer!.loanAmountOffered * 0.02)).toLocaleString('en-IN')}</span>
+                            <span className="font-bold">₹{(application.approved_amount! - (application.approved_amount! * 0.02)).toLocaleString('en-IN')}</span>
                         </div>
                          <div className="flex justify-between">
                             <span className="text-muted-foreground">Bank Account:</span>
@@ -1384,7 +1394,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
                 <CardContent className="space-y-2">
                      <div className="flex justify-between">
                         <span className="text-muted-foreground">Net Amount:</span>
-                        <span className="font-bold">₹{(application.loanOffer!.loanAmountOffered - (application.loanOffer!.loanAmountOffered * 0.02)).toLocaleString('en-IN')}</span>
+                        <span className="font-bold">₹{(application.approved_amount! - (application.approved_amount! * 0.02)).toLocaleString('en-IN')}</span>
                     </div>
                      <div className="flex justify-between">
                         <span className="text-muted-foreground">To Account:</span>
@@ -1399,16 +1409,3 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
-
-    
-
-    
-
-
-
-
-    
-
-
-
-

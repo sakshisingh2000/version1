@@ -4,7 +4,7 @@
 import type { LoanApplication } from '@/lib/types';
 import { createContext, useContext, useState, useMemo, type Dispatch, type SetStateAction, type ReactNode } from 'react';
 import { StepIndicator } from './step-indicator';
-import { BankDetailsStep, CreditCheckStep, DigiLockerStep, DisbursementStep, EMandateStep, KfsStep, KycStep, LoanOfferStep, PersonalDetailsStep, AgreementStep } from './steps';
+import { BankDetailsStep, CreditCheckStep, DigiLockerStep, DisbursementStep, EMandateStep, KfsStep, KycStep, EligibilityResultStep, PersonalDetailsStep, AgreementStep } from './steps';
 import { Card, CardContent } from '../ui/card';
 
 type LoanApplicationContextType = {
@@ -45,7 +45,7 @@ const initialApplicationState: LoanApplication = {
     kycCompleted: true,
   },
   bureauReport: undefined,
-  underwritingResult: undefined,
+  application_status: "DRAFT",
 };
 
 
@@ -85,7 +85,7 @@ const STEPS = [
   { title: "KYC Verification", component: KycStep },
   { title: "DigiLocker KYC", component: DigiLockerStep },
   { title: "Credit Check", component: CreditCheckStep },
-  { title: "Loan Offer", component: LoanOfferStep },
+  { title: "Eligibility Result", component: EligibilityResultStep },
   { title: "Key Facts", component: KfsStep },
   { title: "Bank Details", component: BankDetailsStep },
   { title: "e-Mandate", component: EMandateStep },
@@ -97,8 +97,7 @@ export function LoanJourney() {
   const { step, nextStep, application } = useLoanApplication();
   
   const handleStepCompletion = () => {
-    // Skip to next step
-    if(step === 3 && application.underwritingResult?.status === 'REJECTED') {
+    if(step === 3 && application.application_status === 'REJECTED') {
       // If rejected at credit check, we stay on the same component which shows the rejection message.
       // The "Continue" button won't be visible.
       return; 

@@ -7,8 +7,15 @@ export type DigiLockerDocument = {
   expiry_date?: string;
 };
 
+export type TenureOption = {
+  tenure_months: number;
+  emi_amount: number;
+  interest_rate_annual: number;
+};
+
 export type LoanApplication = {
-  loanApplicationId?: string;
+  loanApplicationId: string;
+  borrowerId?: string;
   personalDetails?: {
     fullName: string;
     pan: string;
@@ -40,15 +47,30 @@ export type LoanApplication = {
     decision_summary: string;
     bureau_raw_mock_json: string;
   };
+  // Fields from your new spec
+  requested_amount?: number;
+  requested_tenure_months?: number;
+  product_type?: 'PERSONAL_LOAN' | 'CONSUMER_DURABLE';
+  application_status?: 'DRAFT' | 'UNDERWRITING' | 'APPROVED' | 'REJECTED' | 'DISBURSED' | 'PENDING_REVIEW';
+  internal_risk_score?: 'LOW_RISK' | 'MEDIUM_RISK' | 'HIGH_RISK';
+  bureau_score?: number;
+  kyc_completed?: boolean;
+  eligibility_decision_reason?: string;
+
+  approved_amount?: number;
+  approved_tenure_options?: TenureOption[];
+  selected_tenure_months?: number;
+  selected_emi_amount?: number;
+  offer_status?: 'NONE' | 'OFFER_GENERATED' | 'OFFER_ACCEPTED' | 'OFFER_REJECTED';
+
+  kfs_document_url?: string;
+  loan_agreement_url?: string;
+  disbursement_details_id?: string;
+
+  // Legacy fields for compatibility - can be removed later
   underwritingResult?: {
-    status: 'APPROVED' | 'REJECTED' | 'PENDING_REVIEW';
-    reason: string;
-  };
-  creditAssessment?: {
-    riskLevel: string;
-    interestRate: number;
-    eligibleLoanAmount: number;
-    reason: string;
+      status: 'APPROVED' | 'REJECTED' | 'PENDING_REVIEW';
+      reason: string;
   };
   loanOffer?: {
     loanAmountOffered: number;
