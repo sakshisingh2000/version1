@@ -9,8 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { add, format } from "date-fns";
 
 interface DobPickerProps {
   value: Date | undefined;
@@ -33,6 +36,8 @@ const months = [
 ];
 
 export function DobPicker({ value, onChange }: DobPickerProps) {
+  const [isOpen, setIsOpen] = React.useState(false);
+
   const [selectedYear, setSelectedYear] = React.useState<number | undefined>(
     value?.getFullYear()
   );
@@ -43,48 +48,35 @@ export function DobPicker({ value, onChange }: DobPickerProps) {
     value?.getDate()
   );
 
+  const [tempDate, setTempDate] = React.useState<Date | undefined>(value);
+
   const daysInMonth = React.useMemo(() => {
     if (selectedYear === undefined || selectedMonth === undefined) return 31;
     return new Date(selectedYear, selectedMonth + 1, 0).getDate();
   }, [selectedYear, selectedMonth]);
 
-  const handleYearChange = (yearStr: string) => {
-    const year = parseInt(yearStr, 10);
-    setSelectedYear(year);
-    // If day is invalid for new year/month, reset it
-    const newDaysInMonth = new Date(year, (selectedMonth ?? 0) + 1, 0).getDate();
-    if (selectedDay && selectedDay > newDaysInMonth) {
-        setSelectedDay(undefined);
-        onChange(undefined);
-    }
-  };
 
-  const handleMonthChange = (monthStr: string) => {
-    const month = parseInt(monthStr, 10);
-    setSelectedMonth(month);
-    // If day is invalid for new month, reset it
-    const newDaysInMonth = new Date(selectedYear ?? CURRENT_YEAR, month + 1, 0).getDate();
-    if (selectedDay && selectedDay > newDaysInMonth) {
-        setSelectedDay(undefined);
-        onChange(undefined);
-    }
-  };
-
-  const handleDayChange = (day: number) => {
+  const handleDayClick = (day: number) => {
     setSelectedDay(day);
     if (selectedYear !== undefined && selectedMonth !== undefined) {
       const newDate = new Date(selectedYear, selectedMonth, day);
-      // Validate age constraints before calling onChange
-      const age = CURRENT_YEAR - newDate.getFullYear();
-      if (age >= MIN_AGE && age <= MAX_AGE) {
-        onChange(newDate);
-      } else {
-        onChange(undefined); // Or handle error
-      }
-    } else {
-        onChange(undefined);
+      setTempDate(newDate);
     }
   };
+
+  const handleConfirm = () => {
+    onChange(tempDate);
+    setIsOpen(false);
+  }
+
+  const handleCancel = () => {
+    // Reset state to the original value when opening
+    setTempDate(value);
+    setSelectedYear(value?.getFullYear());
+    setSelectedMonth(value?.getMonth());
+    setSelectedDay(value?.getDate());
+    setIsOpen(false);
+  }
   
   const dayGrid = React.useMemo(() => {
     if (selectedYear === undefined || selectedMonth === undefined) return [];
@@ -101,7 +93,7 @@ export function DobPicker({ value, onChange }: DobPickerProps) {
                 type="button"
                 variant={selectedDay === day ? "default" : "outline"}
                 size="icon"
-                onClick={() => handleDayChange(day)}
+                onClick={() => handleDayClick(day)}
                 className="h-8 w-8"
             >
                 {day}
@@ -113,55 +105,60 @@ export function DobPicker({ value, onChange }: DobPickerProps) {
 
   const dayHeadings = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-  const formattedDate = React.useMemo(() => {
-    if (value) {
-      const day = value.getDate().toString().padStart(2, '0');
-      const month = (value.getMonth() + 1).toString().padStart(2, '0');
-      const year = value.getFullYear();
-      return `${day}/${month}/${year}`;
-    }
-    return "Please select your date of birth";
-  }, [value]);
-
-
   return (
-    <div className="space-y-4 rounded-md border p-4">
-      <div className="text-center font-medium text-foreground h-6 flex items-center justify-center">
-        {formattedDate}
-      </div>
-      <div className="flex space-x-2">
-        <Select onValueChange={handleYearChange} value={selectedYear?.toString()}>
-          <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
-          <SelectContent>
-            {years.map((year) => (
-              <SelectItem key={year} value={year.toString()}>
-                {year}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select onValueChange={handleMonthChange} value={selectedMonth?.toString()} disabled={selectedYear === undefined}>
-          <SelectTrigger><SelectValue placeholder="Month" /></SelectTrigger>
-          <SelectContent>
-            {months.map((month, index) => (
-              <SelectItem key={month} value={index.toString()}>
-                {month}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant={"outline"}
+          className={cn(
+            "w-full justify-start text-left font-normal",
+            !value && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {value ? format(value, "dd / MM / yyyy") : <span>Select your Date of Birth</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-4" align="start">
+          <p className="font-medium text-center mb-4">Select Date of Birth</p>
+          <div className="flex space-x-2 mb-4">
+            <Select onValueChange={(v) => setSelectedYear(parseInt(v))} value={selectedYear?.toString()}>
+              <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
+              <SelectContent>
+                {years.map((year) => (
+                  <SelectItem key={year} value={year.toString()}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select onValueChange={(v) => setSelectedMonth(parseInt(v))} value={selectedMonth?.toString()} disabled={selectedYear === undefined}>
+              <SelectTrigger><SelectValue placeholder="Month" /></SelectTrigger>
+              <SelectContent>
+                {months.map((month, index) => (
+                  <SelectItem key={month} value={index.toString()}>
+                    {month}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {selectedYear !== undefined && selectedMonth !== undefined && (
-            <div>
-                 <div className="grid grid-cols-7 gap-2 text-center text-xs text-muted-foreground mb-2">
-                    {dayHeadings.map(day => <div key={day}>{day}</div>)}
+            {selectedYear !== undefined && selectedMonth !== undefined && (
+                <div className="mb-4">
+                     <div className="grid grid-cols-7 gap-2 text-center text-xs text-muted-foreground mb-2">
+                        {dayHeadings.map(day => <div key={day}>{day}</div>)}
+                    </div>
+                    <div className="grid grid-cols-7 gap-2">
+                        {dayGrid}
+                    </div>
                 </div>
-                <div className="grid grid-cols-7 gap-2">
-                    {dayGrid}
-                </div>
+            )}
+            <div className="flex justify-end space-x-2">
+                <Button variant="ghost" onClick={handleCancel}>Cancel</Button>
+                <Button onClick={handleConfirm} disabled={!tempDate}>Confirm DOB</Button>
             </div>
-        )}
-    </div>
+      </PopoverContent>
+    </Popover>
   );
 }

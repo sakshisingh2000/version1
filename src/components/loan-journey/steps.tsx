@@ -152,12 +152,10 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Date of Birth</FormLabel>
-                  <FormControl>
                     <DobPicker
                       value={field.value}
                       onChange={field.onChange}
                     />
-                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -989,6 +987,7 @@ export function KfsStep({ onCompleted }: StepProps) {
   const { toast } = useToast();
 
   const form = useForm({
+    resolver: zodResolver(z.object({ consent: z.literal(true) })),
     defaultValues: { consent: false },
   });
 
@@ -1094,7 +1093,7 @@ export function KfsStep({ onCompleted }: StepProps) {
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleAccept)} className="space-y-4">
-          <FormField
+           <FormField
             control={form.control}
             name="consent"
             render={({ field }) => (
@@ -1172,14 +1171,14 @@ export function BankDetailsStep({ onCompleted }: StepProps) {
           <FormField control={form.control} name="accountNumber" render={({ field }) => (
             <FormItem>
               <FormLabel>Bank Account Number</FormLabel>
-              <FormControl><Input placeholder="1234567890" {...field} /></FormControl>
+              <FormControl><Input placeholder="1234567890" {...field} value={field.value ?? ''} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <FormField control={form.control} name="ifsc" render={({ field }) => (
             <FormItem>
               <FormLabel>IFSC Code</FormLabel>
-              <FormControl><Input placeholder="SBIN0001234" {...field} className="uppercase" /></FormControl>
+              <FormControl><Input placeholder="SBIN0001234" {...field} value={field.value ?? ''} className="uppercase" /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
