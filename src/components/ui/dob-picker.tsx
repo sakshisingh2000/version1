@@ -53,12 +53,9 @@ export function DobPicker({ value, onChange }: DobPickerProps) {
     setSelectedYear(year);
     // If day is invalid for new year/month, reset it
     const newDaysInMonth = new Date(year, (selectedMonth ?? 0) + 1, 0).getDate();
-    const currentDay = selectedDay;
-    if (currentDay && currentDay > newDaysInMonth) {
+    if (selectedDay && selectedDay > newDaysInMonth) {
         setSelectedDay(undefined);
-        updateDate(year, selectedMonth, undefined);
-    } else {
-        updateDate(year, selectedMonth, selectedDay);
+        onChange(undefined);
     }
   };
 
@@ -67,24 +64,17 @@ export function DobPicker({ value, onChange }: DobPickerProps) {
     setSelectedMonth(month);
     // If day is invalid for new month, reset it
     const newDaysInMonth = new Date(selectedYear ?? CURRENT_YEAR, month + 1, 0).getDate();
-    const currentDay = selectedDay;
-    if (currentDay && currentDay > newDaysInMonth) {
+    if (selectedDay && selectedDay > newDaysInMonth) {
         setSelectedDay(undefined);
-        updateDate(selectedYear, month, undefined);
-    } else {
-        updateDate(selectedYear, month, selectedDay);
+        onChange(undefined);
     }
   };
 
   const handleDayChange = (day: number) => {
     setSelectedDay(day);
-    updateDate(selectedYear, selectedMonth, day);
-  };
-  
-  const updateDate = (year: number | undefined, month: number | undefined, day: number | undefined) => {
-    if (year !== undefined && month !== undefined && day !== undefined) {
-      const newDate = new Date(year, month, day);
-      // Validate age constraints
+    if (selectedYear !== undefined && selectedMonth !== undefined) {
+      const newDate = new Date(selectedYear, selectedMonth, day);
+      // Validate age constraints before calling onChange
       const age = CURRENT_YEAR - newDate.getFullYear();
       if (age >= MIN_AGE && age <= MAX_AGE) {
         onChange(newDate);
@@ -92,10 +82,10 @@ export function DobPicker({ value, onChange }: DobPickerProps) {
         onChange(undefined); // Or handle error
       }
     } else {
-      onChange(undefined);
+        onChange(undefined);
     }
   };
-
+  
   const dayGrid = React.useMemo(() => {
     if (selectedYear === undefined || selectedMonth === undefined) return [];
     const grid = [];
@@ -124,13 +114,14 @@ export function DobPicker({ value, onChange }: DobPickerProps) {
   const dayHeadings = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
   const formattedDate = React.useMemo(() => {
-    if (selectedDay !== undefined && selectedMonth !== undefined && selectedYear !== undefined) {
-      const day = selectedDay.toString().padStart(2, '0');
-      const month = (selectedMonth + 1).toString().padStart(2, '0');
-      return `${day}/${month}/${selectedYear}`;
+    if (value) {
+      const day = value.getDate().toString().padStart(2, '0');
+      const month = (value.getMonth() + 1).toString().padStart(2, '0');
+      const year = value.getFullYear();
+      return `${day}/${month}/${year}`;
     }
     return "Please select your date of birth";
-  }, [selectedDay, selectedMonth, selectedYear]);
+  }, [value]);
 
 
   return (
