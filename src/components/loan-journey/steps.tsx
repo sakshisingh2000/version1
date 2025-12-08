@@ -20,12 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useTransition, useEffect } from "react";
 import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet, FileText, BadgeCheck, AlertCircle } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -40,6 +35,8 @@ import { ScrollArea } from "../ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { addDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import type { TenureOption } from "@/lib/types";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { DobPicker } from "@/components/ui/dob-picker";
 
 
 interface StepProps {
@@ -69,16 +66,16 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
   const form = useForm<z.infer<typeof personalDetailsSchema>>({
     resolver: zodResolver(personalDetailsSchema),
     defaultValues: {
-      fullName: application.personalDetails?.fullName || "",
-      pan: application.personalDetails?.pan || "",
-      birthDate: application.personalDetails?.birthDate,
-      loanAmount: application.personalDetails?.loanAmount || 10000,
-      employmentType: application.personalDetails?.employmentType || "",
-      monthlyIncome: application.personalDetails?.monthlyIncome || undefined,
-      addressLine1: application.personalDetails?.addressLine1 || "",
-      city: application.personalDetails?.city || "",
-      pincode: application.personalDetails?.pincode || "",
-      consent: application.personalDetails?.consent || false
+      fullName: "",
+      pan: "",
+      birthDate: undefined,
+      loanAmount: 10000,
+      employmentType: "",
+      monthlyIncome: undefined,
+      addressLine1: "",
+      city: "",
+      pincode: "",
+      consent: false
     },
   });
 
@@ -149,34 +146,22 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
               <FormMessage />
             </FormItem>
           )} />
-          <FormField control={form.control} name="birthDate" render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Date of Birth</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
+          <FormField
+              control={form.control}
+              name="birthDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Date of Birth</FormLabel>
                   <FormControl>
-                    <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
+                    <DobPicker
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
                   </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar 
-                    mode="single" 
-                    selected={field.value} 
-                    onSelect={field.onChange} 
-                    disabled={(date) => date > new Date() || date < new Date("1900-01-01")} 
-                    initialFocus
-                    captionLayout="dropdown-nav"
-                    fromYear={1940}
-                    toYear={new Date().getFullYear() - 18}
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           <FormField control={form.control} name="employmentType" render={({ field }) => (
             <FormItem>
               <FormLabel>Employment Type</FormLabel>
@@ -717,7 +702,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         approved_amount: underwritingDecision.approved_amount,
         approved_tenure_options: underwritingDecision.approved_tenure_options,
         updated_at: serverTimestamp(),
-        borrowerId: user.uid,
+        borrower_id: user.uid,
       };
 
       setDocumentNonBlocking(loanAppRef, loanAppUpdateData, { merge: true });
@@ -806,10 +791,11 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
                 <CardTitle>Your Credit Report Summary (Mock)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="text-center p-4 rounded-lg bg-muted/50">
-                    <p className="text-sm text-muted-foreground">CIBIL Score (Mock)</p>
-                    <p className="text-4xl font-bold">{application.bureauReport.score}</p>
-                </div>
+              <Card className="text-center p-4 rounded-lg bg-muted/50 overflow-hidden relative">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-48 w-48 bg-primary/10 rounded-full blur-2xl"></div>
+                  <p className="text-sm text-muted-foreground">CIBIL Score (Mock)</p>
+                  <p className="text-6xl font-bold text-primary">{application.bureauReport.score}</p>
+              </Card>
                 <div className="flex flex-wrap gap-2 justify-center">
                     <Badge variant="secondary">Active Loans: {application.bureauReport.total_active_loans}</Badge>
                     <Badge variant="secondary">Overdue: ₹{application.bureauReport.total_overdue_amount}</Badge>
@@ -933,30 +919,32 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
     return (
         <div className="space-y-8">
             <div className="text-center">
-                <h3 className="font-headline text-2xl font-bold">Choose Your Loan Plan</h3>
-                <p className="text-muted-foreground">You are eligible for <span className="font-bold text-foreground">₹{application.approved_amount.toLocaleString('en-IN')}</span>. Select a tenure to see your EMI.</p>
+                <p className="text-muted-foreground">You are eligible for a loan up to</p>
+                <h3 className="font-headline text-4xl font-bold text-primary">₹{application.approved_amount.toLocaleString('en-IN')}</h3>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {tenureOptions.map(tenure => (
-                    <div 
-                        key={tenure}
-                        onClick={() => handleTenureChange(tenure)}
-                        className={cn(
+             <div>
+                <Label className="font-semibold">Choose your tenure</Label>
+                <p className="text-sm text-muted-foreground mb-4">Select a plan to see your monthly payment.</p>
+                <RadioGroup 
+                    onValueChange={(value) => handleTenureChange(parseInt(value))}
+                    className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                >
+                    {tenureOptions.map(tenure => (
+                        <Label key={tenure} htmlFor={`tenure-${tenure}`} className={cn(
                             "cursor-pointer rounded-lg border-2 p-4 text-center transition-all",
                             selectedTenure === tenure 
                                 ? "border-primary bg-primary/10 shadow-lg" 
                                 : "border-border hover:border-primary/50"
-                        )}
-                    >
-                        <p className="font-bold text-lg">{tenure}</p>
-                        <p className="text-sm text-muted-foreground">Months</p>
-                        <Separator className="my-2" />
-                        <p className="text-xs text-muted-foreground">EMI</p>
-                        <p className="font-semibold">₹{calculateEmi(tenure).toLocaleString('en-IN')}</p>
-                    </div>
-                ))}
+                        )}>
+                            <RadioGroupItem value={tenure.toString()} id={`tenure-${tenure}`} className="sr-only" />
+                            <p className="font-bold text-lg">{tenure}</p>
+                            <p className="text-sm text-muted-foreground">Months</p>
+                        </Label>
+                    ))}
+                </RadioGroup>
             </div>
+
 
             {selectedTenure && calculatedEmi ? (
                 <Card className="bg-muted/50">
@@ -1126,9 +1114,9 @@ export function KfsStep({ onCompleted }: StepProps) {
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel className={!kfsViewed ? 'text-muted-foreground' : ''}>
+                  <Label className={!kfsViewed ? 'text-muted-foreground' : ''}>
                     I have read and understood the Key Facts Statement and accept the loan offer.
-                  </FormLabel>
+                  </Label>
                   {!kfsViewed && (
                     <p className="text-sm text-muted-foreground">Please view the KFS document before accepting.</p>
                   )}
@@ -1159,8 +1147,8 @@ export function BankDetailsStep({ onCompleted }: StepProps) {
     const form = useForm<z.infer<typeof bankDetailsSchema>>({
       resolver: zodResolver(bankDetailsSchema),
       defaultValues: {
-        accountNumber: application.bankDetails?.accountNumber || "",
-        ifsc: application.bankDetails?.ifsc || "",
+        accountNumber: "",
+        ifsc: "",
       },
     });
   
