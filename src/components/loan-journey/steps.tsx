@@ -722,6 +722,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
             indicativeEMI: decision.indicative_emi,
         }),
         updatedAt: serverTimestamp(),
+        borrowerId: user.uid, // Add this line
       };
 
       updateDocumentNonBlocking(loanAppRef, loanAppUpdateData);
@@ -882,7 +883,7 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
         }
     });
 
-  }, [application.underwritingResult, selectedTenure]);
+  }, [application.underwritingResult, selectedTenure, offer, toast]);
 
   const onSubmit = (data: z.infer<typeof loanOfferSchema>) => {
     if (!offer) {
