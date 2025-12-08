@@ -1,3 +1,4 @@
+
 /**
  * Firestore Security Rules for LoanSwift Application
  *
@@ -40,7 +41,7 @@ service cloud.firestore {
     // --------------------------------------------------------------------
 
     /**
-     * Checks if the user is authenticated.
+     * Checks if the user is authenticated. This can be a full or anonymous user.
      */
     function isSignedIn() {
       return request.auth != null;
@@ -67,7 +68,8 @@ service cloud.firestore {
      * matches the document's ID in the path, which is the user's UID.
      */
     function hasValidBorrowerDataOnCreate(borrowerId) {
-      return request.resource.data.id == borrowerId;
+      // Allow creation if the user is signed in (including anonymously) and the data matches the path UID
+      return isSignedIn() && request.auth.uid == borrowerId && request.resource.data.id == borrowerId;
     }
 
     /**
@@ -112,7 +114,7 @@ service cloud.firestore {
     match /borrowers/{borrowerId} {
       allow get: if isOwner(borrowerId);
       allow list: if false;
-      allow create: if isOwner(borrowerId) && hasValidBorrowerDataOnCreate(borrowerId);
+      allow create: if hasValidBorrowerDataOnCreate(borrowerId);
       allow update: if isExistingOwner(borrowerId) && hasImmutableBorrowerData();
       allow delete: if isExistingOwner(borrowerId);
 

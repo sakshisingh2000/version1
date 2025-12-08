@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useFirebaseApp, useFirestore } from '@/firebase';
-import { getAuth, signInWithCustomToken } from 'firebase/auth';
+import { getAuth, signInAnonymously } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -31,7 +31,7 @@ function OTPVerifyComponent() {
   const searchParams = useSearchParams();
   const mobileNumber = searchParams.get('mobile');
 
-  const { firebaseApp } = useFirebaseApp();
+  const firebaseApp = useFirebaseApp();
   const firestore = useFirestore();
   const auth = getAuth(firebaseApp);
 
@@ -53,23 +53,20 @@ function OTPVerifyComponent() {
     if (values.otp === '123456') {
       try {
         // In a real app, you'd get a custom token from your backend after verifying the OTP.
-        // For this mock, we'll create a mock user ID and simulate login.
-        // A real implementation would require a backend to securely create a user and custom token.
+        // For this mock, we will sign in the user anonymously to get a UID for our rules.
         
-        // This is a simplified mock. A real app needs a secure backend to mint custom tokens.
-        // We will just create a user on the fly.
-        const mockUserId = `mock-uid-${mobileNumber}`;
+        await auth.signOut(); // Ensure no prior user is logged in
+        const userCredential = await signInAnonymously(auth);
+        const user = userCredential.user;
+
+        if (!user) {
+            throw new Error("Could not create an anonymous user session.");
+        }
         
-        // As we cannot mint a custom token on the client, we'll simulate the user creation
-        // and then navigate to the next step.
-        // For a true Firebase Auth integration, `signInWithCustomToken` would be used here.
-        // await signInWithCustomToken(auth, MOCK_TOKEN); 
-        // For now we will create the user and assume login happens via onAuthStateChanged listener
-        
-        const borrowerRef = doc(firestore, 'borrowers', mockUserId);
+        const borrowerRef = doc(firestore, 'borrowers', user.uid);
         const borrowerData = {
-          id: mockUserId,
-          firebaseAuthUid: mockUserId, // In real app, this is auth.currentUser.uid
+          id: user.uid,
+          firebaseAuthUid: user.uid,
           mobileNumber: `+91${mobileNumber}`,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
@@ -77,20 +74,17 @@ function OTPVerifyComponent() {
         // This is a simplified user creation for the demo.
         await setDoc(borrowerRef, borrowerData);
         
-        // Also simulate anonymous sign-in for state management
-        await auth.signOut(); // Ensure no prior user is logged in
-        const userCredential = await auth.signInAnonymously();
-        Object.defineProperty(userCredential.user, 'uid', { value: mockUserId });
-        
         const auditLogData = {
             entityType: 'BORROWER',
-            entityId: mockUserId,
+            entityId: user.uid,
             action: 'MOBILE_OTP_VERIFIED_MOCK',
             actorType: 'BORROWER',
             timestamp: serverTimestamp(),
-            borrowerId: mockUserId,
+            borrowerId: user.uid,
         };
-        await addDoc(collection(firestore, 'borrowers', mockUserId, 'audit_logs'), auditLogData);
+        // This write will now succeed because the user is authenticated (anonymously)
+        // and the security rule allows creating an audit log for one's own user document.
+        addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLogData);
 
 
         toast({
