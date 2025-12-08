@@ -877,55 +877,41 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
     application.loanOffer?.tenureMonths?.toString() || application.underwritingResult?.eligible_tenure_options?.[2]?.toString() || "12"
   );
   const { toast } = useToast();
-  const form = useForm(); // Form provider for react-hook-form components
+  const form = useForm();
 
   useEffect(() => {
-    // Only generate/update offer if the application is approved
-    if (application.underwritingResult?.status !== 'APPROVED' || !application.personalDetails) {
+    if (application.underwritingResult?.status !== 'APPROVED') {
       return;
     }
     
-    // Don't re-generate if an offer already exists and tenure hasn't changed
-    if (offer && offer.tenureMonths === parseInt(selectedTenure)) return;
-    
-    startTransition(async () => {
-      try {
-        const input = {
-          creditScore: application.bureauReport!.score,
-          annualIncome: application.personalDetails!.monthlyIncome * 12,
-          loanAmountRequested: application.personalDetails!.loanAmount,
-          loanTenureMonths: parseInt(selectedTenure),
+    startTransition(() => {
+        const { eligible_loan_amount, indicative_emi } = application.underwritingResult;
+
+        // Simplified EMI calculation for tenure change
+        const interestRate = 14.5; // Mock annual interest rate
+        const monthlyRate = interestRate / 12 / 100;
+        const tenure = parseInt(selectedTenure);
+        const newEmi = Math.round(
+            eligible_loan_amount * monthlyRate * Math.pow(1 + monthlyRate, tenure) / (Math.pow(1 + monthlyRate, tenure) - 1)
+        );
+
+        const mockOffer = {
+            loanAmountOffered: eligible_loan_amount,
+            interestRate: interestRate,
+            monthlyPayment: newEmi,
+            reason: "Offer based on your strong credit profile.",
+            tenureMonths: tenure
         };
 
-        const dynamicOffer = await getDynamicLoanOffers(input);
-        
-        if (dynamicOffer && dynamicOffer.loanAmountOffered > 0) {
-            const finalOffer = { ...dynamicOffer, tenureMonths: parseInt(selectedTenure) };
-            setOffer(finalOffer);
-            setApplication(prev => ({ ...prev, loanOffer: finalOffer }));
-            if (!offer) { // Only show toast on initial load
-                toast({ title: "Your Personalised Offer is Ready!", description: "Review your loan details and select a tenure." });
-            }
-        } else {
-             // Fallback for the demo to ensure it always proceeds
-            const fallbackOffer = {
-                loanAmountOffered: application.underwritingResult.eligible_loan_amount,
-                interestRate: 14.5,
-                monthlyPayment: Math.round(application.underwritingResult.eligible_loan_amount * (0.012 * Math.pow(1.012, parseInt(selectedTenure))) / (Math.pow(1.012, parseInt(selectedTenure)) - 1)),
-                reason: "Standard offer based on your profile.",
-                tenureMonths: parseInt(selectedTenure)
-            };
-            setOffer(fallbackOffer);
-            setApplication(prev => ({ ...prev, loanOffer: fallbackOffer }));
-            toast({ variant: "default", title: "Loan Offer Generated", description: "A standard offer has been prepared for you." });
+        setOffer(mockOffer);
+        setApplication(prev => ({ ...prev, loanOffer: mockOffer }));
+
+        if (!offer) {
+            toast({ title: "Your Personalised Offer is Ready!", description: "Review your loan details and select a tenure." });
         }
-      } catch (error) {
-        console.error("Loan offer generation failed:", error);
-        toast({ variant: "destructive", title: "Error", description: "Could not generate loan offers." });
-      }
     });
 
-  }, [application.underwritingResult, application.personalDetails, application.bureauReport, selectedTenure, toast, setApplication, offer]);
+  }, [application.underwritingResult, selectedTenure, setApplication, offer, toast]);
 
   const handleSelectOffer = () => {
     if (!offer) {
