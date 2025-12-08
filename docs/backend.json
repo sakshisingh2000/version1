@@ -1,0 +1,233 @@
+{
+  "entities": {
+    "borrower": {
+      "title": "Borrower",
+      "description": "Represents an individual borrower.",
+      "type": "object",
+      "properties": {
+        "firebase_auth_uid": { "type": "string" },
+        "full_name": { "type": "string" },
+        "mobile_number": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "pan": { "type": "string" },
+        "aadhaar_reference_token": { "type": "string" },
+        "date_of_birth": { "type": "string", "format": "date" },
+        "current_address": { "type": "string" },
+        "permanent_address": { "type": "string" },
+        "employment_type": { "type": "string", "enum": ["salaried", "self-employed", "other"] },
+        "monthly_income": { "type": "number" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["firebase_auth_uid", "full_name", "mobile_number", "email", "pan", "created_at", "updated_at"]
+    },
+    "consent_log": {
+      "title": "Consent Log",
+      "description": "Logs consent given by borrowers.",
+      "type": "object",
+      "properties": {
+        "borrower_id": { "type": "string" },
+        "consent_type": { "type": "string", "enum": ["PAN_VERIFICATION", "AADHAAR_AUTH", "DIGILOCKER_KYC", "BUREAU_PULL", "BANK_VERIFICATION", "EMANDATE_REGISTRATION", "DATA_SHARING", "LOAN_AGREEMENT"] },
+        "consent_text": { "type": "string" },
+        "channel": { "type": "string", "enum": ["WEB_APP", "MOBILE_APP"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "ip_address": { "type": "string" },
+        "device_fingerprint": { "type": "string" },
+        "is_revoked": { "type": "boolean" }
+      },
+      "required": ["borrower_id", "consent_type", "timestamp"]
+    },
+    "kyc_record": {
+      "title": "KYC Record",
+      "description": "Stores KYC information for a borrower.",
+      "type": "object",
+      "properties": {
+        "borrower_id": { "type": "string" },
+        "pan_status": { "type": "string", "enum": ["VERIFIED", "MISMATCH", "FAILED"] },
+        "aadhaar_auth_status": { "type": "string", "enum": ["OTP_SUCCESS", "FAILED"] },
+        "aadhaar_masked_number": { "type": "string" },
+        "digilocker_status": { "type": "string" },
+        "digilocker_documents": { 
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "doc_type": { "type": "string" },
+              "doc_name": { "type": "string" },
+              "doc_id": { "type": "string" },
+              "issue_date": { "type": "string", "format": "date" },
+              "expiry_date": { "type": "string", "format": "date" },
+              "verification_status": { "type": "string" }
+            }
+          }
+        },
+        "address_verified": { "type": "boolean" },
+        "risk_flags": { "type": "array", "items": { "type": "string" } },
+        "kyc_completed": { "type": "boolean" },
+        "completed_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["borrower_id"]
+    },
+    "bureau_report": {
+        "title": "Bureau Report",
+        "description": "Credit bureau report for a borrower.",
+        "type": "object",
+        "properties": {
+            "borrower_id": { "type": "string" },
+            "bureau_name": { "type": "string" },
+            "score": { "type": "number" },
+            "score_band": { "type": "string" },
+            "total_active_loans": { "type": "number" },
+            "total_overdue_amount": { "type": "number" },
+            "max_dpd": { "type": "number" },
+            "recent_enquiries_count": { "type": "number" },
+            "bureau_raw_mock_json": { "type": "string" },
+            "decision_summary": { "type": "string", "enum": ["ELIGIBLE", "REVIEW", "REJECT"] },
+            "created_at": { "type": "string", "format": "date-time" }
+        },
+        "required": ["borrower_id", "bureau_name", "score", "created_at"]
+    },
+    "bank_account": {
+        "title": "Bank Account",
+        "description": "Borrower's bank account details.",
+        "type": "object",
+        "properties": {
+            "borrower_id": { "type": "string" },
+            "account_holder_name": { "type": "string" },
+            "account_number_masked": { "type": "string" },
+            "ifsc": { "type": "string" },
+            "penny_drop_status": { "type": "string", "enum": ["SUCCESS", "FAILED", "PENDING"] },
+            "penny_drop_name_match_percentage": { "type": "number" },
+            "is_primary_repayment_account": { "type": "boolean" }
+        },
+        "required": ["borrower_id", "account_holder_name", "account_number_masked", "ifsc"]
+    },
+    "mandate": {
+        "title": "Mandate",
+        "description": "Repayment mandate for a loan.",
+        "type": "object",
+        "properties": {
+            "borrower_id": { "type": "string" },
+            "bank_account_id": { "type": "string" },
+            "mandate_type": { "type": "string", "enum": ["E_NACH", "E_MANDATE"] },
+            "mandate_status": { "type": "string", "enum": ["PENDING", "ACTIVE", "FAILED"] },
+            "umrn": { "type": "string" },
+            "max_debit_amount": { "type": "number" },
+            "frequency": { "type": "string", "enum": ["MONTHLY"] },
+            "registration_channel": { "type": "string", "enum": ["NETBANKING", "DEBIT_CARD"] },
+            "registered_at": { "type": "string", "format": "date-time" }
+        },
+        "required": ["borrower_id", "bank_account_id", "mandate_type", "mandate_status"]
+    },
+    "loan_application": {
+        "title": "Loan Application",
+        "description": "Represents a loan application from a borrower.",
+        "type": "object",
+        "properties": {
+            "borrower_id": { "type": "string" },
+            "requested_amount": { "type": "number" },
+            "requested_tenure_months": { "type": "number" },
+            "product_type": { "type": "string", "enum": ["PERSONAL_LOAN", "CONSUMER_DURABLE"] },
+            "application_status": { "type": "string", "enum": ["DRAFT", "UNDERWRITING", "APPROVED", "REJECTED", "DISBURSED"] },
+            "internal_risk_score": { "type": "number" },
+            "bureau_score": { "type": "number" },
+            "kyc_completed": { "type": "boolean" },
+            "eligibility_decision_reason": { "type": "string" },
+            "kfs_document_url": { "type": "string" },
+            "loan_agreement_url": { "type": "string" },
+            "disbursement_details_id": { "type": "string" },
+            "created_at": { "type": "string", "format": "date-time" },
+            "updated_at": { "type": "string", "format": "date-time" }
+        },
+        "required": ["borrower_id", "requested_amount", "requested_tenure_months", "application_status", "created_at", "updated_at"]
+    },
+    "disbursement": {
+        "title": "Disbursement",
+        "description": "Details of loan disbursement.",
+        "type": "object",
+        "properties": {
+            "loan_app_id": { "type": "string" },
+            "borrower_id": { "type": "string" },
+            "disbursed_amount": { "type": "number" },
+            "disbursement_status": { "type": "string", "enum": ["PENDING", "SUCCESS", "FAILED"] },
+            "disbursed_to_bank_account_id": { "type": "string" },
+            "transaction_reference": { "type": "string" },
+            "disbursed_at": { "type": "string", "format": "date-time" }
+        },
+        "required": ["loan_app_id", "borrower_id", "disbursed_amount", "disbursement_status"]
+    },
+    "audit_log": {
+        "title": "Audit Log",
+        "description": "Logs all significant actions in the system.",
+        "type": "object",
+        "properties": {
+            "entity_type": { "type": "string", "enum": ["BORROWER", "LOAN_APP", "KYC", "MANDATE", "DISBURSEMENT"] },
+            "entity_id": { "type": "string" },
+            "action": { "type": "string", "enum": ["CREATE", "UPDATE", "STATUS_CHANGE", "EXTERNAL_CALL_MOCK"] },
+            "old_value": { "type": "object" },
+            "new_value": { "type": "object" },
+            "actor_type": { "type": "string", "enum": ["SYSTEM", "BORROWER", "ADMIN"] },
+            "actor_id": { "type": "string" },
+            "timestamp": { "type": "string", "format": "date-time" }
+        },
+        "required": ["entity_type", "entity_id", "action", "actor_type", "actor_id", "timestamp"]
+    },
+    "admin": {
+        "title": "Admin",
+        "description": "Admin user for RE operations/compliance.",
+        "type": "object",
+        "properties": {
+            "firebase_auth_uid": { "type": "string" },
+            "email": { "type": "string", "format": "email" },
+            "role": { "type": "string", "enum": ["operations", "compliance", "superadmin"] },
+            "created_at": { "type": "string", "format": "date-time" }
+        },
+        "required": ["firebase_auth_uid", "email", "role", "created_at"]
+    }
+  },
+  "auth": {
+    "providers": ["anonymous", "google.com", "password"]
+  },
+  "firestore": {
+    "/borrowers/{borrower_id}": {
+      "schema": { "$ref": "#/entities/borrower" },
+      "description": "Stores individual borrower profiles."
+    },
+    "/consent_logs/{consent_id}": {
+      "schema": { "$ref": "#/entities/consent_log" },
+      "description": "Logs all consent artifacts from borrowers."
+    },
+    "/kyc_records/{kyc_id}": {
+      "schema": { "$ref": "#/entities/kyc_record" },
+      "description": "Stores the KYC verification details for each borrower."
+    },
+    "/bureau_reports/{report_id}": {
+      "schema": { "$ref": "#/entities/bureau_report" },
+      "description": "Contains credit bureau reports for borrowers."
+    },
+    "/bank_accounts/{bank_account_id}": {
+      "schema": { "$ref": "#/entities/bank_account" },
+      "description": "Stores verified bank accounts for borrowers."
+    },
+    "/mandates/{mandate_id}": {
+      "schema": { "$ref": "#/entities/mandate" },
+      "description": "Holds repayment mandate information."
+    },
+    "/loan_applications/{loan_app_id}": {
+      "schema": { "$ref": "#/entities/loan_application" },
+      "description": "Tracks the entire lifecycle of a loan application."
+    },
+    "/disbursements/{disbursement_id}": {
+      "schema": { "$ref": "#/entities/disbursement" },
+      "description": "Records the details of loan disbursements."
+    },
+    "/audit_logs/{log_id}": {
+      "schema": { "$ref": "#/entities/audit_log" },
+      "description": "Provides a comprehensive audit trail for all system activities."
+    },
+    "/admins/{admin_id}": {
+      "schema": { "$ref": "#/entities/admin" },
+      "description": "Stores admin user profiles and roles."
+    }
+  }
+}
