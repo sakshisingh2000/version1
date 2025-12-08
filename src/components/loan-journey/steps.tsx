@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useLoanApplication } from "./loan-application-provider";
@@ -71,7 +72,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
       pan: application.personalDetails?.pan || "",
       birthDate: application.personalDetails?.birthDate,
       loanAmount: application.personalDetails?.loanAmount || 10000,
-      employmentType: application.personalDetails?.employmentType,
+      employmentType: application.personalDetails?.employmentType || "",
       monthlyIncome: application.personalDetails?.monthlyIncome,
       addressLine1: application.personalDetails?.addressLine1 || "",
       city: application.personalDetails?.city || "",
@@ -140,14 +141,14 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
           <FormField control={form.control} name="fullName" render={({ field }) => (
             <FormItem>
               <FormLabel>Full Name (as per PAN)</FormLabel>
-              <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
+              <FormControl><Input placeholder="John Doe" {...field} value={field.value ?? ''} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <FormField control={form.control} name="pan" render={({ field }) => (
             <FormItem>
               <FormLabel>PAN Number</FormLabel>
-              <FormControl><Input placeholder="ABCDE1234F" {...field} className="uppercase" /></FormControl>
+              <FormControl><Input placeholder="ABCDE1234F" {...field} value={field.value ?? ''} className="uppercase" /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
@@ -164,7 +165,16 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
                   </FormControl>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus />
+                  <Calendar 
+                    mode="single" 
+                    selected={field.value} 
+                    onSelect={field.onChange} 
+                    disabled={(date) => date > new Date() || date < new Date("1900-01-01")} 
+                    initialFocus
+                    captionLayout="dropdown-nav"
+                    fromYear={1940}
+                    toYear={new Date().getFullYear() - 18}
+                  />
                 </PopoverContent>
               </Popover>
               <FormMessage />
@@ -189,28 +199,28 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
           <FormField control={form.control} name="monthlyIncome" render={({ field }) => (
             <FormItem>
               <FormLabel>Monthly Net Income (₹)</FormLabel>
-              <FormControl><Input type="number" placeholder="40000" {...field} /></FormControl>
+              <FormControl><Input type="number" placeholder="40000" {...field} value={field.value ?? ''} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <FormField control={form.control} name="loanAmount" render={({ field }) => (
             <FormItem>
               <FormLabel>Loan Amount Required (₹)</FormLabel>
-              <FormControl><Input type="number" placeholder="100000" {...field} /></FormControl>
+              <FormControl><Input type="number" placeholder="100000" {...field} value={field.value ?? ''} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <div className="md:col-span-2 space-y-4">
             <h3 className="text-sm font-medium">Current Address</h3>
             <FormField control={form.control} name="addressLine1" render={({ field }) => (
-              <FormItem><FormControl><Input placeholder="Address Line" {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem><FormControl><Input placeholder="Address Line" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
             )} />
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="city" render={({ field }) => (
-                <FormItem><FormControl><Input placeholder="City" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormControl><Input placeholder="City" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
               )} />
               <FormField control={form.control} name="pincode" render={({ field }) => (
-                <FormItem><FormControl><Input placeholder="Pincode" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormControl><Input placeholder="Pincode" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
           </div>
@@ -790,6 +800,7 @@ export function KfsStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
   const [kfsConsent, setKfsConsent] = useState(false);
   const [kfsViewed, setKfsViewed] = useState(false);
+  const [isKfsOpen, setIsKfsOpen] = useState(false);
 
   if (!application.loanOffer) return <p>No loan offer found.</p>;
 
@@ -812,15 +823,58 @@ export function KfsStep({ onCompleted }: StepProps) {
     onCompleted();
   };
 
+  const openKfs = () => {
+    setIsKfsOpen(true);
+    setKfsViewed(true);
+  }
+
   return (
     <div className="space-y-6">
+      <Dialog open={isKfsOpen} onOpenChange={setIsKfsOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="font-headline text-2xl text-center">Key Facts Statement</DialogTitle>
+            <DialogDescription className="text-center">This document summarizes all terms of your loan offer.</DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="h-96 w-full rounded-md border p-4">
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <h3 className="font-semibold">Loan Details</h3>
+                  <div className="grid grid-cols-2 text-sm">
+                    <p>Loan Amount:</p><p className="font-medium">₹{loanAmountOffered.toLocaleString('en-IN')}</p>
+                    <p>Net Disbursed Amount:</p><p className="font-medium">₹{disbursedAmount.toLocaleString('en-IN')}</p>
+                    <p>Tenure:</p><p className="font-medium">{tenureMonths} months</p>
+                    <p>EMI:</p><p className="font-medium">₹{monthlyPayment.toLocaleString('en-IN')}</p>
+                  </div>
+                </div>
+                <Separator/>
+                <div className="space-y-1">
+                  <h3 className="font-semibold">Fees & Charges</h3>
+                  <div className="grid grid-cols-2 text-sm">
+                    <p>Processing Fee:</p><p className="font-medium">₹{processingFee.toLocaleString('en-IN')}</p>
+                    <p>Annual Percentage Rate (APR):</p><p className="font-medium">{apr.toFixed(2)}%</p>
+                    <p>Penal Charges:</p><p className="font-medium">2% per month on overdue amount</p>
+                  </div>
+                </div>
+                <Separator/>
+                <div className="space-y-1 text-sm">
+                  <h3 className="font-semibold">Grievance Redressal</h3>
+                  <p>Contact: grievance@loanswift-re.com</p>
+                  <p>Phone: +91-22-12345678</p>
+                </div>
+              </div>
+          </ScrollArea>
+           <Button onClick={() => setIsKfsOpen(false)}>Close</Button>
+        </DialogContent>
+      </Dialog>
+        
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline text-center text-2xl">Key Facts Statement</CardTitle>
-                <CardDescription className="text-center">Please review your final loan details. This is a binding offer.</CardDescription>
+                <CardTitle className="font-headline text-center text-2xl">Your Loan Offer Summary</CardTitle>
+                <CardDescription className="text-center">Please review and accept your final loan details.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg bg-muted/50">
                     <p className="text-muted-foreground">Loan Amount</p>
                     <p className="font-semibold text-right">₹{loanAmountOffered.toLocaleString('en-IN')}</p>
 
@@ -830,38 +884,32 @@ export function KfsStep({ onCompleted }: StepProps) {
                     <Separator className="col-span-2 my-1" />
 
                     <p className="text-muted-foreground font-bold">Net Disbursed Amount</p>
-                    <p className="font-bold text-right">₹{disbursedAmount.toLocaleString('en-IN')}</p>
+                    <p className="font-bold text-right text-lg">₹{disbursedAmount.toLocaleString('en-IN')}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg">
-                    <p className="text-muted-foreground">Annual Interest Rate</p>
-                    <p className="font-semibold text-right">{interestRate}%</p>
-
-                    <p className="text-muted-foreground">Annual Percentage Rate (APR)</p>
-                    <p className="font-semibold text-right">{apr.toFixed(2)}%</p>
-
-                    <p className="text-muted-foreground">Loan Tenure</p>
-                    <p className="font-semibold text-right">{tenureMonths} months</p>
-
                     <p className="text-muted-foreground">Monthly EMI</p>
                     <p className="font-semibold text-right">₹{monthlyPayment.toLocaleString('en-IN')}</p>
                     
-                    <Separator className="col-span-2 my-1" />
-
-                    <p className="text-muted-foreground font-bold">Total Repayment Amount</p>
-                    <p className="font-bold text-right">₹{totalRepayment.toLocaleString('en-IN')}</p>
+                    <p className="text-muted-foreground">Total Repayment</p>
+                    <p className="font-semibold text-right">₹{totalRepayment.toLocaleString('en-IN')}</p>
                 </div>
+
+                 <Button variant="link" onClick={openKfs} className="p-0 h-auto">View Detailed Key Facts Statement (KFS)</Button>
             </CardContent>
         </Card>
         
         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
-            <Checkbox checked={kfsConsent} onCheckedChange={(checked) => setKfsConsent(checked as boolean)} />
+            <Checkbox checked={kfsConsent} onCheckedChange={(checked) => setKfsConsent(checked as boolean)} disabled={!kfsViewed} />
             <div className="space-y-1 leading-none">
-                <Label>I have read and understood the Key Facts Statement and accept the loan offer.</Label>
+                <Label className={!kfsViewed ? 'text-muted-foreground' : ''}>
+                    I have read and understood the Key Facts Statement and accept the loan offer.
+                </Label>
+                {!kfsViewed && <FormDescription>Please view the KFS document before accepting.</FormDescription>}
             </div>
         </FormItem>
         
-        <Button onClick={handleAccept} disabled={!kfsConsent} className="w-full">
+        <Button onClick={handleAccept} disabled={!kfsConsent || !kfsViewed} className="w-full">
             Accept Offer & Continue
         </Button>
     </div>
