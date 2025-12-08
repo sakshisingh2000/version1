@@ -34,7 +34,7 @@ import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "../ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUser, useFirestore } from "@/firebase";
+import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { doc, setDoc, serverTimestamp, writeBatch, collection, getDocs, query, updateDoc } from "firebase/firestore";
 import { Label } from "../ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -73,7 +73,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
       birthDate: application.personalDetails?.birthDate,
       loanAmount: application.personalDetails?.loanAmount || 10000,
       employmentType: application.personalDetails?.employmentType || "",
-      monthlyIncome: application.personalDetails?.monthlyIncome,
+      monthlyIncome: application.personalDetails?.monthlyIncome || undefined,
       addressLine1: application.personalDetails?.addressLine1 || "",
       city: application.personalDetails?.city || "",
       pincode: application.personalDetails?.pincode || "",
@@ -87,14 +87,14 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
       return;
     }
     
-    startTransition(async () => {
+    startTransition(() => {
       setApplication(prev => ({ ...prev, personalDetails: values }));
       
       const batch = writeBatch(firestore);
       const borrowerRef = doc(firestore, 'borrowers', user.uid);
       const loanAppRef = doc(collection(firestore, 'borrowers', user.uid, 'loan_applications'));
 
-      batch.set(borrowerRef, {
+      const borrowerData = {
         pan: values.pan,
         dateOfBirth: values.birthDate,
         employmentType: values.employmentType,
@@ -105,9 +105,10 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
           pincode: values.pincode
         },
         updatedAt: serverTimestamp(),
-      }, { merge: true });
+      };
+      batch.set(borrowerRef, borrowerData, { merge: true });
       
-      batch.set(loanAppRef, {
+      const loanAppData = {
         borrowerId: user.uid,
         requestedAmount: values.loanAmount,
         requestedTenureMonths: 12, // Defaulting tenure, can be changed
@@ -115,22 +116,24 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
         applicationStatus: 'DRAFT',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-      });
+      };
+      batch.set(loanAppRef, loanAppData);
 
-      try {
-        await batch.commit();
+      batch.commit().then(() => {
         toast({
           title: "Details Saved",
           description: "Your personal and loan details have been saved.",
         });
         onCompleted();
-      } catch (error: any) {
-        toast({
-          variant: "destructive",
-          title: "Error saving details",
-          description: error.message,
-        });
-      }
+      }).catch(error => {
+        // This assumes that the most likely error is a permission error on one of the writes.
+        // A more sophisticated approach might try to determine which write failed.
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: borrowerRef.path, // We can report on the main doc path
+            operation: 'write',
+            requestResourceData: { borrower: borrowerData, loanApplication: loanAppData }
+        }));
+      });
     });
   }
 
@@ -279,7 +282,7 @@ export function KycStep({ onCompleted }: StepProps) {
     if (!user) return;
     startTransition(() => {
       // Mock NSDL PAN verification
-      setTimeout(async () => {
+      setTimeout(() => {
         setIsPanVerified(true);
         const kycUpdate = { ...application.kyc, panStatus: 'VERIFIED' };
         setApplication(prev => ({ ...prev, kyc: kycUpdate }));
@@ -288,14 +291,24 @@ export function KycStep({ onCompleted }: StepProps) {
         const kycRef = doc(collection(firestore, 'borrowers', user.uid, 'kyc_records'));
         const auditRef = doc(collection(firestore, 'borrowers', user.uid, 'audit_logs'));
 
-        batch.set(kycRef, { borrowerId: user.uid, panStatus: 'VERIFIED', kycCompleted: false }, { merge: true });
-        batch.set(auditRef, { 
+        const kycData = { borrowerId: user.uid, panStatus: 'VERIFIED', kycCompleted: false };
+        batch.set(kycRef, kycData, { merge: true });
+        
+        const auditData = { 
             entityType: 'KYC', entityId: kycRef.id, action: 'PAN_VERIFIED_MOCK', 
             actorType: 'SYSTEM', timestamp: serverTimestamp() 
-        });
+        };
+        batch.set(auditRef, auditData);
         
-        await batch.commit();
-        toast({ title: "PAN Verified Successfully" });
+        batch.commit().then(() => {
+          toast({ title: "PAN Verified Successfully" });
+        }).catch(error => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: kycRef.path,
+                operation: 'write',
+                requestResourceData: { kyc: kycData, audit: auditData }
+            }));
+        });
       }, 1500);
     });
   }
@@ -334,15 +347,25 @@ export function KycStep({ onCompleted }: StepProps) {
 
                 const auditRef = doc(collection(firestore, 'borrowers', user.uid, 'audit_logs'));
                 
-                batch.set(kycRef, { aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar }, { merge: true });
-                batch.set(auditRef, { 
+                const kycData = { aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar };
+                batch.set(kycRef, kycData, { merge: true });
+
+                const auditData = { 
                     entityType: 'KYC', entityId: kycRef.id, action: 'AADHAAR_OTP_AUTH_SUCCESS_MOCK', 
                     actorType: 'SYSTEM', timestamp: serverTimestamp() 
-                });
+                };
+                batch.set(auditRef, auditData);
                 
-                await batch.commit();
+                batch.commit().then(() => {
+                  toast({ title: "Aadhaar Verified" });
+                }).catch(error => {
+                    errorEmitter.emit('permission-error', new FirestorePermissionError({
+                        path: kycRef.path,
+                        operation: 'write',
+                        requestResourceData: { kyc: kycData, audit: auditData }
+                    }));
+                });
 
-                toast({ title: "Aadhaar Verified" });
             } else {
                 toast({ variant: "destructive", title: "Invalid OTP" });
             }
@@ -504,23 +527,34 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
             const kycQuery = await getDocs(query(collection(firestore, 'borrowers', user.uid, 'kyc_records')));
             if (!kycQuery.empty) {
                 const kycDocRef = kycQuery.docs[0].ref;
-                await updateDoc(kycDocRef, {
+                
+                const kycData = {
                     digilockerStatus: 'SUCCESS',
                     digilockerDocuments: mockDocuments,
                     addressVerified: !!addressVerified,
                     kycCompleted: kycUpdate.kycCompleted
-                });
+                };
 
-                const auditRef = doc(collection(firestore, 'borrowers', user.uid, 'audit_logs'));
-                await setDoc(auditRef, {
-                    entityType: 'KYC', entityId: kycDocRef.id, action: 'DIGILOCKER_KYC_SUCCESS_MOCK',
-                    actorType: 'SYSTEM', timestamp: serverTimestamp()
+                updateDoc(kycDocRef, kycData)
+                .then(async () => {
+                    const auditRef = doc(collection(firestore, 'borrowers', user.uid, 'audit_logs'));
+                    const auditData = {
+                        entityType: 'KYC', entityId: kycDocRef.id, action: 'DIGILOCKER_KYC_SUCCESS_MOCK',
+                        actorType: 'SYSTEM', timestamp: serverTimestamp()
+                    };
+                    await setDoc(auditRef, auditData);
+                    setDigilockerStatus('SUCCESS');
+                    toast({ title: "DigiLocker KYC Successful", description: "Documents have been fetched and verified." });
+                })
+                .catch(error => {
+                    errorEmitter.emit('permission-error', new FirestorePermissionError({
+                        path: kycDocRef.path,
+                        operation: 'update',
+                        requestResourceData: kycData
+                    }));
                 });
             }
         }
-
-        setDigilockerStatus('SUCCESS');
-        toast({ title: "DigiLocker KYC Successful", description: "Documents have been fetched and verified." });
     });
   }
   
@@ -1173,6 +1207,8 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
+    
 
     
 
