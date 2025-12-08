@@ -713,7 +713,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         borrowerId: user.uid,
       };
 
-      updateDocumentNonBlocking(loanAppRef, loanAppUpdateData);
+      setDocumentNonBlocking(loanAppRef, loanAppUpdateData, { merge: true });
       
       const auditLog1Data = {
         entityType: 'LOAN_APPLICATION',
@@ -1380,4 +1380,5 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
 
 
     
+
 
