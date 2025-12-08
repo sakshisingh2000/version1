@@ -818,7 +818,7 @@ export function KfsStep({ onCompleted }: StepProps) {
 
                 <Separator className="col-span-2 my-1" />
 
-                <p className="text-muted-foreground font-bold">Total Repayment Amount</p>
+                <p className="text-muted-foreground font-bold">Total Repayment Amount</p>p>
                 <p className="font-bold text-right">₹{totalRepayment.toLocaleString('en-IN')}</p>
              </div>
           </CardContent>
