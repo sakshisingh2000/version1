@@ -16,11 +16,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useTransition, useEffect } from "react";
 import { assessCreditRisk } from "@/ai/flows/credit-risk-assessment";
 import { getDynamicLoanOffers } from "@/ai/flows/dynamic-loan-offers";
-import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet } from "lucide-react";
+import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet, FileText } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -35,8 +35,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useUser, useFirestore } from "@/firebase";
 import { doc, setDoc, serverTimestamp, writeBatch, collection, getDocs, query, updateDoc } from "firebase/firestore";
 import { Label } from "../ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "../ui/badge";
+import { ScrollArea } from "../ui/scroll-area";
 
 interface StepProps {
   onCompleted: () => void;
@@ -774,69 +775,129 @@ export function LoanOfferStep({ onCompleted }: StepProps) {
 }
 
 export function KfsStep({ onCompleted }: StepProps) {
-    const { application, setApplication } = useLoanApplication();
-    const [kfsConsent, setKfsConsent] = useState(false);
-  
-    if (!application.loanOffer) return <p>No loan offer found.</p>;
-  
-    const { loanAmountOffered, interestRate, tenureMonths } = application.loanOffer;
-    const processingFee = loanAmountOffered * 0.02; // 2% processing fee
-    const disbursedAmount = loanAmountOffered - processingFee;
-    const totalInterest = (loanAmountOffered * (interestRate/100) * (tenureMonths/12));
-    const totalRepayment = loanAmountOffered + totalInterest;
-  
-    return (
-      <div className="space-y-6">
+  const { application, setApplication } = useLoanApplication();
+  const [kfsConsent, setKfsConsent] = useState(false);
+  const [kfsViewed, setKfsViewed] = useState(false);
+
+  if (!application.loanOffer) return <p>No loan offer found.</p>;
+
+  const { loanAmountOffered, interestRate, tenureMonths, monthlyPayment } = application.loanOffer;
+  const processingFee = loanAmountOffered * 0.02; // 2% processing fee
+  const disbursedAmount = loanAmountOffered - processingFee;
+  const totalInterest = (monthlyPayment * tenureMonths) - loanAmountOffered;
+  const totalRepayment = loanAmountOffered + totalInterest;
+  const apr = (((totalInterest + processingFee) / loanAmountOffered) / (tenureMonths/12)) * 100;
+
+  const handleAccept = () => {
+    setApplication(prev => ({
+        ...prev,
+        kfsAccepted: true,
+        loanOffer: {
+            ...prev.loanOffer!,
+            kfsDocumentUrl: '/mock/kfs.pdf',
+        },
+    }));
+    onCompleted();
+  };
+
+  return (
+    <div className="space-y-6">
         <Card>
-          <CardHeader>
-            <CardTitle className="font-headline text-center text-2xl">Key Facts Statement (KFS)</CardTitle>
-            <CardDescription className="text-center">Please review the loan details carefully before proceeding.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-             <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg">
-                <p className="text-muted-foreground">Loan Amount</p>
-                <p className="font-semibold text-right">₹{loanAmountOffered.toLocaleString('en-IN')}</p>
+            <CardHeader>
+                <CardTitle className="font-headline text-center text-2xl">Loan Offer Summary</CardTitle>
+                <CardDescription className="text-center">Please review your final loan offer details.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg">
+                    <p className="text-muted-foreground">Loan Amount</p>
+                    <p className="font-semibold text-right">₹{loanAmountOffered.toLocaleString('en-IN')}</p>
 
-                <p className="text-muted-foreground">Processing Fee (2%)</p>
-                <p className="font-semibold text-right">- ₹{processingFee.toLocaleString('en-IN')}</p>
+                    <p className="text-muted-foreground">Processing Fee (2%)</p>
+                    <p className="font-semibold text-right">- ₹{processingFee.toLocaleString('en-IN')}</p>
 
-                <Separator className="col-span-2 my-1" />
+                    <Separator className="col-span-2 my-1" />
 
-                <p className="text-muted-foreground font-bold">Net Disbursed Amount</p>
-                <p className="font-bold text-right">₹{disbursedAmount.toLocaleString('en-IN')}</p>
-             </div>
+                    <p className="text-muted-foreground font-bold">Net Disbursed Amount</p>
+                    <p className="font-bold text-right">₹{disbursedAmount.toLocaleString('en-IN')}</p>
+                </div>
 
-             <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg">
-                <p className="text-muted-foreground">Annual Interest Rate</p>
-                <p className="font-semibold text-right">{interestRate}%</p>
-                
-                <p className="text-muted-foreground">Loan Tenure</p>
-                <p className="font-semibold text-right">{tenureMonths} months</p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg">
+                    <p className="text-muted-foreground">Annual Interest Rate</p>
+                    <p className="font-semibold text-right">{interestRate}%</p>
 
-                <p className="text-muted-foreground">Total Interest Payable</p>
-                <p className="font-semibold text-right">₹{totalInterest.toLocaleString('en-IN')}</p>
+                    <p className="text-muted-foreground">Annual Percentage Rate (APR)</p>
+                    <p className="font-semibold text-right">{apr.toFixed(2)}%</p>
 
-                <Separator className="col-span-2 my-1" />
+                    <p className="text-muted-foreground">Loan Tenure</p>
+                    <p className="font-semibold text-right">{tenureMonths} months</p>
 
-                <p className="text-muted-foreground font-bold">Total Repayment Amount</p>p>
-                <p className="font-bold text-right">₹{totalRepayment.toLocaleString('en-IN')}</p>
-             </div>
-          </CardContent>
+                    <p className="text-muted-foreground">Monthly EMI</p>
+                    <p className="font-semibold text-right">₹{monthlyPayment.toLocaleString('en-IN')}</p>
+                    
+                    <Separator className="col-span-2 my-1" />
+
+                    <p className="text-muted-foreground font-bold">Total Repayment Amount</p>
+                    <p className="font-bold text-right">₹{totalRepayment.toLocaleString('en-IN')}</p>
+                </div>
+
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full" onClick={() => setKfsViewed(true)}>
+                            <FileText className="mr-2 h-4 w-4" /> View Key Facts Statement (KFS)
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                        <DialogTitle>Key Facts Statement (KFS)</DialogTitle>
+                        <DialogDescription>
+                            This is a mock KFS document as per RBI guidelines.
+                        </DialogDescription>
+                        </DialogHeader>
+                        <ScrollArea className="h-96 pr-4">
+                            <div className="space-y-4 text-sm">
+                                <p><strong>Lender:</strong> LoanSwift Partner NBFC</p>
+                                <p><strong>Loan Amount:</strong> ₹{loanAmountOffered.toLocaleString('en-IN')}</p>
+                                <p><strong>Annual Percentage Rate (APR):</strong> {apr.toFixed(2)}%</p>
+                                <p><strong>Interest Rate:</strong> {interestRate}% p.a.</p>
+                                <p><strong>Tenure:</strong> {tenureMonths} months</p>
+                                <p><strong>Processing Fee:</strong> ₹{processingFee.toLocaleString('en-IN')}</p>
+                                <p><strong>Net Disbursed Amount:</strong> ₹{disbursedAmount.toLocaleString('en-IN')}</p>
+                                <h4 className="font-bold">Repayment Schedule</h4>
+                                <p><strong>EMI:</strong> ₹{monthlyPayment.toLocaleString('en-IN')} x {tenureMonths} months</p>
+                                <h4 className="font-bold">Penal Charges</h4>
+                                <p>Late Payment Fee: ₹500 + GST</p>
+                                <p>Bounce Charges: ₹750 + GST</p>
+                                <h4 className="font-bold">Foreclosure Terms</h4>
+                                <p>Allowed after 3 EMIs with 4% charge on principal outstanding.</p>
+                                <h4 className="font-bold">Grievance Redressal</h4>
+                                <p>Contact: grievance@loanswift-mock.com</p>
+                            </div>
+                        </ScrollArea>
+                        <CardFooter>
+                           <Button asChild variant="outline" className="w-full">
+                                <a href="/mock/kfs.pdf" download>Download KFS (Mock PDF)</a>
+                           </Button>
+                        </CardFooter>
+                    </DialogContent>
+                </Dialog>
+            </CardContent>
         </Card>
         
-        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
-            <Checkbox checked={kfsConsent} onCheckedChange={(checked) => setKfsConsent(checked as boolean)} />
-            <div className="space-y-1 leading-none">
-              <Label>I have read and agree to the Key Facts Statement and the terms of the loan.</Label>
-            </div>
-        </FormItem>
+        {kfsViewed && (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
+                <Checkbox checked={kfsConsent} onCheckedChange={(checked) => setKfsConsent(checked as boolean)} />
+                <div className="space-y-1 leading-none">
+                    <Label>I have read and understood the Key Facts Statement.</Label>
+                </div>
+            </FormItem>
+        )}
 
-        <Button onClick={() => { setApplication(prev => ({ ...prev, kfsAccepted: true })); onCompleted(); }} disabled={!kfsConsent} className="w-full">
-            Confirm and Continue
+        <Button onClick={handleAccept} disabled={!kfsConsent} className="w-full">
+            Accept Offer & Continue
         </Button>
-      </div>
-    );
-  }
+    </div>
+  );
+}
 
 const bankDetailsSchema = z.object({
     accountNumber: z.string().min(9, "Invalid account number").max(18, "Invalid account number"),
@@ -937,37 +998,161 @@ export function EMandateStep({ onCompleted }: StepProps) {
     );
 }
 
+export function AgreementStep({ onCompleted }: StepProps) {
+  const { setApplication } = useLoanApplication();
+  const [isSigning, startTransition] = useTransition();
+  const [otp, setOtp] = useState('');
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const { toast } = useToast();
+
+  const handleSendOtp = () => {
+    startTransition(() => {
+      setTimeout(() => {
+        setIsOtpSent(true);
+        toast({ title: "OTP Sent (Mock)", description: "Enter 123456 to sign." });
+      }, 1000);
+    });
+  };
+
+  const handleVerifyOtp = (e: React.FormEvent) => {
+    e.preventDefault();
+    startTransition(() => {
+      setTimeout(() => {
+        if (otp === '123456') {
+          setApplication(prev => ({ 
+            ...prev,
+            agreement: {
+              isSigned: true,
+              agreementUrl: '/mock/agreement.pdf',
+              signedAt: new Date(),
+            }
+          }));
+          toast({ title: "Agreement Signed Successfully" });
+          onCompleted();
+        } else {
+          toast({ variant: "destructive", title: "Invalid OTP" });
+        }
+      }, 1500);
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Digital Loan Agreement (e-Sign)</CardTitle>
+          <CardDescription>Review the terms and sign the agreement using an Aadhaar-based OTP.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-64 w-full rounded-md border p-4 text-xs text-muted-foreground">
+            <h3 className="font-bold mb-2">Mock Loan Agreement</h3>
+            <p className="mb-2">This is a legally binding agreement between you (the Borrower) and LoanSwift Partner NBFC (the Lender)...</p>
+            <p>1. Loan Amount: ₹{useLoanApplication().application.loanOffer?.loanAmountOffered.toLocaleString('en-IN')}</p>
+            <p>2. Tenure: {useLoanApplication().application.loanOffer?.tenureMonths} months</p>
+            <p>3. Repayment: You agree to repay the loan via monthly EMIs of ₹{useLoanApplication().application.loanOffer?.monthlyPayment.toLocaleString('en-IN')} as per the e-mandate.</p>
+            <p className="mt-4">By signing, you confirm your acceptance of all terms...</p>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+      
+      {!isOtpSent ? (
+        <Button onClick={handleSendOtp} disabled={isSigning} className="w-full">
+          {isSigning ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <FileCheck2 className="mr-2 h-4 w-4" />}
+          Sign via Aadhaar OTP (Mock)
+        </Button>
+      ) : (
+        <form onSubmit={handleVerifyOtp} className="space-y-4 p-4 border rounded-lg">
+          <Label htmlFor="otp">Enter OTP sent to your Aadhaar-linked mobile</Label>
+          <Input id="otp" value={otp} onChange={e => setOtp(e.target.value)} placeholder="Enter 6-digit OTP" />
+          <Button type="submit" disabled={isSigning} className="w-full">
+            {isSigning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Verify & e-Sign
+          </Button>
+        </form>
+      )}
+    </div>
+  );
+}
+
 export function DisbursementStep({ onCompleted: _ }: StepProps) {
-    const { application } = useLoanApplication();
+    const { application, setApplication } = useLoanApplication();
+    const [isDisbursing, setIsDisbursing] = useState(false);
+    const [isDisbursed, setIsDisbursed] = useState(application.isDisbursed);
+    const toast = useToast();
+
+    const handleDisburse = () => {
+        setIsDisbursing(true);
+        // Mock disbursement process
+        setTimeout(() => {
+            setApplication(prev => ({ ...prev, isDisbursed: true }));
+            setIsDisbursed(true);
+            setIsDisbursing(false);
+            toast.toast({ title: "Loan Disbursed!", description: "The amount has been sent to your bank account." });
+        }, 2000);
+    }
+
+    if (isDisbursed) {
+         return (
+            <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
+                <CheckCircle className="h-20 w-20 text-green-500"/>
+                <h3 className="text-3xl font-headline font-bold">Congratulations!</h3>
+                <p className="text-xl font-semibold text-muted-foreground">
+                    Your loan has been disbursed.
+                </p>
+                <Card className="text-left w-full max-w-sm">
+                    <CardHeader>
+                        <CardTitle>Disbursement Details</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Amount:</span>
+                            <span className="font-bold">₹{(application.loanOffer!.loanAmountOffered - (application.loanOffer!.loanAmountOffered * 0.02)).toLocaleString('en-IN')}</span>
+                        </div>
+                         <div className="flex justify-between">
+                            <span className="text-muted-foreground">Bank Account:</span>
+                            <span className="font-bold">...{application.bankDetails?.accountNumber.slice(-4)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Transaction Ref:</span>
+                            <span className="font-bold">TXN123MOCK</span>
+                        </div>
+                    </CardContent>
+                </Card>
+                <p className="text-muted-foreground max-w-md">
+                    The amount will be credited to your account shortly. Your first EMI is due next month.
+                </p>
+                <div className="flex gap-4">
+                    <Button asChild variant="outline"><Link href="/mock/agreement.pdf" download>Download Agreement</Link></Button>
+                    <Button asChild><Link href="/application">Back to Dashboard</Link></Button>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
-            <CheckCircle className="h-20 w-20 text-green-500"/>
-            <h3 className="text-3xl font-headline font-bold">Congratulations!</h3>
-            <p className="text-xl font-semibold text-muted-foreground">
-                Your loan has been disbursed.
+       <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
+            <Wallet className="h-16 w-16 text-primary"/>
+            <h3 className="text-2xl font-headline font-bold">Ready for Disbursement</h3>
+            <p className="text-muted-foreground max-w-md">
+                All formalities are complete. The net loan amount will be transferred to your verified bank account.
             </p>
-            <Card className="text-left w-full max-w-sm">
-                <CardHeader>
-                    <CardTitle>Disbursement Details</CardTitle>
-                </CardHeader>
+             <Card className="text-left w-full max-w-sm">
+                <CardHeader><CardTitle>Final Disbursement</CardTitle></CardHeader>
                 <CardContent className="space-y-2">
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">Amount:</span>
-                        <span className="font-bold">₹{application.loanOffer?.loanAmountOffered.toLocaleString('en-IN')}</span>
+                     <div className="flex justify-between">
+                        <span className="text-muted-foreground">Net Amount:</span>
+                        <span className="font-bold">₹{(application.loanOffer!.loanAmountOffered - (application.loanOffer!.loanAmountOffered * 0.02)).toLocaleString('en-IN')}</span>
                     </div>
                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Bank Account:</span>
+                        <span className="text-muted-foreground">To Account:</span>
                         <span className="font-bold">...{application.bankDetails?.accountNumber.slice(-4)}</span>
                     </div>
                 </CardContent>
             </Card>
-            <p className="text-muted-foreground max-w-md">
-                The amount will be credited to your account shortly. Your first EMI is due next month.
-            </p>
-            <Button asChild>
-                <Link href="/application">Back to Dashboard</Link>
+            <Button onClick={handleDisburse} disabled={isDisbursing} size="lg">
+                {isDisbursing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isDisbursing ? "Processing..." : "Initiate Disbursement"}
             </Button>
         </div>
-    );
+    )
 }

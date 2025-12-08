@@ -3,7 +3,7 @@
 import type { LoanApplication } from '@/lib/types';
 import { createContext, useContext, useState, useMemo, type Dispatch, type SetStateAction, type ReactNode } from 'react';
 import { StepIndicator } from './step-indicator';
-import { BankDetailsStep, CreditCheckStep, DigiLockerStep, DisbursementStep, EMandateStep, KfsStep, KycStep, LoanOfferStep, PersonalDetailsStep } from './steps';
+import { BankDetailsStep, CreditCheckStep, DigiLockerStep, DisbursementStep, EMandateStep, KfsStep, KycStep, LoanOfferStep, PersonalDetailsStep, AgreementStep } from './steps';
 import { Card, CardContent } from '../ui/card';
 
 type LoanApplicationContextType = {
@@ -57,6 +57,7 @@ const STEPS = [
   { title: "Key Facts", component: KfsStep },
   { title: "Bank Details", component: BankDetailsStep },
   { title: "e-Mandate", component: EMandateStep },
+  { title: "e-Sign Agreement", component: AgreementStep },
   { title: "Disbursement", component: DisbursementStep },
 ];
 

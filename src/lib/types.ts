@@ -41,6 +41,7 @@ export type LoanApplication = {
     monthlyPayment: number;
     tenureMonths: number;
     reason: string;
+    kfsDocumentUrl?: string;
   };
   kfsAccepted?: boolean;
   bankDetails?: {
@@ -50,6 +51,11 @@ export type LoanApplication = {
   };
   eMandate?: {
     isRegistered: boolean;
+  };
+  agreement?: {
+    isSigned: boolean;
+    agreementUrl: string;
+    signedAt: Date;
   };
   isDisbursed?: boolean;
   consents?: Record<string, boolean>;
