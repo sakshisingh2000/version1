@@ -51,13 +51,29 @@ export function DobPicker({ value, onChange }: DobPickerProps) {
   const handleYearChange = (yearStr: string) => {
     const year = parseInt(yearStr, 10);
     setSelectedYear(year);
-    updateDate(year, selectedMonth, selectedDay);
+    // If day is invalid for new year/month, reset it
+    const newDaysInMonth = new Date(year, (selectedMonth ?? 0) + 1, 0).getDate();
+    const currentDay = selectedDay;
+    if (currentDay && currentDay > newDaysInMonth) {
+        setSelectedDay(undefined);
+        updateDate(year, selectedMonth, undefined);
+    } else {
+        updateDate(year, selectedMonth, selectedDay);
+    }
   };
 
   const handleMonthChange = (monthStr: string) => {
     const month = parseInt(monthStr, 10);
     setSelectedMonth(month);
-    updateDate(selectedYear, month, selectedDay);
+    // If day is invalid for new month, reset it
+    const newDaysInMonth = new Date(selectedYear ?? CURRENT_YEAR, month + 1, 0).getDate();
+    const currentDay = selectedDay;
+    if (currentDay && currentDay > newDaysInMonth) {
+        setSelectedDay(undefined);
+        updateDate(selectedYear, month, undefined);
+    } else {
+        updateDate(selectedYear, month, selectedDay);
+    }
   };
 
   const handleDayChange = (day: number) => {
@@ -92,6 +108,7 @@ export function DobPicker({ value, onChange }: DobPickerProps) {
         grid.push(
             <Button
                 key={day}
+                type="button"
                 variant={selectedDay === day ? "default" : "outline"}
                 size="icon"
                 onClick={() => handleDayChange(day)}
@@ -112,13 +129,13 @@ export function DobPicker({ value, onChange }: DobPickerProps) {
       const month = (selectedMonth + 1).toString().padStart(2, '0');
       return `${day}/${month}/${selectedYear}`;
     }
-    return "Please select a date";
+    return "Please select your date of birth";
   }, [selectedDay, selectedMonth, selectedYear]);
 
 
   return (
     <div className="space-y-4 rounded-md border p-4">
-      <div className="text-center font-medium text-foreground">
+      <div className="text-center font-medium text-foreground h-6 flex items-center justify-center">
         {formattedDate}
       </div>
       <div className="flex space-x-2">
