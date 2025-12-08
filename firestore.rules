@@ -133,6 +133,27 @@ service cloud.firestore {
         allow update: if isExistingOwner(borrowerId) && hasImmutableSubcollectionData();
         allow delete: if isExistingOwner(borrowerId);
       }
+      
+      /**
+       * @description Manages a borrower's KYC records. Access is strictly limited
+       *              to the borrower who owns the parent document.
+       * @path        /borrowers/{borrowerId}/kyc_records/{kycRecordId}
+       * @principle   Enforces document ownership based on the parent path.
+       */
+      match /kyc_records/{kycRecordId} {
+        allow get, list, create, update, delete: if isOwner(borrowerId);
+      }
+
+      /**
+       * @description Manages audit logs for a borrower. Access is strictly limited
+       *              to the borrower for creation, but can be read by other roles
+       *              in a real application (simplified here).
+       * @path        /borrowers/{borrowerId}/audit_logs/{auditLogId}
+       * @principle   Enforces document ownership based on the parent path.
+       */
+      match /audit_logs/{auditLogId} {
+        allow get, list, create, update, delete: if isOwner(borrowerId);
+      }
 
       /**
        * @description Manages a borrower's loan applications. Access is strictly limited
