@@ -39,7 +39,7 @@ import { Badge } from "../ui/badge";
 import { ScrollArea } from "../ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { addDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { TenureOption } from "@/lib/types";
+import type { TenureOption } from "@/lib/types";
 
 
 interface StepProps {
@@ -655,7 +655,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         max_dpd: 0,
         recent_enquiries_count: Math.floor(Math.random() * 3),
         decision_summary: "ELIGIBLE",
-        bureau_raw_mock_json: JSON.stringify({ "tradelines": 5, "inquiries_last_6m": 2 }, null, 2),
+        bureau_raw_mock_json: JSON.stringify({ "tradelines": 5, "inquiries_last_6m": 2, "mockData": true }, null, 2),
       };
 
       // 2. Perform Automated Underwriting Logic
@@ -703,7 +703,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         bureau_score: mockReport.score,
         eligibility_decision_reason: underwritingDecision.reason,
         approved_amount: underwritingDecision.approved_amount,
-        approved_tenure_options: underwritingDecision.approved_tenure_options,
+        approved_tenure_options: underwritingDecision.approved_tenure_options as any,
       };
       setApplication(prev => ({ ...prev, ...appUpdate }));
 
@@ -847,20 +847,20 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
     const ANNUAL_INTEREST_RATE = 24; // 24% p.a.
     const tenureOptions = [3, 6, 9, 12];
 
-    useEffect(() => {
-        if (selectedTenure && application.approved_amount) {
-            const P = application.approved_amount;
-            const r = (ANNUAL_INTEREST_RATE / 12) / 100; // Monthly interest rate
-            const n = selectedTenure;
-            const emi = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-            setCalculatedEmi(Math.round(emi));
-        } else {
-            setCalculatedEmi(null);
-        }
-    }, [selectedTenure, application.approved_amount]);
+    const calculateEmi = (tenure: number) => {
+      if (application.approved_amount) {
+        const P = application.approved_amount;
+        const r = (ANNUAL_INTEREST_RATE / 12) / 100; // Monthly interest rate
+        const n = tenure;
+        const emi = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+        return Math.round(emi);
+      }
+      return 0;
+    }
 
-    const handleTenureChange = (value: string) => {
-        setSelectedTenure(Number(value));
+    const handleTenureChange = (tenure: number) => {
+      setSelectedTenure(tenure);
+      setCalculatedEmi(calculateEmi(tenure));
     };
 
     const handleConfirmAndContinue = () => {
@@ -931,33 +931,46 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
     }
 
     return (
-        <div className="space-y-6">
-            <h3 className="text-center font-headline text-2xl font-bold">Eligibility Result – Choose Tenure & EMI</h3>
-            <Card>
-                <CardContent className="pt-6 space-y-4">
-                    <p className="text-center">You are eligible for <span className="font-bold">₹{application.approved_amount.toLocaleString('en-IN')}</span> (Mock).</p>
-                    
-                    <RadioGroup onValueChange={handleTenureChange} className="grid grid-cols-2 gap-4">
-                        <Label className="col-span-2">Choose your tenure</Label>
-                        {tenureOptions.map(tenure => (
-                             <div key={tenure} className="flex items-center space-x-2">
-                                <RadioGroupItem value={String(tenure)} id={`t-${tenure}`} />
-                                <Label htmlFor={`t-${tenure}`} className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary w-full">
-                                    <span className="font-bold text-lg">{tenure} Months</span>
-                                </Label>
-                            </div>
-                        ))}
-                    </RadioGroup>
+        <div className="space-y-8">
+            <div className="text-center">
+                <h3 className="font-headline text-2xl font-bold">Choose Your Loan Plan</h3>
+                <p className="text-muted-foreground">You are eligible for <span className="font-bold text-foreground">₹{application.approved_amount.toLocaleString('en-IN')}</span>. Select a tenure to see your EMI.</p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {tenureOptions.map(tenure => (
+                    <div 
+                        key={tenure}
+                        onClick={() => handleTenureChange(tenure)}
+                        className={cn(
+                            "cursor-pointer rounded-lg border-2 p-4 text-center transition-all",
+                            selectedTenure === tenure 
+                                ? "border-primary bg-primary/10 shadow-lg" 
+                                : "border-border hover:border-primary/50"
+                        )}
+                    >
+                        <p className="font-bold text-lg">{tenure}</p>
+                        <p className="text-sm text-muted-foreground">Months</p>
+                        <Separator className="my-2" />
+                        <p className="text-xs text-muted-foreground">EMI</p>
+                        <p className="font-semibold">₹{calculateEmi(tenure).toLocaleString('en-IN')}</p>
+                    </div>
+                ))}
+            </div>
 
-                    {calculatedEmi ? (
-                        <p className="text-center font-semibold">Estimated EMI for {selectedTenure} months: ₹{calculatedEmi.toLocaleString('en-IN')} per month (Mock).</p>
-                    ) : (
-                        <p className="text-center text-muted-foreground">Select a tenure to see your EMI.</p>
-                    )}
-                </CardContent>
-            </Card>
+            {selectedTenure && calculatedEmi ? (
+                <Card className="bg-muted/50">
+                    <CardHeader className="p-4">
+                        <CardTitle className="text-center text-lg">Your Selected Plan</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0 text-center">
+                        <p className="text-3xl font-bold font-headline">₹{calculatedEmi.toLocaleString('en-IN')} <span className="text-base font-normal text-muted-foreground">/ month</span></p>
+                        <p className="text-sm text-muted-foreground">for {selectedTenure} months at {ANNUAL_INTEREST_RATE}% p.a. (mock)</p>
+                    </CardContent>
+                </Card>
+            ) : null}
 
-            <div className="flex items-center space-x-2 rounded-md border p-4 shadow">
+            <div className="flex items-center space-x-2 rounded-md border p-4 shadow-sm">
                 <Checkbox id="terms" checked={consentChecked} onCheckedChange={(checked) => setConsentChecked(checked as boolean)} />
                 <label htmlFor="terms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     I confirm that I have reviewed and chosen this loan tenure and EMI.
@@ -968,12 +981,13 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                 onClick={handleConfirmAndContinue} 
                 className="w-full" 
                 disabled={isPending || !selectedTenure || !consentChecked}
+                size="lg"
             >
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Confirm Tenure & Continue
             </Button>
-            {!selectedTenure || !consentChecked && (
-                 <p className="text-sm text-destructive text-center">Please select a tenure and confirm before continuing.</p>
+            {(!selectedTenure || !consentChecked) && (
+                 <p className="text-sm text-destructive text-center">Please select a tenure and confirm your choice to proceed.</p>
             )}
         </div>
     );
@@ -1075,7 +1089,7 @@ export function KfsStep({ onCompleted }: StepProps) {
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-center text-2xl">Your Loan Offer Summary</CardTitle>
-          <p className="text-sm text-center text-muted-foreground">Please review and accept your final loan details.</p>
+          <CardDescription className="text-center">Please review and accept your final loan details.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg bg-muted/50">
@@ -1392,7 +1406,3 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
-
-    
-
-    

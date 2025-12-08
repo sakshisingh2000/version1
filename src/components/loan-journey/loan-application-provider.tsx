@@ -19,31 +19,9 @@ type LoanApplicationContextType = {
 const LoanApplicationContext = createContext<LoanApplicationContextType | null>(null);
 
 const initialApplicationState: LoanApplication = {
-  loanApplicationId: "mock-app-id-12345",
-  personalDetails: {
-    fullName: "Rohan Sharma",
-    pan: "ABCDE1234F",
-    birthDate: new Date("1990-05-15"),
-    loanAmount: 150000,
-    employmentType: "Salaried",
-    monthlyIncome: 75000,
-    addressLine1: "123, Tech Park",
-    city: "Bengaluru",
-    pincode: "560100",
-    consent: true,
-  },
-  kyc: {
-    panStatus: 'VERIFIED',
-    aadhaarAuthStatus: 'OTP_SUCCESS',
-    aadhaarMaskedNumber: 'XXXX-XXXX-8901',
-    digilockerStatus: 'SUCCESS',
-    digilockerDocuments: [
-      { doc_type: 'AADHAAR_XML', doc_name: 'Aadhaar XML / e-KYC', verification_status: 'VERIFIED' },
-      { doc_type: 'PAN_CARD', doc_name: 'PAN Card (e-PAN)', verification_status: 'VERIFIED' },
-    ],
-    addressVerified: true,
-    kycCompleted: true,
-  },
+  loanApplicationId: "", // Will be set after personal details are submitted
+  personalDetails: undefined,
+  kyc: undefined,
   bureauReport: undefined,
   application_status: "DRAFT",
 };
@@ -51,7 +29,7 @@ const initialApplicationState: LoanApplication = {
 
 export function LoanApplicationProvider({ children }: { children: ReactNode }) {
   const [application, setApplication] = useState<LoanApplication>(initialApplicationState);
-  const [step, setStep] = useState(3); // Start at Credit Check (index 3)
+  const [step, setStep] = useState(0); // Start at Personal Details (index 0)
 
   const nextStep = () => setStep(prev => prev + 1);
   const prevStep = () => setStep(prev => prev - 1);
