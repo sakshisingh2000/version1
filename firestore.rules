@@ -169,7 +169,7 @@ service cloud.firestore {
         allow get: if isOwner(borrowerId);
         allow list: if isOwner(borrowerId);
         allow create: if isOwner(borrowerId) && hasValidSubcollectionDataOnCreate(borrowerId);
-        allow update: if isExistingOwner(borrowerId) && hasImmutableSubcollectionData();
+        allow update: if isOwner(borrowerId);
         allow delete: if isExistingOwner(borrowerId);
       }
 
