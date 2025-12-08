@@ -4,13 +4,20 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/icons';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, ShieldCheck } from 'lucide-react';
+import { Menu, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { getAuth } from 'firebase/auth';
+import { useState, useEffect } from 'react';
 
 export function Header() {
   const { user, isUserLoading } = useUser();
   const auth = getAuth();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -46,6 +53,7 @@ export function Header() {
         </div>
 
         <div className="flex items-center md:hidden">
+          {isClient && (
             <Sheet>
                 <SheetTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -71,6 +79,7 @@ export function Header() {
                     </nav>
                 </SheetContent>
             </Sheet>
+          )}
         </div>
         <div className="flex items-center md:hidden ml-auto">
              <Link href="/" className="flex items-center space-x-2">
