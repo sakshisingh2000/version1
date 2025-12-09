@@ -657,7 +657,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
           status: 'APPROVED' | 'REJECTED' | 'PENDING_REVIEW';
           reason: string;
           risk_score: 'LOW_RISK' | 'MEDIUM_RISK' | 'HIGH_RISK';
-          approved_amount?: number;
+          approved_amount: number | null;
           approved_tenure_options?: { tenure_months: number }[];
       };
       
@@ -673,13 +673,15 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
           underwritingDecision = { 
             status: 'PENDING_REVIEW', 
             reason: 'Credit score is fair. Requires manual underwriting review.',
-            risk_score: 'MEDIUM_RISK'
+            risk_score: 'MEDIUM_RISK',
+            approved_amount: null,
           };
       } else {
           underwritingDecision = { 
             status: 'REJECTED', 
             reason: 'Credit score below minimum threshold.',
-            risk_score: 'HIGH_RISK'
+            risk_score: 'HIGH_RISK',
+            approved_amount: null,
           };
       }
 
@@ -706,7 +708,6 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         approved_amount: underwritingDecision.approved_amount,
         approved_tenure_options: underwritingDecision.approved_tenure_options,
         updated_at: serverTimestamp(),
-        borrowerId: user.uid,
       };
 
       setDocumentNonBlocking(loanAppRef, loanAppUpdateData, { merge: true });
@@ -1564,5 +1565,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
+    
 
     
