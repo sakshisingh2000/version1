@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useLoanApplication } from "./loan-application-provider";
@@ -622,6 +623,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const [isProcessing, startTransition] = useTransition();
+  const [reportReady, setReportReady] = useState(!!application.bureauReport);
   const { toast } = useToast();
 
   const handlePullReport = () => {
@@ -732,13 +734,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
 
       toast({ title: 'Credit Check Complete', description: `Your application is ${underwritingDecision.status}.` });
       
-      // Auto-advance after a short delay to allow user to see the score
-      setTimeout(() => {
-        if (underwritingDecision.status !== 'REJECTED') {
-            onCompleted();
-        }
-      }, 1500);
-
+      setReportReady(true);
     });
   };
 
@@ -752,7 +748,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
     );
   }
 
-  if (application.bureauReport) {
+  if (reportReady) {
     if (application.application_status === 'REJECTED') {
       return (
          <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
@@ -765,6 +761,9 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
           </div>
       );
     }
+    
+    const score = application.bureauReport?.score || 0;
+    const scoreBand = score >= 750 ? "Excellent" : score >= 700 ? "Good" : score >= 650 ? "Fair" : "Poor";
 
     return (
       <div className="space-y-6">
@@ -772,39 +771,39 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
               <BadgeCheck className="h-4 w-4 !text-green-600" />
               <AlertTitle className="text-green-800">Credit Check Complete!</AlertTitle>
               <AlertDescription className="text-green-700">
-                  Your credit profile has been reviewed. Proceed to view your eligibility.
+                  Your credit profile has been reviewed.
               </AlertDescription>
           </Alert>
           <Card>
               <CardHeader>
-                  <CardTitle>Your Credit Report Summary (Mock)</CardTitle>
+                  <CardTitle className="text-center">Your Credit Report Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Card className="text-center p-4 rounded-lg bg-muted/50 overflow-hidden relative">
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-48 w-48 bg-primary/10 rounded-full blur-2xl"></div>
                     <p className="text-sm text-muted-foreground">CIBIL Score (Mock)</p>
-                    <p className="text-6xl font-bold text-primary">{application.bureauReport.score}</p>
+                    <p className="text-6xl font-bold text-primary">{score}</p>
+                    <p className="font-semibold">{scoreBand}</p>
+                    <p className="text-sm text-muted-foreground mt-1">Decision: {application.bureauReport?.decision_summary}</p>
                 </Card>
                   <div className="flex flex-wrap gap-2 justify-center">
-                      <Badge variant="secondary">Active Loans: {application.bureauReport.total_active_loans}</Badge>
-                      <Badge variant="secondary">Overdue: ₹{application.bureauReport.total_overdue_amount}</Badge>
-                      <Badge variant="secondary">Recent Inquiries: {application.bureauReport.recent_enquiries_count}</Badge>
+                      <Badge variant="secondary">Active Loans: {application.bureauReport?.total_active_loans}</Badge>
+                      <Badge variant="secondary">Overdue: ₹{application.bureauReport?.total_overdue_amount}</Badge>
+                      <Badge variant="secondary">Recent Inquiries: {application.bureauReport?.recent_enquiries_count}</Badge>
                   </div>
                   <Accordion type="single" collapsible>
                       <AccordionItem value="item-1">
                           <AccordionTrigger>View Detailed Report (Mock)</AccordionTrigger>
                           <AccordionContent>
                               <pre className="text-xs bg-gray-100 p-2 rounded-md overflow-x-auto">
-                                  {application.bureauReport.bureau_raw_mock_json}
+                                  {application.bureauReport?.bureau_raw_mock_json}
                               </pre>
                           </AccordionContent>
                       </AccordionItem>
                   </Accordion>
               </CardContent>
           </Card>
-          <div className="text-center text-muted-foreground text-sm">
-            You will be redirected to the loan offer shortly...
-          </div>
+          <Button onClick={onCompleted} className="w-full">Continue to Eligibility Result</Button>
       </div>
     );
   }
@@ -976,6 +975,21 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                 borrowerId: user.uid,
             };
             addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLogData);
+            
+            const scheduleAuditData = {
+                entityType: 'LOAN_APP',
+                entityId: application.loanApplicationId,
+                action: 'PAYMENT_SCHEDULE_GENERATED_MOCK',
+                actorType: 'SYSTEM',
+                timestamp: serverTimestamp(),
+                new_value: {
+                    num_installments: summary.numInstallments,
+                    total_interest_payable: summary.totalInterestPayable,
+                    total_payment: summary.totalPaymentDue,
+                },
+                borrowerId: user.uid,
+            };
+            addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), scheduleAuditData);
 
             toast({ title: "Tenure Confirmed", description: "Proceeding to next step." });
             onCompleted();
@@ -1190,9 +1204,9 @@ export function KfsStep({ onCompleted }: StepProps) {
                                   <TableRow key={item.installmentNo}>
                                       <TableCell>{item.installmentNo}</TableCell>
                                       <TableCell>{format(new Date(item.dueDate), 'dd MMM yyyy')}</TableCell>
-                                      <TableCell>₹{item.principal.toLocaleString('en-IN')}</TableCell>
-                                      <TableCell>₹{item.interest.toLocaleString('en-IN')}</TableCell>
-                                      <TableCell className="text-right">₹{Math.round(item.totalPayment).toLocaleString('en-IN')}</TableCell>
+                                      <TableCell>₹{item.principal.toFixed(2)}</TableCell>
+                                      <TableCell>₹{item.interest.toFixed(2)}</TableCell>
+                                      <TableCell className="text-right">₹{item.totalPayment.toFixed(2)}</TableCell>
                                   </TableRow>
                               ))}
                           </TableBody>
