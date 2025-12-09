@@ -9,8 +9,15 @@ export type DigiLockerDocument = {
 
 export type TenureOption = {
   tenure_months: number;
-  emi_amount: number;
-  interest_rate_annual: number;
+};
+
+export type PaymentScheduleItem = {
+  installmentNo: number;
+  dueDate: string; // ISO string for date
+  principal: number;
+  interest: number;
+  totalPayment: number;
+  outstandingPrincipal: number;
 };
 
 export type LoanApplication = {
@@ -62,6 +69,13 @@ export type LoanApplication = {
   selected_tenure_months?: number;
   selected_emi_amount?: number;
   offer_status?: 'NONE' | 'OFFER_GENERATED' | 'OFFER_ACCEPTED' | 'OFFER_REJECTED';
+  
+  // Payment Schedule fields
+  paymentSchedule?: PaymentScheduleItem[];
+  totalInterestPayable?: number;
+  totalPaymentDue?: number;
+  firstEmiDate?: string;
+  lastEmiDate?: string;
 
   kfs_document_url?: string;
   loan_agreement_url?: string;

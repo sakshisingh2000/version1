@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useMemo } from "react";
 import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet, FileText, BadgeCheck, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -34,9 +34,11 @@ import { Badge } from "../ui/badge";
 import { ScrollArea } from "../ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { addDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import type { TenureOption } from "@/lib/types";
+import type { TenureOption, PaymentScheduleItem } from "@/lib/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { DobPicker } from "@/components/ui/dob-picker";
+import { addMonths, format, startOfMonth } from 'date-fns';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 
 interface StepProps {
@@ -69,12 +71,12 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
       fullName: "",
       pan: "",
       birthDate: undefined,
-      loanAmount: 10000,
+      loanAmount: undefined,
       employmentType: "",
       monthlyIncome: undefined,
       addressLine1: "",
       city: "",
-      pincode: "",
+pincode: "",
       consent: false
     },
   });
@@ -93,6 +95,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
       const loanAppRef = doc(loanAppCollection);
 
       const borrowerData = {
+        fullName: values.fullName,
         pan: values.pan,
         dateOfBirth: values.birthDate,
         employmentType: values.employmentType,
@@ -817,6 +820,66 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
 }
 
 
+function generatePaymentSchedule(
+  principal: number,
+  annualRate: number,
+  tenureMonths: number,
+  firstEmiDate: Date
+): { schedule: PaymentScheduleItem[], summary: any } {
+  if (principal <= 0 || annualRate <= 0 || tenureMonths <= 0) return { schedule: [], summary: {} };
+
+  const monthlyRate = annualRate / 12 / 100;
+  const emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, tenureMonths)) / (Math.pow(1 + monthlyRate, tenureMonths) - 1);
+  const totalPayment = emi * tenureMonths;
+  const totalInterest = totalPayment - principal;
+
+  let balance = principal;
+  const schedule: PaymentScheduleItem[] = [];
+
+  for (let i = 1; i <= tenureMonths; i++) {
+    const interestComponent = Math.round(balance * monthlyRate * 100) / 100;
+    let principalComponent = Math.round((emi - interestComponent) * 100) / 100;
+
+    if (i === tenureMonths) {
+      principalComponent = balance; // Adjust last principal to clear balance
+    }
+    
+    const currentEmi = principalComponent + interestComponent;
+    balance = Math.round((balance - principalComponent) * 100) / 100;
+
+    schedule.push({
+      installmentNo: i,
+      dueDate: addMonths(firstEmiDate, i - 1).toISOString(),
+      principal: principalComponent,
+      interest: interestComponent,
+      totalPayment: currentEmi,
+      outstandingPrincipal: balance,
+    });
+  }
+
+  // Final adjustment for last EMI due to rounding
+  const lastItemIndex = schedule.length -1;
+  const lastItem = schedule[lastItemIndex];
+  if(lastItem.outstandingPrincipal !== 0 && lastItem.outstandingPrincipal < 1) { // if there's a small remainder
+    lastItem.principal += lastItem.outstandingPrincipal;
+    lastItem.totalPayment += lastItem.outstandingPrincipal;
+    lastItem.outstandingPrincipal = 0;
+  }
+
+
+  return {
+    schedule,
+    summary: {
+      totalInterestPayable: totalInterest,
+      totalPaymentDue: totalPayment,
+      numInstallments: tenureMonths,
+      firstEmiDate: firstEmiDate.toISOString(),
+      lastEmiDate: addMonths(firstEmiDate, tenureMonths - 1).toISOString(),
+    }
+  };
+}
+
+
 export function EligibilityResultStep({ onCompleted }: StepProps) {
     const { application, setApplication } = useLoanApplication();
     const { user } = useUser();
@@ -826,25 +889,34 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
 
     const [selectedTenure, setSelectedTenure] = useState<number | null>(null);
     const [calculatedEmi, setCalculatedEmi] = useState<number | null>(null);
+    const [paymentSchedulePreview, setPaymentSchedulePreview] = useState<PaymentScheduleItem[]>([]);
     const [consentChecked, setConsentChecked] = useState(false);
-
+    
     const ANNUAL_INTEREST_RATE = 24; // 24% p.a.
-    const tenureOptions = [3, 6, 9, 12];
+    const tenureOptions = application.approved_tenure_options?.map(opt => opt.tenure_months) || [3, 6, 9, 12];
 
-    const calculateEmi = (tenure: number) => {
+    const calculateEmiAndSchedule = (tenure: number) => {
       if (application.approved_amount) {
         const P = application.approved_amount;
         const r = (ANNUAL_INTEREST_RATE / 12) / 100; // Monthly interest rate
         const n = tenure;
         const emi = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-        return Math.round(emi);
+        setCalculatedEmi(Math.round(emi));
+        
+        const firstEmiDate = addMonths(new Date(), 1);
+        const { schedule } = generatePaymentSchedule(P, ANNUAL_INTEREST_RATE, tenure, firstEmiDate);
+        if (schedule.length > 4) {
+            setPaymentSchedulePreview([schedule[0], schedule[1], schedule[2], schedule[schedule.length - 1]]);
+        } else {
+            setPaymentSchedulePreview(schedule);
+        }
       }
-      return 0;
     }
 
-    const handleTenureChange = (tenure: number) => {
+    const handleTenureChange = (tenureStr: string) => {
+      const tenure = parseInt(tenureStr);
       setSelectedTenure(tenure);
-      setCalculatedEmi(calculateEmi(tenure));
+      calculateEmiAndSchedule(tenure);
     };
 
     const handleConfirmAndContinue = () => {
@@ -862,10 +934,23 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
         }
 
         startTransition(() => {
+            const firstEmiDate = addMonths(new Date(), 1);
+            const { schedule, summary } = generatePaymentSchedule(
+              application.approved_amount!,
+              ANNUAL_INTEREST_RATE,
+              selectedTenure,
+              firstEmiDate
+            );
+
             const appUpdate = {
                 selected_tenure_months: selectedTenure,
                 selected_emi_amount: calculatedEmi,
                 offer_status: 'OFFER_GENERATED' as const,
+                paymentSchedule: schedule,
+                totalInterestPayable: summary.totalInterestPayable,
+                totalPaymentDue: summary.totalPaymentDue,
+                firstEmiDate: summary.firstEmiDate,
+                lastEmiDate: summary.lastEmiDate
             };
             setApplication(prev => ({ ...prev, ...appUpdate }));
 
@@ -925,21 +1010,23 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                 <Label className="font-semibold">Choose your tenure</Label>
                 <p className="text-sm text-muted-foreground mb-4">Select a plan to see your monthly payment.</p>
                 <RadioGroup 
-                    onValueChange={(value) => handleTenureChange(parseInt(value))}
+                    onValueChange={handleTenureChange}
                     className="grid grid-cols-2 md:grid-cols-4 gap-4"
                 >
-                    {tenureOptions.map(tenure => (
-                         <Label key={tenure} htmlFor={`tenure-${tenure}`} className={cn(
-                            "cursor-pointer rounded-lg border-2 p-4 text-center transition-all",
-                            selectedTenure === tenure 
-                                ? "border-primary bg-primary/10 shadow-lg" 
-                                : "border-border hover:border-primary/50"
-                        )}>
-                            <RadioGroupItem value={tenure.toString()} id={`tenure-${tenure}`} className="sr-only" />
-                            <p className="font-bold text-lg">{tenure}</p>
-                            <p className="text-sm text-muted-foreground">Months</p>
-                        </Label>
-                    ))}
+                  {tenureOptions.map((tenure) => (
+                    <div key={tenure}>
+                      <RadioGroupItem value={tenure.toString()} id={`tenure-${tenure}`} className="sr-only" />
+                      <Label htmlFor={`tenure-${tenure}`} className={cn(
+                          "cursor-pointer rounded-lg border-2 p-4 text-center transition-all flex flex-col justify-center h-full",
+                          selectedTenure === tenure 
+                              ? "border-primary bg-primary/10 shadow-lg" 
+                              : "border-border hover:border-primary/50"
+                      )}>
+                          <p className="font-bold text-lg">{tenure}</p>
+                          <p className="text-sm text-muted-foreground">Months</p>
+                      </Label>
+                    </div>
+                  ))}
                 </RadioGroup>
             </div>
 
@@ -955,6 +1042,30 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                     </CardContent>
                 </Card>
             ) : null}
+
+            {paymentSchedulePreview.length > 0 && (
+                <div className="space-y-2">
+                    <h4 className="font-semibold">Payment Schedule Preview</h4>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>#</TableHead>
+                                <TableHead>Due Date</TableHead>
+                                <TableHead className="text-right">EMI</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {paymentSchedulePreview.map(item => (
+                                <TableRow key={item.installmentNo}>
+                                    <TableCell>{item.installmentNo}</TableCell>
+                                    <TableCell>{format(new Date(item.dueDate), 'dd MMM yyyy')}</TableCell>
+                                    <TableCell className="text-right">₹{Math.round(item.totalPayment).toLocaleString('en-IN')}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            )}
 
             <div className="flex items-center space-x-2 rounded-md border p-4 shadow-sm">
                 <Checkbox id="terms" checked={consentChecked} onCheckedChange={(checked) => setConsentChecked(checked as boolean)} />
@@ -998,8 +1109,8 @@ export function KfsStep({ onCompleted }: StepProps) {
   const { approved_amount, selected_tenure_months, selected_emi_amount } = application;
   const processingFee = approved_amount * 0.02; // 2% processing fee
   const disbursedAmount = approved_amount - processingFee;
-  const totalInterest = (selected_emi_amount * selected_tenure_months) - approved_amount;
-  const totalRepayment = approved_amount + totalInterest;
+  const totalInterest = (application.totalInterestPayable) || 0;
+  const totalRepayment = (application.totalPaymentDue) || 0;
   const apr = (((totalInterest + processingFee) / approved_amount) / (selected_tenure_months/12)) * 100;
 
   const handleAccept = (data: { consent: boolean }) => {
@@ -1055,6 +1166,34 @@ export function KfsStep({ onCompleted }: StepProps) {
                   </div>
                 </div>
                 <Separator/>
+                 {application.paymentSchedule && (
+                  <div className="space-y-2">
+                      <h3 className="font-semibold">Full Payment Schedule</h3>
+                      <Table>
+                          <TableHeader>
+                              <TableRow>
+                                  <TableHead>#</TableHead>
+                                  <TableHead>Due Date</TableHead>
+                                  <TableHead>Principal</TableHead>
+                                  <TableHead>Interest</TableHead>
+                                  <TableHead className="text-right">Total EMI</TableHead>
+                              </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                              {application.paymentSchedule.map(item => (
+                                  <TableRow key={item.installmentNo}>
+                                      <TableCell>{item.installmentNo}</TableCell>
+                                      <TableCell>{format(new Date(item.dueDate), 'dd MMM yyyy')}</TableCell>
+                                      <TableCell>₹{item.principal.toLocaleString('en-IN')}</TableCell>
+                                      <TableCell>₹{item.interest.toLocaleString('en-IN')}</TableCell>
+                                      <TableCell className="text-right">₹{Math.round(item.totalPayment).toLocaleString('en-IN')}</TableCell>
+                                  </TableRow>
+                              ))}
+                          </TableBody>
+                      </Table>
+                  </div>
+                )}
+                <Separator/>
                 <div className="space-y-1 text-sm">
                   <h3 className="font-semibold">Grievance Redressal</h3>
                   <p>Contact: grievance@loanswift-re.com</p>
@@ -1085,7 +1224,7 @@ export function KfsStep({ onCompleted }: StepProps) {
             <p className="text-muted-foreground">Monthly EMI</p>
             <p className="font-semibold text-right">₹{selected_emi_amount.toLocaleString('en-IN')}</p>
             <p className="text-muted-foreground">Total Repayment</p>
-            <p className="font-semibold text-right">₹{totalRepayment.toLocaleString('en-IN')}</p>
+            <p className="font-semibold text-right">₹{Math.round(totalRepayment).toLocaleString('en-IN')}</p>
           </div>
           <Button variant="link" onClick={openKfs} className="p-0 h-auto">View Detailed Key Facts Statement (KFS)</Button>
         </CardContent>
