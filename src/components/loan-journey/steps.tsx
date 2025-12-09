@@ -732,28 +732,16 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
 
       toast({ title: 'Credit Check Complete', description: `Your application is ${underwritingDecision.status}.` });
       
-      if (underwritingDecision.status !== 'REJECTED') {
-          onCompleted();
-      }
+      // Auto-advance after a short delay to allow user to see the score
+      setTimeout(() => {
+        if (underwritingDecision.status !== 'REJECTED') {
+            onCompleted();
+        }
+      }, 1500);
+
     });
   };
 
-  if (!application.bureauReport) {
-    return (
-      <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
-        <FileText className="h-16 w-16 text-primary"/>
-        <h3 className="text-2xl font-headline font-bold">Credit Bureau Check</h3>
-        <p className="text-muted-foreground max-w-md">
-          As a final step before making an offer, we need to check your credit history with your consent. This is a secure, soft inquiry and will not affect your score.
-        </p>
-        <Button onClick={handlePullReport} disabled={isProcessing} size="lg">
-          {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-          Pull My Credit Report (Mock)
-        </Button>
-      </div>
-    );
-  }
-  
   if (isProcessing) {
      return (
       <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
@@ -764,57 +752,75 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
     );
   }
 
-  if (application.application_status === 'REJECTED') {
+  if (application.bureauReport) {
+    if (application.application_status === 'REJECTED') {
+      return (
+         <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
+              <AlertCircle className="h-16 w-16 text-destructive"/>
+              <h3 className="text-2xl font-headline font-bold">Application Not Approved</h3>
+              <p className="text-muted-foreground max-w-md">
+                  {application.eligibility_decision_reason} We are unable to proceed with your loan application at this time based on our current lending policies.
+              </p>
+               <Button asChild><Link href="/">Back to Home</Link></Button>
+          </div>
+      );
+    }
+
     return (
-       <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
-            <AlertCircle className="h-16 w-16 text-destructive"/>
-            <h3 className="text-2xl font-headline font-bold">Application Not Approved</h3>
-            <p className="text-muted-foreground max-w-md">
-                {application.eligibility_decision_reason} We are unable to proceed with your loan application at this time based on our current lending policies.
-            </p>
-             <Button asChild><Link href="/">Back to Home</Link></Button>
-        </div>
+      <div className="space-y-6">
+          <Alert variant="default" className="bg-green-50 border-green-200">
+              <BadgeCheck className="h-4 w-4 !text-green-600" />
+              <AlertTitle className="text-green-800">Credit Check Complete!</AlertTitle>
+              <AlertDescription className="text-green-700">
+                  Your credit profile has been reviewed. Proceed to view your eligibility.
+              </AlertDescription>
+          </Alert>
+          <Card>
+              <CardHeader>
+                  <CardTitle>Your Credit Report Summary (Mock)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Card className="text-center p-4 rounded-lg bg-muted/50 overflow-hidden relative">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-48 w-48 bg-primary/10 rounded-full blur-2xl"></div>
+                    <p className="text-sm text-muted-foreground">CIBIL Score (Mock)</p>
+                    <p className="text-6xl font-bold text-primary">{application.bureauReport.score}</p>
+                </Card>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                      <Badge variant="secondary">Active Loans: {application.bureauReport.total_active_loans}</Badge>
+                      <Badge variant="secondary">Overdue: ₹{application.bureauReport.total_overdue_amount}</Badge>
+                      <Badge variant="secondary">Recent Inquiries: {application.bureauReport.recent_enquiries_count}</Badge>
+                  </div>
+                  <Accordion type="single" collapsible>
+                      <AccordionItem value="item-1">
+                          <AccordionTrigger>View Detailed Report (Mock)</AccordionTrigger>
+                          <AccordionContent>
+                              <pre className="text-xs bg-gray-100 p-2 rounded-md overflow-x-auto">
+                                  {application.bureauReport.bureau_raw_mock_json}
+                              </pre>
+                          </AccordionContent>
+                      </AccordionItem>
+                  </Accordion>
+              </CardContent>
+          </Card>
+          <div className="text-center text-muted-foreground text-sm">
+            You will be redirected to the loan offer shortly...
+          </div>
+      </div>
     );
   }
 
-  // This part is now just for display before automatically moving on.
+  // Initial view before pulling the report
   return (
-    <div className="space-y-6">
-        <Alert variant="default" className="bg-green-50 border-green-200">
-            <BadgeCheck className="h-4 w-4 !text-green-600" />
-            <AlertTitle className="text-green-800">Credit Check Complete!</AlertTitle>
-            <AlertDescription className="text-green-700">
-                Your credit profile has been reviewed. Proceed to view your eligibility.
-            </AlertDescription>
-        </Alert>
-        <Card>
-            <CardHeader>
-                <CardTitle>Your Credit Report Summary (Mock)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Card className="text-center p-4 rounded-lg bg-muted/50 overflow-hidden relative">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-48 w-48 bg-primary/10 rounded-full blur-2xl"></div>
-                  <p className="text-sm text-muted-foreground">CIBIL Score (Mock)</p>
-                  <p className="text-6xl font-bold text-primary">{application.bureauReport.score}</p>
-              </Card>
-                <div className="flex flex-wrap gap-2 justify-center">
-                    <Badge variant="secondary">Active Loans: {application.bureauReport.total_active_loans}</Badge>
-                    <Badge variant="secondary">Overdue: ₹{application.bureauReport.total_overdue_amount}</Badge>
-                    <Badge variant="secondary">Recent Inquiries: {application.bureauReport.recent_enquiries_count}</Badge>
-                </div>
-                <Accordion type="single" collapsible>
-                    <AccordionItem value="item-1">
-                        <AccordionTrigger>View Detailed Report (Mock)</AccordionTrigger>
-                        <AccordionContent>
-                            <pre className="text-xs bg-gray-100 p-2 rounded-md overflow-x-auto">
-                                {application.bureauReport.bureau_raw_mock_json}
-                            </pre>
-                        </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
-            </CardContent>
-        </Card>
-        {/* Button to proceed is handled by the automatic onCompleted call */}
+    <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
+      <FileText className="h-16 w-16 text-primary"/>
+      <h3 className="text-2xl font-headline font-bold">Credit Bureau Check</h3>
+      <p className="text-muted-foreground max-w-md">
+        As a final step before making an offer, we need to check your credit history with your consent. This is a secure, soft inquiry and will not affect your score.
+      </p>
+      <Button onClick={handlePullReport} disabled={isProcessing} size="lg">
+        {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+        Pull My Credit Report (Mock)
+      </Button>
     </div>
   );
 }
