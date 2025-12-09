@@ -14,11 +14,12 @@ export type TenureOption = {
 
 export type PaymentScheduleItem = {
   installmentNo: number;
-  dueDate: string; // ISO string for date
+  dueDate: string; // ISO string "YYYY-MM-DD"
+  totalPayment: number;
   principal: number;
   interest: number;
-  totalPayment: number;
   outstandingPrincipal: number;
+  cumulativeInterest: number;
 };
 
 export type LoanApplication = {

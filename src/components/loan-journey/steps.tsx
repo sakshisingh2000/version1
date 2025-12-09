@@ -700,6 +700,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
       const loanAppUpdateData = {
         application_status: underwritingDecision.status,
         bureau_score: mockReport.score,
+        bureau_decision_summary: mockReport.decision_summary,
         eligibility_decision_reason: underwritingDecision.reason,
         internal_risk_score: underwritingDecision.risk_score,
         approved_amount: underwritingDecision.approved_amount,
@@ -763,6 +764,12 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
     }
     
     const score = application.bureauReport?.score || 0;
+    const getScoreColor = () => {
+        if (score >= 750) return 'text-green-600';
+        if (score >= 700) return 'text-lime-600';
+        if (score >= 650) return 'text-yellow-500';
+        return 'text-red-500';
+    }
     const scoreBand = score >= 750 ? "Excellent" : score >= 700 ? "Good" : score >= 650 ? "Fair" : "Poor";
 
     return (
@@ -771,7 +778,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
               <BadgeCheck className="h-4 w-4 !text-green-600" />
               <AlertTitle className="text-green-800">Credit Check Complete!</AlertTitle>
               <AlertDescription className="text-green-700">
-                  Your credit profile has been reviewed.
+                  Your credit profile has been reviewed. Here is your mock CIBIL score.
               </AlertDescription>
           </Alert>
           <Card>
@@ -779,21 +786,36 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
                   <CardTitle className="text-center">Your Credit Report Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Card className="text-center p-4 rounded-lg bg-muted/50 overflow-hidden relative">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-48 w-48 bg-primary/10 rounded-full blur-2xl"></div>
-                    <p className="text-sm text-muted-foreground">CIBIL Score (Mock)</p>
-                    <p className="text-6xl font-bold text-primary">{score}</p>
-                    <p className="font-semibold">{scoreBand}</p>
-                    <p className="text-sm text-muted-foreground mt-1">Decision: {application.bureauReport?.decision_summary}</p>
+                <Card className="text-center p-4 rounded-lg bg-muted/50 overflow-hidden relative flex flex-col items-center">
+                    <div className={cn("flex items-center justify-center w-40 h-40 rounded-full border-8", 
+                        score >= 750 ? "border-green-600" :
+                        score >= 700 ? "border-lime-600" :
+                        score >= 650 ? "border-yellow-500" : "border-red-500"
+                    )}>
+                        <div className="text-center">
+                            <p className={cn("text-5xl font-bold", getScoreColor())}>{score}</p>
+                            <p className="font-semibold">{scoreBand}</p>
+                        </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2">CIBIL Score (Mock) - Decision: {application.bureauReport?.decision_summary}</p>
                 </Card>
-                  <div className="flex flex-wrap gap-2 justify-center">
-                      <Badge variant="secondary">Active Loans: {application.bureauReport?.total_active_loans}</Badge>
-                      <Badge variant="secondary">Overdue: ₹{application.bureauReport?.total_overdue_amount}</Badge>
-                      <Badge variant="secondary">Recent Inquiries: {application.bureauReport?.recent_enquiries_count}</Badge>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="p-2 bg-background rounded-md">
+                        <p className="font-bold text-lg">{application.bureauReport?.total_active_loans}</p>
+                        <p className="text-xs text-muted-foreground">Active Loans</p>
+                      </div>
+                      <div className="p-2 bg-background rounded-md">
+                        <p className="font-bold text-lg">₹{application.bureauReport?.total_overdue_amount}</p>
+                        <p className="text-xs text-muted-foreground">Overdue</p>
+                      </div>
+                      <div className="p-2 bg-background rounded-md">
+                        <p className="font-bold text-lg">{application.bureauReport?.recent_enquiries_count}</p>
+                        <p className="text-xs text-muted-foreground">Recent Enquiries</p>
+                      </div>
                   </div>
                   <Accordion type="single" collapsible>
                       <AccordionItem value="item-1">
-                          <AccordionTrigger>View Detailed Report (Mock)</AccordionTrigger>
+                          <AccordionTrigger>View detailed report (mock)</AccordionTrigger>
                           <AccordionContent>
                               <pre className="text-xs bg-gray-100 p-2 rounded-md overflow-x-auto">
                                   {application.bureauReport?.bureau_raw_mock_json}
@@ -835,22 +857,25 @@ function generatePaymentSchedule(
 
   const monthlyRate = annualRate / 12 / 100;
   const emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, tenureMonths)) / (Math.pow(1 + monthlyRate, tenureMonths) - 1);
-  const totalPayment = emi * tenureMonths;
-  const totalInterest = totalPayment - principal;
 
   let balance = principal;
+  let cumulativeInterest = 0;
   const schedule: PaymentScheduleItem[] = [];
+  let totalPayment = 0;
 
   for (let i = 1; i <= tenureMonths; i++) {
     const interestComponent = Math.round(balance * monthlyRate * 100) / 100;
     let principalComponent = Math.round((emi - interestComponent) * 100) / 100;
+    let currentEmi = Math.round(emi * 100) / 100;
 
     if (i === tenureMonths) {
-      principalComponent = balance; // Adjust last principal to clear balance
+      principalComponent = balance;
+      currentEmi = principalComponent + interestComponent;
     }
     
-    const currentEmi = principalComponent + interestComponent;
     balance = Math.round((balance - principalComponent) * 100) / 100;
+    cumulativeInterest = Math.round((cumulativeInterest + interestComponent) * 100) / 100;
+    totalPayment = Math.round((totalPayment + currentEmi) * 100) / 100;
 
     schedule.push({
       installmentNo: i,
@@ -859,24 +884,26 @@ function generatePaymentSchedule(
       interest: interestComponent,
       totalPayment: currentEmi,
       outstandingPrincipal: balance,
+      cumulativeInterest: cumulativeInterest,
     });
   }
-
-  // Final adjustment for last EMI due to rounding
-  const lastItemIndex = schedule.length -1;
-  const lastItem = schedule[lastItemIndex];
-  if(lastItem.outstandingPrincipal !== 0 && lastItem.outstandingPrincipal < 1) { // if there's a small remainder
-    lastItem.principal += lastItem.outstandingPrincipal;
-    lastItem.totalPayment += lastItem.outstandingPrincipal;
-    lastItem.outstandingPrincipal = 0;
+  
+  // Final adjustment if balance is not zero due to rounding
+  if(balance !== 0 && schedule.length > 0) {
+      const lastItem = schedule[schedule.length-1];
+      lastItem.principal += balance;
+      lastItem.totalPayment += balance;
+      lastItem.outstandingPrincipal = 0;
+      totalPayment += balance;
   }
-
+  
+  const totalInterestPayable = totalPayment - principal;
 
   return {
     schedule,
     summary: {
-      totalInterestPayable: totalInterest,
-      totalPaymentDue: totalPayment,
+      totalInterestPayable: Math.round(totalInterestPayable * 100) / 100,
+      totalPaymentDue: Math.round(totalPayment * 100) / 100,
       numInstallments: tenureMonths,
       firstEmiDate: firstEmiDate.toISOString(),
       lastEmiDate: addMonths(firstEmiDate, tenureMonths - 1).toISOString(),
@@ -905,11 +932,12 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
         const P = application.approved_amount;
         const r = (ANNUAL_INTEREST_RATE / 12) / 100; // Monthly interest rate
         const n = tenure;
-        const emi = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-        setCalculatedEmi(Math.round(emi));
+        const emiValue = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+        setCalculatedEmi(Math.round(emiValue));
         
         const firstEmiDate = addMonths(new Date(), 1);
         const { schedule } = generatePaymentSchedule(P, ANNUAL_INTEREST_RATE, tenure, firstEmiDate);
+        
         if (schedule.length > 4) {
             setPaymentSchedulePreview([schedule[0], schedule[1], schedule[2], schedule[schedule.length - 1]]);
         } else {
@@ -965,33 +993,21 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
             const auditLogData = {
                 entityType: 'LOAN_APP',
                 entityId: application.loanApplicationId,
-                action: 'TENURE_SELECTED_MOCK',
-                actorType: 'USER',
-                timestamp: serverTimestamp(),
-                new_value: {
-                    selected_tenure_months: selectedTenure,
-                    selected_emi_amount: calculatedEmi,
-                },
-                borrowerId: user.uid,
-            };
-            addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLogData);
-            
-            const scheduleAuditData = {
-                entityType: 'LOAN_APP',
-                entityId: application.loanApplicationId,
                 action: 'PAYMENT_SCHEDULE_GENERATED_MOCK',
                 actorType: 'SYSTEM',
                 timestamp: serverTimestamp(),
                 new_value: {
+                    selected_tenure_months: selectedTenure,
+                    selected_emi_amount: calculatedEmi,
                     num_installments: summary.numInstallments,
                     total_interest_payable: summary.totalInterestPayable,
                     total_payment: summary.totalPaymentDue,
                 },
                 borrowerId: user.uid,
             };
-            addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), scheduleAuditData);
-
-            toast({ title: "Tenure Confirmed", description: "Proceeding to next step." });
+            addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLogData);
+            
+            toast({ title: "Tenure Confirmed", description: "Proceeding to Key Facts Statement." });
             onCompleted();
         });
     };
@@ -1084,6 +1100,9 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                             ))}
                         </TableBody>
                     </Table>
+                    <Button variant="link" className="p-0 h-auto" onClick={() => toast({ title: "Mock Action", description: "This would show the full payment schedule." })}>
+                        View Full Payment Schedule (Mock)
+                    </Button>
                 </div>
             )}
 
