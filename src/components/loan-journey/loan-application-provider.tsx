@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type { LoanApplication } from '@/lib/types';
@@ -48,7 +49,7 @@ const initialApplicationState: LoanApplication = {
     kycCompleted: true,
   },
   kyc_completed: true,
-  bureauReport: undefined,
+  bureauReport: null,
   application_status: "DRAFT",
   requested_amount: 150000,
 };
