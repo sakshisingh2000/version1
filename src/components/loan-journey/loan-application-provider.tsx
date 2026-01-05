@@ -10,6 +10,7 @@ import { Card, CardContent } from '../ui/card';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, doc, serverTimestamp } from 'firebase/firestore';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { addDays, subYears } from 'date-fns';
 
 type LoanApplicationContextType = {
   application: LoanApplication;
@@ -24,10 +25,23 @@ const LoanApplicationContext = createContext<LoanApplicationContextType | null>(
 
 const initialApplicationState: LoanApplication = {
   loanApplicationId: "", // Will be set after personal details are submitted
-  personalDetails: undefined,
+  personalDetails: {
+    fullName: "Rohan Sharma",
+    pan: "ABCDE1234F",
+    birthDate: subYears(new Date(), 25),
+    loanAmount: 150000,
+    employmentType: "Salaried",
+    monthlyIncome: 60000,
+    addressLine1: "123, Tech Park",
+    city: "Bengaluru",
+    pincode: "560001",
+    consent: true,
+  },
+  requested_amount: 150000,
   kyc: {
-    panStatus: 'PENDING',
-    aadhaarAuthStatus: 'PENDING',
+    panStatus: 'VERIFIED',
+    aadhaarAuthStatus: 'OTP_SUCCESS',
+    aadhaarMaskedNumber: 'XXXX-XXXX-9876',
     digilockerStatus: 'PENDING',
   },
   bureauReport: null,
@@ -39,7 +53,7 @@ export function LoanApplicationProvider({ children }: { children: ReactNode }) {
   const { user } = useUser();
   const firestore = useFirestore();
   const [application, setApplication] = useState<LoanApplication>(initialApplicationState);
-  const [step, setStep] = useState(0); // Start at Personal Details (index 0)
+  const [step, setStep] = useState(2); // Start at DigiLocker (index 2)
 
   // This effect will run once to create the mock application in Firestore
   // which is needed to satisfy security rules for subsequent updates.
@@ -51,11 +65,10 @@ export function LoanApplicationProvider({ children }: { children: ReactNode }) {
       const newApplicationId = loanAppRef.id;
 
       const loanAppData: LoanApplication = {
-        ...initialApplicationState,
+        ...application, // Use the pre-filled state
         loanApplicationId: newApplicationId,
         id: newApplicationId, // for rules
         borrowerId: user.uid,
-        application_status: 'DRAFT',
         created_at: serverTimestamp(),
         updated_at: serverTimestamp(),
       };
@@ -66,6 +79,9 @@ export function LoanApplicationProvider({ children }: { children: ReactNode }) {
       setDocumentNonBlocking(loanAppRef, {
           id: newApplicationId,
           borrowerId: user.uid,
+          personalDetails: loanAppData.personalDetails,
+          requested_amount: loanAppData.requested_amount,
+          kyc: loanAppData.kyc,
           application_status: 'DRAFT',
           created_at: serverTimestamp(),
           updated_at: serverTimestamp(),
