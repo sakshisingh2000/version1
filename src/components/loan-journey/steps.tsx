@@ -658,7 +658,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
           reason: string;
           risk_score: 'LOW_RISK' | 'MEDIUM_RISK' | 'HIGH_RISK';
           approved_amount: number | null;
-          approved_tenure_options?: { tenure_months: number }[];
+          approved_tenure_options: { tenure_months: number }[] | null;
       };
       
       if (mockReport.score >= 700 && mockReport.total_overdue_amount === 0 && foir <= foirThreshold) {
@@ -675,6 +675,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
             reason: 'Credit score is fair. Requires manual underwriting review.',
             risk_score: 'MEDIUM_RISK',
             approved_amount: null,
+            approved_tenure_options: null,
           };
       } else {
           underwritingDecision = { 
@@ -682,6 +683,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
             reason: 'Credit score below minimum threshold.',
             risk_score: 'HIGH_RISK',
             approved_amount: null,
+            approved_tenure_options: null,
           };
       }
 
@@ -693,7 +695,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
         bureau_score: mockReport.score,
         eligibility_decision_reason: underwritingDecision.reason,
         approved_amount: underwritingDecision.approved_amount,
-        approved_tenure_options: underwritingDecision.approved_tenure_options as any,
+        approved_tenure_options: underwritingDecision.approved_tenure_options,
       };
       setApplication(prev => ({ ...prev, ...appUpdate }));
 
