@@ -461,8 +461,8 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
                 }));
 
                 const newUploadedDocs = uploadedDocs.map(doc => {
-                    const fetched = fetchedDocs.find(f => f.id === doc.id);
-                    return fetched || doc;
+                    const fetched = fetchedDocs.find(f => f.id === doc.id || (doc.id.startsWith('AADHAAR') && f.id === 'AADHAAR'));
+                    return fetched ? { ...doc, status: 'VERIFIED_DIGITALLY' as const } : doc;
                 });
                 
                 setUploadedDocs(newUploadedDocs);
@@ -528,52 +528,66 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
     
     const VerificationSummary = () => {
         const { personalDetails } = application;
-        // Mocked data from verified docs
-        const aadhaarData = { name: personalDetails?.fullName.toUpperCase(), dob: personalDetails?.birthDate };
-        const panData = { name: personalDetails?.fullName.toUpperCase(), dob: personalDetails?.birthDate };
+        // Mocked data from verified docs - in a real app, this would come from OCR/DigiLocker
+        const aadhaarData = { 
+            name: personalDetails?.fullName.toUpperCase(), 
+            dob: personalDetails?.birthDate,
+            address: `${personalDetails?.addressLine1}, ${personalDetails?.city}, ${personalDetails?.pincode}`
+        };
+        const panData = { 
+            name: personalDetails?.fullName.toUpperCase(), 
+            dob: personalDetails?.birthDate,
+            pan: personalDetails?.pan
+        };
 
-        const nameMatchAadhaar = personalDetails?.fullName.toLowerCase() === aadhaarData.name.toLowerCase();
+        const nameMatchAadhaar = personalDetails?.fullName.toLowerCase() === aadhaarData.name?.toLowerCase();
         const dobMatchAadhaar = personalDetails?.birthDate.toDateString() === aadhaarData.dob?.toDateString();
-        
-        const nameMatchPan = personalDetails?.fullName.toLowerCase() === panData.name.toLowerCase();
-        const dobMatchPan = personalDetails?.birthDate.toDateString() === panData.dob?.toDateString();
+        const addressMatch = `${personalDetails?.addressLine1}, ${personalDetails?.city}, ${personalDetails?.pincode}`.toLowerCase() === aadhaarData.address?.toLowerCase();
+        const panMatch = personalDetails?.pan === panData.pan;
 
-        const MatchBadge = ({ isMatch }: {isMatch: boolean}) => (
-            <Badge variant={isMatch ? 'default' : 'destructive'} className={cn(isMatch && 'bg-accent text-accent-foreground')}>
-                {isMatch ? 'Matches' : 'Mismatch'}
+
+        const MatchBadge = ({ isMatch, partial = false }: { isMatch: boolean, partial?: boolean }) => (
+            <Badge variant={isMatch ? 'default' : (partial ? 'secondary' : 'destructive')} className={cn(isMatch && 'bg-accent text-accent-foreground')}>
+                {isMatch ? 'Matches Aadhaar' : (partial ? 'Partial Match' : 'Does Not Match')}
             </Badge>
         );
 
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>Verification Summary</CardTitle>
-                    <CardDescription>We've matched your provided details against your verified documents.</CardDescription>
+                    <CardTitle>KYC Matching Summary</CardTitle>
+                    <CardDescription>We've matched your provided details against your verified documents. Aadhaar is the primary source of truth.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex justify-between items-center p-2 border rounded-md">
+                <CardContent className="space-y-2">
+                    <div className="flex justify-between items-center p-3 border rounded-md">
                         <div>
                             <p className="font-semibold">Full Name</p>
                             <p className="text-sm text-muted-foreground">{personalDetails?.fullName}</p>
                         </div>
-                        <div className="space-x-2">
-                           <MatchBadge isMatch={nameMatchAadhaar} />
-                           <span className="text-xs">Aadhaar</span>
-                           <MatchBadge isMatch={nameMatchPan} />
-                           <span className="text-xs">PAN</span>
-                        </div>
+                        <MatchBadge isMatch={nameMatchAadhaar} />
                     </div>
-                     <div className="flex justify-between items-center p-2 border rounded-md">
+                     <div className="flex justify-between items-center p-3 border rounded-md">
                         <div>
                             <p className="font-semibold">Date of Birth</p>
                             <p className="text-sm text-muted-foreground">{personalDetails?.birthDate.toLocaleDateString()}</p>
                         </div>
-                         <div className="space-x-2">
-                           <MatchBadge isMatch={dobMatchAadhaar} />
-                           <span className="text-xs">Aadhaar</span>
-                           <MatchBadge isMatch={dobMatchPan} />
-                           <span className="text-xs">PAN</span>
+                        <MatchBadge isMatch={dobMatchAadhaar} />
+                    </div>
+                     <div className="flex justify-between items-center p-3 border rounded-md">
+                        <div>
+                            <p className="font-semibold">Address</p>
+                            <p className="text-sm text-muted-foreground max-w-xs truncate">{`${personalDetails?.addressLine1}, ${personalDetails?.city}`}</p>
                         </div>
+                        <MatchBadge isMatch={addressMatch} />
+                    </div>
+                    <div className="flex justify-between items-center p-3 border rounded-md">
+                        <div>
+                            <p className="font-semibold">PAN</p>
+                            <p className="text-sm text-muted-foreground">{personalDetails?.pan}</p>
+                        </div>
+                        <Badge variant={panMatch ? 'default' : 'destructive'} className={cn(panMatch && 'bg-accent text-accent-foreground')}>
+                            {panMatch ? 'Matches PAN' : 'Mismatch'}
+                        </Badge>
                     </div>
                 </CardContent>
             </Card>
@@ -1647,3 +1661,5 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
+    
