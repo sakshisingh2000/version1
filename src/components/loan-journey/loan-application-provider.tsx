@@ -25,23 +25,9 @@ const LoanApplicationContext = createContext<LoanApplicationContextType | null>(
 
 const initialApplicationState: LoanApplication = {
   loanApplicationId: "", // Will be set after personal details are submitted
-  personalDetails: {
-    fullName: "Rohan Sharma",
-    pan: "ABCDE1234F",
-    birthDate: subYears(new Date(), 25),
-    loanAmount: 150000,
-    employmentType: "Salaried",
-    monthlyIncome: 60000,
-    addressLine1: "123, Tech Park",
-    city: "Bengaluru",
-    pincode: "560001",
-    consent: true,
-  },
-  requested_amount: 150000,
+  personalDetails: undefined,
+  requested_amount: 0,
   kyc: {
-    panStatus: 'VERIFIED',
-    aadhaarAuthStatus: 'OTP_SUCCESS',
-    aadhaarMaskedNumber: 'XXXX-XXXX-9876',
     digilockerStatus: 'PENDING',
   },
   bureauReport: null,
@@ -53,41 +39,7 @@ export function LoanApplicationProvider({ children }: { children: ReactNode }) {
   const { user } = useUser();
   const firestore = useFirestore();
   const [application, setApplication] = useState<LoanApplication>(initialApplicationState);
-  const [step, setStep] = useState(2); // Start at DigiLocker (index 2)
-
-  // This effect will run once to create the mock application in Firestore
-  // which is needed to satisfy security rules for subsequent updates.
-  useEffect(() => {
-    if (user?.uid && !application.loanApplicationId) {
-      const loanAppCollection = collection(firestore, 'borrowers', user.uid, 'loan_applications');
-      const loanAppRef = doc(loanAppCollection);
-      
-      const newApplicationId = loanAppRef.id;
-
-      const loanAppData: LoanApplication = {
-        ...application, // Use the pre-filled state
-        loanApplicationId: newApplicationId,
-        id: newApplicationId, // for rules
-        borrowerId: user.uid,
-        created_at: serverTimestamp(),
-        updated_at: serverTimestamp(),
-      };
-      
-      // Update state and Firestore
-      setApplication(loanAppData);
-      // We don't use merge here because we are setting the complete initial document.
-      setDocumentNonBlocking(loanAppRef, {
-          id: newApplicationId,
-          borrowerId: user.uid,
-          personalDetails: loanAppData.personalDetails,
-          requested_amount: loanAppData.requested_amount,
-          kyc: loanAppData.kyc,
-          application_status: 'DRAFT',
-          created_at: serverTimestamp(),
-          updated_at: serverTimestamp(),
-      }, {});
-    }
-  }, [user, firestore, application.loanApplicationId]);
+  const [step, setStep] = useState(0); // Start at personal details (index 0)
 
   const nextStep = () => setStep(prev => prev + 1);
   const prevStep = () => setStep(prev => prev - 1);
@@ -142,11 +94,6 @@ export function LoanJourney() {
   }
   
   const CurrentStepComponent = STEPS[step].component;
-
-  // Prevent rendering if the application ID hasn't been set yet.
-  if (!application.loanApplicationId) {
-    return null; 
-  }
 
   return (
     <div className="max-w-4xl mx-auto">
