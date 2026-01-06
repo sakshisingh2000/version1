@@ -117,7 +117,7 @@ function OTPVerifyComponent() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header />
+      <Header onBack={() => router.back()} />
       <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">

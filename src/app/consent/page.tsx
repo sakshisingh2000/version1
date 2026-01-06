@@ -30,7 +30,7 @@ export default function ConsentPage() {
 
   useEffect(() => {
     if (!isUserLoading && !user) {
-      router.push('/login');
+      router.push('/');
     }
   }, [isUserLoading, user, router]);
 
@@ -83,7 +83,7 @@ export default function ConsentPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header />
+      <Header onBack={() => router.back()} />
       <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
         <Card className="w-full max-w-3xl">
           <CardHeader>
@@ -93,7 +93,7 @@ export default function ConsentPage() {
             </CardTitle>
             <CardDescription>
               {d.description.en}
-              {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.description.regional}</span>}
+              {language !== 'en' && language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.description.regional}</span>}
             </CardDescription>
           </CardHeader>
           <ConsentForm onSubmit={handleConsentSubmit} isPending={isPending} />

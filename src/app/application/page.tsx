@@ -29,7 +29,7 @@ export default function ApplicationOverviewPage() {
 
   useEffect(() => {
     if (!isUserLoading && !user) {
-      router.push('/login');
+      router.push('/');
     }
   }, [isUserLoading, user, router]);
 

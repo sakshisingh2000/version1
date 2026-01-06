@@ -17,9 +17,13 @@ const languages: { code: Language; name: string; nativeName: string }[] = [
   { code: 'kn', name: 'Kannada', nativeName: 'ಕನ್ನಡ' },
 ];
 
-const nonBilingualRootPages = ['/', '/login', '/otp-verify'];
+const nonBilingualRootPages = ['/'];
 
-export function Header() {
+interface HeaderProps {
+  onBack?: () => void;
+}
+
+export function Header({ onBack }: HeaderProps) {
   const [isClient, setIsClient] = useState(false);
   const { language, setLanguage } = useLanguage();
   const pathname = usePathname();
@@ -31,11 +35,21 @@ export function Header() {
 
   const showInlineSelector = isClient && nonBilingualRootPages.includes(pathname);
   
-  const showBackButton = !['/', '/application'].includes(pathname);
+  // The presence of the onBack function determines if the back button should be shown.
+  // This gives parent components control over its visibility.
+  const showBackButton = typeof onBack === 'function';
 
   const handleLanguageChange = (langCode: string) => {
     setLanguage(langCode as Language);
   };
+  
+  const handleBackClick = () => {
+    if (showBackButton) {
+      onBack();
+    } else {
+      router.back();
+    }
+  }
 
   const InlineLanguageSelector = () => (
     <div className="flex items-center gap-2 text-sm">
@@ -61,11 +75,14 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <div className="flex flex-1 items-center justify-start">
-           {showBackButton && (
-              <Button variant="ghost" size="icon" onClick={() => router.back()} className="mr-2">
+           {showBackButton ? (
+              <Button variant="ghost" size="icon" onClick={handleBackClick} className="mr-2">
                   <ArrowLeft className="h-5 w-5" />
                   <span className="sr-only">Back</span>
               </Button>
+          ) : (
+            // This div is a placeholder to keep the layout consistent when the back button is not shown.
+            <div style={{ width: '40px' }} />
           )}
         </div>
 
