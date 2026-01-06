@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useLoanApplication } from "./loan-application-provider";
@@ -19,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useTransition, useEffect, useMemo } from "react";
-import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet, FileText, BadgeCheck, AlertCircle, UploadCloud, Info } from "lucide-react";
+import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet, FileText, BadgeCheck, AlertCircle, UploadCloud, Info, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -50,14 +51,14 @@ const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
 const pincodeRegex = /^\d{6}$/;
 
 const personalDetailsSchema = z.object({
-  fullName: z.string().min(2, "Full name must be at least 2 characters.").regex(englishOnly, "Please enter in English only."),
-  pan: z.string().regex(panRegex, "Invalid PAN format.").regex(englishOnly, "Please enter in English only."),
+  fullName: z.string().min(2, "Full name must be at least 2 characters.").regex(englishOnly, "Please enter details in English"),
+  pan: z.string().regex(panRegex, "Invalid PAN format.").regex(englishOnly, "Please enter details in English"),
   birthDate: z.date({ required_error: "A date of birth is required." }),
   loanAmount: z.coerce.number().min(10000, "Loan amount must be at least ₹10,000.").max(200000, "Maximum loan amount is ₹2,00,000."),
   employmentType: z.string({ required_error: "Please select an employment type." }),
   monthlyIncome: z.coerce.number().min(10000, "Monthly income must be at least ₹10,000."),
-  addressLine1: z.string().min(5, "Address is too short.").regex(englishOnly, "Please enter in English only."),
-  city: z.string().min(2, "City is too short.").regex(englishOnly, "Please enter in English only."),
+  addressLine1: z.string().min(5, "Address is too short.").regex(englishOnly, "Please enter details in English"),
+  city: z.string().min(2, "City is too short.").regex(englishOnly, "Please enter details in English"),
   pincode: z.string().regex(pincodeRegex, "Invalid pincode."),
   consent: z.literal(true, { errorMap: () => ({ message: "You must accept the terms and conditions." }) }),
 });
@@ -175,7 +176,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
                     <DobPicker
                       value={field.value}
                       onChange={field.onChange}
-                      placeholder={d.dob_placeholder.en}
+                      placeholder={language === 'en' ? d.dob_placeholder.en : `${d.dob_placeholder.en} / ${d.dob_placeholder.regional}`}
                     />
                   <FormMessage />
                 </FormItem>
@@ -186,7 +187,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
               <BilingualLabel en={d.employment_label.en} regional={d.employment_label.regional} />
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger><SelectValue placeholder={d.employment_placeholder.en} /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={language === 'en' ? d.employment_placeholder.en : `${d.employment_placeholder.en} / ${d.employment_placeholder.regional}`} /></SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="Salaried">Salaried</SelectItem>
@@ -1547,6 +1548,211 @@ export function KfsStep({ onCompleted }: StepProps) {
   );
 }
 
+export function SanctionLetterStep({ onCompleted }: StepProps) {
+  const { application, setApplication } = useLoanApplication();
+  const { user } = useUser();
+  const { dict, language } = useLanguage();
+  const d = dict.sanction_letter;
+
+  const [view, setView] = useState<'letter' | 'declined'>('letter');
+  const [isSigning, startSigning] = useTransition();
+  const [isSignModalOpen, setIsSignModalOpen] = useState(false);
+  const [otp, setOtp] = useState('');
+  const { toast } = useToast();
+
+  const {
+    personalDetails,
+    loanApplicationId,
+    approved_amount,
+    selected_tenure_months,
+    selected_emi_amount,
+  } = application;
+
+  if (!personalDetails || !approved_amount || !selected_tenure_months || !selected_emi_amount) {
+    return <p>Sanction details are not available. Please complete previous steps.</p>;
+  }
+
+  const processingFee = approved_amount * 0.02;
+  const gst = processingFee * 0.18;
+  const netDisbursalAmount = approved_amount - processingFee - gst;
+
+  const handleAccept = () => {
+    setIsSignModalOpen(true);
+  };
+
+  const handleDecline = () => {
+    setView('declined');
+    setApplication(prev => ({ ...prev, application_status: 'REJECTED' }));
+    // In a real app, update Firestore status to 'REJECTED_BY_BORROWER'
+  };
+
+  const handleOtpSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    startSigning(() => {
+      setTimeout(() => {
+        if (otp === '123456') {
+          toast({ title: 'Sanction Letter e-Signed Successfully' });
+          setApplication(prev => ({
+            ...prev,
+            sanctionLetter: {
+              ...prev.sanctionLetter,
+              isSigned: true,
+              signedAt: new Date().toISOString(),
+            }
+          }));
+          setIsSignModalOpen(false);
+          onCompleted();
+        } else {
+          toast({ variant: 'destructive', title: 'Invalid OTP' });
+        }
+      }, 1500);
+    });
+  };
+
+  if (view === 'declined') {
+    return (
+      <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
+        <XCircle className="h-16 w-16 text-muted-foreground"/>
+        <h3 className="text-2xl font-headline font-bold">
+            {d.decline_title.en}
+            {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.decline_title.regional}</span>}
+        </h3>
+        <p className="text-muted-foreground max-w-md">
+          {d.decline_description.en.replace('<ID>', loanApplicationId)}
+          {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.decline_description.regional.replace('<ID>', loanApplicationId)}</span>}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          {d.support_contact.en}
+          {language !== 'en' && <span className="block text-xs text-muted-foreground mt-1">{d.support_contact.regional}</span>}
+        </p>
+        <Button asChild><Link href="/">Back to Home</Link></Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <Dialog open={isSignModalOpen} onOpenChange={setIsSignModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+                {d.esign_title.en}
+                {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.esign_title.regional}</span>}
+            </DialogTitle>
+            <DialogDescription>
+                {d.esign_description.en}
+                {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.esign_description.regional}</span>}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleOtpSubmit} className="space-y-4">
+            <Label htmlFor="otp">
+                {d.otp_label.en}
+                {language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.otp_label.regional}</span>}
+            </Label>
+            <Input id="otp" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="123456" maxLength={6} />
+            <Button type="submit" disabled={isSigning} className="w-full">
+              {isSigning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {d.esign_button.en}
+              {language !== 'en' && ` / ${d.esign_button.regional}`}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      <Card className="border-2 border-primary/50 shadow-lg">
+        <CardHeader className="text-center bg-muted/50 p-4">
+          <CardTitle className="font-headline text-2xl">
+            {d.title.en}
+            {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.title.regional}</span>}
+          </CardTitle>
+          <CardDescription>
+            {d.description.en}
+            {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.description.regional}</span>}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6 space-y-6 text-sm">
+          {/* Borrower Details */}
+          <div className="space-y-2">
+            <h3 className="font-semibold text-base">{d.borrower_details.en}{language !== 'en' && <span className="block text-sm font-normal text-muted-foreground">{d.borrower_details.regional}</span>}</h3>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              <span>{d.borrower_name.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.borrower_name.regional}</span>}</span>
+              <span className="text-right font-medium">{personalDetails.fullName}</span>
+              <span>{d.app_id.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.app_id.regional}</span>}</span>
+              <span className="text-right font-medium">{loanApplicationId}</span>
+              <span>{d.pan.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.pan.regional}</span>}</span>
+              <span className="text-right font-medium">XXXXXX{personalDetails.pan.slice(-4)}</span>
+              <span>{d.sanction_date.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.sanction_date.regional}</span>}</span>
+              <span className="text-right font-medium">{format(new Date(), 'dd-MMM-yyyy')}</span>
+            </div>
+          </div>
+          <Separator />
+          {/* Loan Details */}
+          <div className="space-y-2">
+            <h3 className="font-semibold text-base">{d.loan_details.en}{language !== 'en' && <span className="block text-sm font-normal text-muted-foreground">{d.loan_details.regional}</span>}</h3>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              <span>{d.sanctioned_amount.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.sanctioned_amount.regional}</span>}</span>
+              <span className="text-right font-medium">₹{approved_amount.toLocaleString('en-IN')}</span>
+              <span>{d.loan_type.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.loan_type.regional}</span>}</span>
+              <span className="text-right font-medium">Personal Loan</span>
+              <span>{d.tenure.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.tenure.regional}</span>}</span>
+              <span className="text-right font-medium">{selected_tenure_months} Months</span>
+              <span>{d.interest_rate.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.interest_rate.regional}</span>}</span>
+              <span className="text-right font-medium">24.00% p.a.</span>
+              <span>{d.emi_amount.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.emi_amount.regional}</span>}</span>
+              <span className="text-right font-medium">₹{selected_emi_amount.toLocaleString('en-IN')}</span>
+              <span>{d.emi_start_date.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.emi_start_date.regional}</span>}</span>
+              <span className="text-right font-medium">{format(addMonths(new Date(), 1), 'dd-MMM-yyyy')}</span>
+            </div>
+          </div>
+          <Separator />
+           {/* Fees & Disbursal */}
+          <div className="space-y-2">
+            <h3 className="font-semibold text-base">{d.fees_disbursal.en}{language !== 'en' && <span className="block text-sm font-normal text-muted-foreground">{d.fees_disbursal.regional}</span>}</h3>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              <span>{d.processing_fee.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.processing_fee.regional}</span>}</span>
+              <span className="text-right font-medium">- ₹{processingFee.toLocaleString('en-IN')}</span>
+              <span>{d.gst.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.gst.regional}</span>}</span>
+              <span className="text-right font-medium">- ₹{gst.toLocaleString('en-IN')}</span>
+              <Separator className="col-span-2 my-1" />
+              <span className="font-bold">{d.net_disbursal.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.net_disbursal.regional}</span>}</span>
+              <span className="text-right font-bold">₹{netDisbursalAmount.toLocaleString('en-IN')}</span>
+            </div>
+          </div>
+          <Separator />
+          {/* Key Terms */}
+          <div className="space-y-2">
+            <h3 className="font-semibold text-base">{d.key_terms.en}{language !== 'en' && <span className="block text-sm font-normal text-muted-foreground">{d.key_terms.regional}</span>}</h3>
+            <ul className="list-disc list-inside text-muted-foreground space-y-1">
+              <li>{d.term1.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.term1.regional}</span>}</li>
+              <li>{d.term2.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.term2.regional}</span>}</li>
+              <li>{d.term3.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.term3.regional}</span>}</li>
+            </ul>
+          </div>
+           <Separator />
+           {/* Lender Disclosure */}
+          <div className="p-2 bg-muted/50 rounded-md text-xs text-muted-foreground">
+            <p>{d.lender_disclosure1.en}{language !== 'en' && <span className="block">{d.lender_disclosure1.regional}</span>}</p>
+            <p>{d.lender_disclosure2.en}{language !== 'en' && <span className="block">{d.lender_disclosure2.regional}</span>}</p>
+            <p className="mt-1">{d.lender_disclosure3.en}: grievance@fairfinance.com{language !== 'en' && <span className="block">{d.lender_disclosure3.regional}: grievance@fairfinance.com</span>}</p>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <div className="grid grid-cols-2 gap-4 mt-6">
+        <Button variant="outline" size="lg" onClick={handleDecline}>
+            {d.decline_button.en}
+            {language !== 'en' && ` / ${d.decline_button.regional}`}
+        </Button>
+        <Button size="lg" onClick={handleAccept}>
+          {d.accept_button.en}
+          {language !== 'en' && ` / ${d.accept_button.regional}`}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+
 const bankDetailsSchema = z.object({
     accountNumber: z.string().min(9, "Invalid account number").max(18, "Invalid account number"),
     ifsc: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code format."),
@@ -1697,7 +1903,7 @@ export function AgreementStep({ onCompleted }: StepProps) {
         <CardContent>
           <ScrollArea className="h-64 w-full rounded-md border p-4 text-xs text-muted-foreground">
             <h3 className="font-bold mb-2">Loan Agreement</h3>
-            <p className="mb-2">This is a legally binding agreement between you (the Borrower) and LoanSwift Partner NBFC (the Lender)...</p>
+            <p className="mb-2">This is a legally binding agreement between you (the Borrower) and FairFinance NBFC (the Lender)...</p>
             <p>1. Loan Amount: ₹{application.approved_amount?.toLocaleString('en-IN')}</p>
             <p>2. Tenure: {application.selected_tenure_months} months</p>
             <p>3. Repayment: You agree to repay the loan via monthly EMIs of ₹{application.selected_emi_amount?.toLocaleString('en-IN')} as per the e-mandate.</p>

@@ -5,7 +5,7 @@
 import type { LoanApplication } from '@/lib/types';
 import { createContext, useContext, useState, useMemo, type Dispatch, type SetStateAction, type ReactNode, useEffect } from 'react';
 import { StepIndicator } from './step-indicator';
-import { BankDetailsStep, CreditCheckStep, DocumentVerificationStep, DisbursementStep, EMandateStep, KfsStep, KycStep, EligibilityResultStep, PersonalDetailsStep, AgreementStep } from './steps';
+import { BankDetailsStep, CreditCheckStep, DocumentVerificationStep, DisbursementStep, EMandateStep, KfsStep, KycStep, EligibilityResultStep, PersonalDetailsStep, AgreementStep, SanctionLetterStep } from './steps';
 import { Card, CardContent } from '../ui/card';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, doc, serverTimestamp } from 'firebase/firestore';
@@ -78,6 +78,7 @@ const STEPS = [
   { title: "Document Verification", component: DocumentVerificationStep },
   { title: "Eligibility Result", component: EligibilityResultStep },
   { title: "Key Facts", component: KfsStep },
+  { title: "Loan Sanction Letter", component: SanctionLetterStep },
   { title: "Bank Details", component: BankDetailsStep },
   { title: "e-Mandate", component: EMandateStep },
   { title: "e-Sign Agreement", component: AgreementStep },
@@ -85,7 +86,7 @@ const STEPS = [
 ];
 
 export function LoanJourney() {
-  const { step, nextStep, application } = useLoanApplication();
+  const { step, nextStep, prevStep, application } = useLoanApplication();
   
   const handleStepCompletion = () => {
     if(step === 2 && application.application_status === 'REJECTED') { // Step 2 is now Doc Verification

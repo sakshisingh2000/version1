@@ -1,5 +1,6 @@
 
 
+
 import type { User } from 'firebase/auth';
 
 export type DigiLockerDocument = {
@@ -95,6 +96,11 @@ export type LoanApplication = {
   kfs_document_url?: string;
   loan_agreement_url?: string;
   disbursement_details_id?: string;
+
+  sanctionLetter?: {
+    isSigned?: boolean;
+    signedAt?: string;
+  };
 
   // Legacy fields for compatibility - can be removed later
   underwritingResult?: {

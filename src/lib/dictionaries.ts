@@ -1,4 +1,5 @@
 
+
 export type Language = 'en' | 'hi' | 'mr' | 'te' | 'kn';
 
 type BilingualText = {
@@ -59,6 +60,42 @@ export interface Dictionary {
     accept_consent: BilingualText;
     accept_button: BilingualText;
   };
+  sanction_letter: {
+    title: BilingualText;
+    description: BilingualText;
+    borrower_details: BilingualText;
+    borrower_name: BilingualText;
+    app_id: BilingualText;
+    pan: BilingualText;
+    sanction_date: BilingualText;
+    loan_details: BilingualText;
+    sanctioned_amount: BilingualText;
+    loan_type: BilingualText;
+    tenure: BilingualText;
+    interest_rate: BilingualText;
+    emi_amount: BilingualText;
+    emi_start_date: BilingualText;
+    fees_disbursal: BilingualText;
+    processing_fee: BilingualText;
+    gst: BilingualText;
+    net_disbursal: BilingualText;
+    key_terms: BilingualText;
+    term1: BilingualText;
+    term2: BilingualText;
+    term3: BilingualText;
+    lender_disclosure1: BilingualText;
+    lender_disclosure2: BilingualText;
+    lender_disclosure3: BilingualText;
+    accept_button: BilingualText;
+    decline_button: BilingualText;
+    decline_title: BilingualText;
+    decline_description: BilingualText;
+    support_contact: BilingualText;
+    esign_title: BilingualText;
+    esign_description: BilingualText;
+    otp_label: BilingualText;
+    esign_button: BilingualText;
+  };
 }
 
 
@@ -114,6 +151,42 @@ const en: Dictionary = {
     view_kfs_button: { en: 'View Detailed Key Facts Statement (KFS)', regional: 'View Detailed Key Facts Statement (KFS)' },
     accept_consent: { en: 'I have read and understood the Key Facts Statement and accept the loan offer.', regional: 'I have read and understood the Key Facts Statement and accept the loan offer.' },
     accept_button: { en: 'Accept Offer & Continue', regional: 'Accept Offer & Continue' },
+  },
+  sanction_letter: {
+    title: { en: 'Loan Sanction Letter', regional: 'Loan Sanction Letter' },
+    description: { en: 'Subject to terms and conditions.', regional: 'Subject to terms and conditions.' },
+    borrower_details: { en: 'Borrower Details', regional: 'Borrower Details' },
+    borrower_name: { en: 'Borrower Name', regional: 'Borrower Name' },
+    app_id: { en: 'Application ID', regional: 'Application ID' },
+    pan: { en: 'PAN', regional: 'PAN' },
+    sanction_date: { en: 'Date of Sanction', regional: 'Date of Sanction' },
+    loan_details: { en: 'Loan Details', regional: 'Loan Details' },
+    sanctioned_amount: { en: 'Sanctioned Amount', regional: 'Sanctioned Amount' },
+    loan_type: { en: 'Loan Type', regional: 'Loan Type' },
+    tenure: { en: 'Tenure', regional: 'Tenure' },
+    interest_rate: { en: 'Interest Rate', regional: 'Interest Rate' },
+    emi_amount: { en: 'EMI Amount', regional: 'EMI Amount' },
+    emi_start_date: { en: 'EMI Start Date', regional: 'EMI Start Date' },
+    fees_disbursal: { en: 'Fees & Disbursal', regional: 'Fees & Disbursal' },
+    processing_fee: { en: 'Processing Fee (2%)', regional: 'Processing Fee (2%)' },
+    gst: { en: 'GST (18%)', regional: 'GST (18%)' },
+    net_disbursal: { en: 'Net Disbursal Amount', regional: 'Net Disbursal Amount' },
+    key_terms: { en: 'Key Terms', regional: 'Key Terms' },
+    term1: { en: 'Sanction is subject to successful e-Mandate registration.', regional: 'Sanction is subject to successful e-Mandate registration.' },
+    term2: { en: 'Loan is subject to execution of final loan agreement.', regional: 'Loan is subject to execution of final loan agreement.' },
+    term3: { en: 'You may cancel the loan before disbursement.', regional: 'You may cancel the loan before disbursement.' },
+    lender_disclosure1: { en: 'Loan provided by FairFinance NBFC (Regulated Entity - RE).', regional: 'Loan provided by FairFinance NBFC (Regulated Entity - RE).' },
+    lender_disclosure2: { en: 'Loan facilitated by LoanSwift (Lending Service Provider - LSP).', regional: 'Loan facilitated by LoanSwift (Lending Service Provider - LSP).' },
+    lender_disclosure3: { en: 'Grievance Contact', regional: 'Grievance Contact' },
+    accept_button: { en: 'Accept & e-Sign', regional: 'Accept & e-Sign' },
+    decline_button: { en: 'Do Not Accept', regional: 'Do Not Accept' },
+    decline_title: { en: 'Application Paused', regional: 'Application Paused' },
+    decline_description: { en: 'Your application ID is <ID>. Our relationship manager will contact you shortly to assist you further or clarify any questions.', regional: 'Your application ID is <ID>. Our relationship manager will contact you shortly to assist you further or clarify any questions.' },
+    support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'You can also reach us at support@loanswift.com' },
+    esign_title: { en: 'e-Sign Sanction Letter', regional: 'e-Sign Sanction Letter' },
+    esign_description: { en: 'Enter the OTP sent to your Aadhaar-linked mobile number to sign.', regional: 'Enter the OTP sent to your Aadhaar-linked mobile number to sign.' },
+    otp_label: { en: 'Enter 6-digit OTP', regional: 'Enter 6-digit OTP' },
+    esign_button: { en: 'Verify & e-Sign', regional: 'Verify & e-Sign' },
   }
 };
 
@@ -169,6 +242,42 @@ const hi: Dictionary = {
     view_kfs_button: { en: 'View Detailed Key Facts Statement (KFS)', regional: 'विस्तृत मुख्य तथ्य विवरण (KFS) देखें' },
     accept_consent: { en: 'I have read and understood the Key Facts Statement and accept the loan offer.', regional: 'मैंने मुख्य तथ्य विवरण को पढ़ और समझ लिया है और ऋण प्रस्ताव स्वीकार करता/करती हूं।' },
     accept_button: { en: 'Accept Offer & Continue', regional: 'प्रस्ताव स्वीकार करें और जारी रखें' },
+  },
+  sanction_letter: {
+    title: { en: 'Loan Sanction Letter', regional: 'ऋण स्वीकृति पत्र' },
+    description: { en: 'Subject to terms and conditions.', regional: 'नियम और शर्तें लागू' },
+    borrower_details: { en: 'Borrower Details', regional: 'उधारकर्ता विवरण' },
+    borrower_name: { en: 'Borrower Name', regional: 'उधारकर्ता का नाम' },
+    app_id: { en: 'Application ID', regional: 'आवेदन आईडी' },
+    pan: { en: 'PAN', regional: 'पैन' },
+    sanction_date: { en: 'Date of Sanction', regional: 'स्वीकृति की तारीख' },
+    loan_details: { en: 'Loan Details', regional: 'ऋण विवरण' },
+    sanctioned_amount: { en: 'Sanctioned Amount', regional: 'स्वीकृत राशि' },
+    loan_type: { en: 'Loan Type', regional: 'ऋण का प्रकार' },
+    tenure: { en: 'Tenure', regional: 'अवधि' },
+    interest_rate: { en: 'Interest Rate', regional: 'ब्याज दर' },
+    emi_amount: { en: 'EMI Amount', regional: 'ईएमआई राशि' },
+    emi_start_date: { en: 'EMI Start Date', regional: 'ईएमआई प्रारंभ तिथि' },
+    fees_disbursal: { en: 'Fees & Disbursal', regional: 'शुल्क और संवितरण' },
+    processing_fee: { en: 'Processing Fee (2%)', regional: 'प्रसंस्करण शुल्क (2%)' },
+    gst: { en: 'GST (18%)', regional: 'जीएसटी (18%)' },
+    net_disbursal: { en: 'Net Disbursal Amount', regional: 'शुद्ध संवितरण राशि' },
+    key_terms: { en: 'Key Terms', regional: 'मुख्य शर्तें' },
+    term1: { en: 'Sanction is subject to successful e-Mandate registration.', regional: 'स्वीकृति सफल ई-जनादेश पंजीकरण के अधीन है।' },
+    term2: { en: 'Loan is subject to execution of final loan agreement.', regional: 'ऋण अंतिम ऋण समझौते के निष्पादन के अधीन है।' },
+    term3: { en: 'You may cancel the loan before disbursement.', regional: 'आप संवितरण से पहले ऋण रद्द कर सकते हैं।' },
+    lender_disclosure1: { en: 'Loan provided by FairFinance NBFC (Regulated Entity - RE).', regional: 'फेयरफाइनेंस एनबीएफसी (विनियमित इकाई - आरई) द्वारा प्रदान किया गया ऋण।' },
+    lender_disclosure2: { en: 'Loan facilitated by LoanSwift (Lending Service Provider - LSP).', regional: 'लोनस्विफ्ट (उधार सेवा प्रदाता - एलएसपी) द्वारा सुगम ऋण।' },
+    lender_disclosure3: { en: 'Grievance Contact', regional: 'शिकायत संपर्क' },
+    accept_button: { en: 'Accept & e-Sign', regional: 'स्वीकार करें और ई-साइन करें' },
+    decline_button: { en: 'Do Not Accept', regional: 'स्वीकार न करें' },
+    decline_title: { en: 'Application Paused', regional: 'आवेदन रोका गया' },
+    decline_description: { en: 'Your application ID is <ID>. Our relationship manager will contact you shortly to assist you further or clarify any questions.', regional: 'आपकी आवेदन आईडी <ID> है। हमारे संबंध प्रबंधक जल्द ही आपसे संपर्क करेंगे ताकि आपकी आगे सहायता कर सकें या किसी भी प्रश्न का समाधान कर सकें।' },
+    support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'आप हमें support@loanswift.com पर भी संपर्क कर सकते हैं' },
+    esign_title: { en: 'e-Sign Sanction Letter', regional: 'स्वीकृति पत्र ई-साइन करें' },
+    esign_description: { en: 'Enter the OTP sent to your Aadhaar-linked mobile number to sign.', regional: 'हस्ताक्षर करने के लिए अपने आधार-लिंक्ड मोबाइल नंबर पर भेजा गया ओटीपी दर्ज करें।' },
+    otp_label: { en: 'Enter 6-digit OTP', regional: '6-अंकीय ओटीपी दर्ज करें' },
+    esign_button: { en: 'Verify & e-Sign', regional: 'सत्यापित करें और ई-साइन करें' },
   }
 };
 
@@ -225,6 +334,42 @@ const mr: Dictionary = {
     view_kfs_button: { en: 'View Detailed Key Facts Statement (KFS)', regional: 'तपशीलवार मुख्य तथ्य विधान (KFS) पहा' },
     accept_consent: { en: 'I have read and understood the Key Facts Statement and accept the loan offer.', regional: 'मी मुख्य तथ्य विधान वाचले आणि समजले आहे आणि कर्ज प्रस्ताव स्वीकारतो.' },
     accept_button: { en: 'Accept Offer & Continue', regional: 'प्रस्ताव स्वीकारा आणि सुरू ठेवा' },
+  },
+  sanction_letter: {
+    title: { en: 'Loan Sanction Letter', regional: 'कर्ज मंजूरी पत्र' },
+    description: { en: 'Subject to terms and conditions.', regional: 'अटी आणि शर्तींच्या अधीन' },
+    borrower_details: { en: 'Borrower Details', regional: 'कर्जदार तपशील' },
+    borrower_name: { en: 'Borrower Name', regional: 'कर्जदाराचे नाव' },
+    app_id: { en: 'Application ID', regional: 'अर्ज आयडी' },
+    pan: { en: 'PAN', regional: 'पॅन' },
+    sanction_date: { en: 'Date of Sanction', regional: 'मंजुरीची तारीख' },
+    loan_details: { en: 'Loan Details', regional: 'कर्ज तपशील' },
+    sanctioned_amount: { en: 'Sanctioned Amount', regional: 'मंजूर रक्कम' },
+    loan_type: { en: 'Loan Type', regional: 'कर्जाचा प्रकार' },
+    tenure: { en: 'Tenure', regional: 'कालावधी' },
+    interest_rate: { en: 'Interest Rate', regional: 'व्याज दर' },
+    emi_amount: { en: 'EMI Amount', regional: 'ईएमआई रक्कम' },
+    emi_start_date: { en: 'EMI Start Date', regional: 'ईएमआई सुरू होण्याची तारीख' },
+    fees_disbursal: { en: 'Fees & Disbursal', regional: 'शुल्क आणि वितरण' },
+    processing_fee: { en: 'Processing Fee (2%)', regional: 'प्रक्रिया शुल्क (2%)' },
+    gst: { en: 'GST (18%)', regional: 'जीएसटी (18%)' },
+    net_disbursal: { en: 'Net Disbursal Amount', regional: 'निव्वळ वितरण रक्कम' },
+    key_terms: { en: 'Key Terms', regional: 'मुख्य अटी' },
+    term1: { en: 'Sanction is subject to successful e-Mandate registration.', regional: 'मंजूरी यशस्वी ई-मँडेट नोंदणीच्या अधीन आहे.' },
+    term2: { en: 'Loan is subject to execution of final loan agreement.', regional: 'कर्ज अंतिम कर्ज कराराच्या अंमलबजावणीच्या अधीन आहे.' },
+    term3: { en: 'You may cancel the loan before disbursement.', regional: 'तुम्ही वितरणापूर्वी कर्ज रद्द करू शकता.' },
+    lender_disclosure1: { en: 'Loan provided by FairFinance NBFC (Regulated Entity - RE).', regional: 'फेअर फायनान्स एनबीएफसी (नियामक संस्था - आरई) द्वारे प्रदान केलेले कर्ज.' },
+    lender_disclosure2: { en: 'Loan facilitated by LoanSwift (Lending Service Provider - LSP).', regional: 'लोनस्विफ्ट (कर्ज सेवा प्रदाता - एलएसपी) द्वारे सुलभ कर्ज.' },
+    lender_disclosure3: { en: 'Grievance Contact', regional: 'तक्रार संपर्क' },
+    accept_button: { en: 'Accept & e-Sign', regional: 'स्वीकारा आणि ई-सही करा' },
+    decline_button: { en: 'Do Not Accept', regional: 'स्वीकारू नका' },
+    decline_title: { en: 'Application Paused', regional: 'अर्ज थांबवला' },
+    decline_description: { en: 'Your application ID is <ID>. Our relationship manager will contact you shortly to assist you further or clarify any questions.', regional: 'तुमचा अर्ज आयडी <ID> आहे. आमचे रिलेशनशिप मॅनेजर तुम्हाला अधिक मदत करण्यासाठी किंवा कोणतेही प्रश्न स्पष्ट करण्यासाठी लवकरच तुमच्याशी संपर्क साधतील.' },
+    support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'तुम्ही आम्हाला support@loanswift.com वर देखील संपर्क साधू शकता' },
+    esign_title: { en: 'e-Sign Sanction Letter', regional: 'मंजुरी पत्र ई-सही करा' },
+    esign_description: { en: 'Enter the OTP sent to your Aadhaar-linked mobile number to sign.', regional: 'सही करण्यासाठी तुमच्या आधार-लिंक्ड मोबाइल नंबरवर पाठवलेला OTP टाका.' },
+    otp_label: { en: 'Enter 6-digit OTP', regional: '6-अंकी OTP टाका' },
+    esign_button: { en: 'Verify & e-Sign', regional: 'सत्यापित करा आणि ई-सही करा' },
   }
 };
 
@@ -280,6 +425,42 @@ const te: Dictionary = {
     view_kfs_button: { en: 'View Detailed Key Facts Statement (KFS)', regional: 'వివరణాత్మక కీ ఫ్యాక్ట్స్ స్టేట్‌మెంట్ (KFS) చూడండి' },
     accept_consent: { en: 'I have read and understood the Key Facts Statement and accept the loan offer.', regional: 'నేను కీ ఫ్యాక్ట్స్ స్టేట్‌మెంట్‌ను చదివి, అర్థం చేసుకున్నాను మరియు లోన్ ఆఫర్‌ను అంగీకరిస్తున్నాను.' },
     accept_button: { en: 'Accept Offer & Continue', regional: 'ఆఫర్‌ను అంగీకరించి కొనసాగించండి' },
+  },
+  sanction_letter: {
+    title: { en: 'Loan Sanction Letter', regional: 'లోన్ మంజూరు లేఖ' },
+    description: { en: 'Subject to terms and conditions.', regional: 'నిబంధనలు మరియు షరతులకు లోబడి' },
+    borrower_details: { en: 'Borrower Details', regional: 'రుణగ్రహీత వివరాలు' },
+    borrower_name: { en: 'Borrower Name', regional: 'రుణగ్రహీత పేరు' },
+    app_id: { en: 'Application ID', regional: 'అప్లికేషన్ ఐడి' },
+    pan: { en: 'PAN', regional: 'పాన్' },
+    sanction_date: { en: 'Date of Sanction', regional: 'మంజూరు తేదీ' },
+    loan_details: { en: 'Loan Details', regional: 'లోన్ వివరాలు' },
+    sanctioned_amount: { en: 'Sanctioned Amount', regional: 'మంజూరు చేయబడిన మొత్తం' },
+    loan_type: { en: 'Loan Type', regional: 'లోన్ రకం' },
+    tenure: { en: 'Tenure', regional: 'కాలపరిమితి' },
+    interest_rate: { en: 'Interest Rate', regional: 'వడ్డీ రేటు' },
+    emi_amount: { en: 'EMI Amount', regional: 'EMI మొత్తం' },
+    emi_start_date: { en: 'EMI Start Date', regional: 'EMI ప్రారంభ తేదీ' },
+    fees_disbursal: { en: 'Fees & Disbursal', regional: 'రుసుములు & పంపిణీ' },
+    processing_fee: { en: 'Processing Fee (2%)', regional: 'ప్రాసెసింగ్ ఫీజు (2%)' },
+    gst: { en: 'GST (18%)', regional: 'జీఎస్టీ (18%)' },
+    net_disbursal: { en: 'Net Disbursal Amount', regional: 'నికర పంపిణీ మొత్తం' },
+    key_terms: { en: 'Key Terms', regional: 'ముఖ్య నిబంధనలు' },
+    term1: { en: 'Sanction is subject to successful e-Mandate registration.', regional: 'మంజూరు విజయవంతమైన ఇ-మాండేట్ నమోదుకు లోబడి ఉంటుంది.' },
+    term2: { en: 'Loan is subject to execution of final loan agreement.', regional: 'లోన్ తుది లోన్ ఒప్పందం అమలుకు లోబడి ఉంటుంది.' },
+    term3: { en: 'You may cancel the loan before disbursement.', regional: 'మీరు పంపిణీకి ముందు లోన్‌ను రద్దు చేసుకోవచ్చు.' },
+    lender_disclosure1: { en: 'Loan provided by FairFinance NBFC (Regulated Entity - RE).', regional: 'ఫెయిర్‌ఫైనాన్స్ NBFC (నియంత్రిత సంస్థ - RE) ద్వారా అందించబడిన లోన్.' },
+    lender_disclosure2: { en: 'Loan facilitated by LoanSwift (Lending Service Provider - LSP).', regional: 'లోన్‌స్విఫ్ట్ (లెండింగ్ సర్వీస్ ప్రొవైడర్ - LSP) ద్వారా సులభతరం చేయబడిన లోన్.' },
+    lender_disclosure3: { en: 'Grievance Contact', regional: 'ఫిర్యాదుల సంప్రదింపు' },
+    accept_button: { en: 'Accept & e-Sign', regional: 'అంగీకరించి ఇ-సైన్ చేయండి' },
+    decline_button: { en: 'Do Not Accept', regional: 'అంగీకరించవద్దు' },
+    decline_title: { en: 'Application Paused', regional: 'అప్లికేషన్ పాజ్ చేయబడింది' },
+    decline_description: { en: 'Your application ID is <ID>. Our relationship manager will contact you shortly to assist you further or clarify any questions.', regional: 'మీ అప్లికేషన్ ఐడి <ID>. మా రిలేషన్‌షిప్ మేనేజర్ మీకు మరింత సహాయం చేయడానికి లేదా ఏవైనా ప్రశ్నలను స్పష్టం చేయడానికి త్వరలో మిమ్మల్ని సంప్రదిస్తారు.' },
+    support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'మీరు మమ్మల్ని support@loanswift.com వద్ద కూడా సంప్రదించవచ్చు' },
+    esign_title: { en: 'e-Sign Sanction Letter', regional: 'మంజూరు లేఖను ఇ-సైన్ చేయండి' },
+    esign_description: { en: 'Enter the OTP sent to your Aadhaar-linked mobile number to sign.', regional: 'సంతకం చేయడానికి మీ ఆధార్-లింక్ చేయబడిన మొబైల్ నంబర్‌కు పంపిన OTPని నమోదు చేయండి.' },
+    otp_label: { en: 'Enter 6-digit OTP', regional: '6-అంకెల OTPని నమోదు చేయండి' },
+    esign_button: { en: 'Verify & e-Sign', regional: 'ధృవీకరించి ఇ-సైన్ చేయండి' },
   }
 };
 
@@ -288,12 +469,12 @@ const kn: Dictionary = {
     title: { en: 'Consent Hub', regional: 'ಸಮ್ಮತಿ ಕೇಂದ್ರ' },
     description: { en: 'As per RBI guidelines, we need your explicit consent for the following data processing activities.', regional: 'RBI ಮಾರ್ಗಸೂಚಿಗಳ ಪ್ರಕಾರ, ಈ ಕೆಳಗಿನ ಡೇಟಾ ಸಂಸ್ಕರಣಾ ಚಟುವಟಿಕೆಗಳಿಗೆ ನಮಗೆ ನಿಮ್ಮ ಸ್ಪಷ್ಟ ಸಮ್ಮತಿ ಬೇಕು.' },
     items: {
-        PAN_VERIFICATION: { en: 'I consent to verification of my PAN from issuing authority/NSDL.', regional: 'ನನ್ನ ಪ್ಯಾన్ ಅನ್ನು ನೀಡುವ ಪ್ರಾಧಿಕಾರ/NSDL ನಿಂದ ಪರಿಶೀಲಿಸಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
+        PAN_VERIFICATION: { en: 'I consent to verification of my PAN from issuing authority/NSDL.', regional: 'ನನ್ನ ಪ್ಯಾನ್ ಅನ್ನು ನೀಡುವ ಪ್ರಾಧಿಕಾರ/NSDL ನಿಂದ ಪರಿಶೀಲಿಸಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
         AADHAAR_AUTH: { en: 'I consent to Aadhaar OTP-based offline verification / e-KYC through authorized partners.', regional: 'ಅಧಿಕೃತ ಪಾಲುದಾರರ ಮೂಲಕ ಆಧಾರ್ ಒಟಿಪಿ-ಆಧಾರಿತ ಆಫ್‌ಲೈನ್ ಪರಿಶೀಲನೆ / ಇ-ಕೆವೈಸಿಗೆ ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
         DIGILOCKER_KYC: { en: 'I consent to fetch KYC documents from DigiLocker using my DigiLocker account.', regional: 'ನನ್ನ ಡಿಜಿಲಾಕರ್ ಖಾತೆಯನ್ನು ಬಳಸಿಕೊಂಡು ಡಿಜಿಲಾಕರ್‌ನಿಂದ ಕೆವೈಸಿ ದಾಖಲೆಗಳನ್ನು ಪಡೆಯಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
         BUREAU_PULL: { en: 'I consent to pull my credit report from credit bureaus for the purpose of this loan.', regional: 'ಈ ಸಾಲದ ಉದ್ದೇಶಕ್ಕಾಗಿ ಕ್ರೆಡಿಟ್ ಬ್ಯೂರೋಗಳಿಂದ ನನ್ನ ಕ್ರೆಡಿಟ್ ವರದಿಯನ್ನು ಎಳೆಯಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
         BANK_VERIFICATION: { en: 'I consent to verification of my bank account and registration of e-mandate for EMI debit.', regional: 'ನನ್ನ ಬ್ಯಾಂಕ್ ಖಾತೆಯ ಪರಿಶೀಲನೆಗೆ ಮತ್ತು ಇಎಂಐ ಡೆಬಿಟ್‌ಗಾಗಿ ಇ-ಮ್ಯಾಂಡೇಟ್ ನೋಂದಣಿಗೆ ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
-        DATA_SHARING: { en: 'I consent to processing of my data by the NBFC/BANK (RE) and its authorized service providers, in line with RBI digital lending guidelines.', regional: 'RBI ಡಿಜಿಟల్ ಸಾಲ ಮಾರ್ಗಸೂಚಿಗಳಿಗೆ ಅನುಗುಣವಾಗಿ, NBFC/BANK (RE) ಮತ್ತು ಅದರ ಅಧಿಕೃತ ಸೇವಾ ಪೂರೈಕೆದಾರರಿಂದ ನನ್ನ ಡೇಟಾವನ್ನು ಸಂಸ್ಕರಿಸಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
+        DATA_SHARING: { en: 'I consent to processing of my data by the NBFC/BANK (RE) and its authorized service providers, in line with RBI digital lending guidelines.', regional: 'RBI ಡಿಜಿಟಲ್ ಸಾಲ ಮಾರ್ಗಸೂಚಿಗಳಿಗೆ ಅನುಗುಣವಾಗಿ, NBFC/BANK (RE) ಮತ್ತು ಅದರ ಅಧಿಕೃತ ಸೇವಾ ಪೂರೈಕೆದಾರರಿಂದ ನನ್ನ ಡೇಟಾವನ್ನು ಸಂಸ್ಕರಿಸಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
         AGREE_NOTICE: { en: 'I have read and agree to these consents and the privacy notice.', regional: 'ನಾನು ಈ ಸಮ್ಮತಿಗಳನ್ನು ಮತ್ತು ಗೌಪ್ಯತೆ ಸೂಚನೆಯನ್ನು ಓದಿದ್ದೇನೆ ಮತ್ತು ಒಪ್ಪುತ್ತೇನೆ.' },
     },
     agree_notice_text: { en: 'By checking the boxes above and clicking "Accept & Continue", I, the applicant, hereby provide my explicit consent to LoanSwift (the LSP) and its partner FairFinance NBFC (the RE) to access, process, and store my personal and financial information for the purpose of this loan application. This includes sharing data with credit bureaus (e.g., CIBIL), and using third-party services for PAN, Aadhaar, and bank account verification. This consent is voluntary and can be revoked as per the terms outlined in our privacy policy.', regional: 'ಮೇಲಿನ ಬಾಕ್ಸ್‌ಗಳನ್ನು ಪರಿಶೀಲಿಸುವ ಮೂಲಕ ಮತ್ತು "ಒಪ್ಪಿ ಮತ್ತು ಮುಂದುವರಿಸಿ" ಕ್ಲಿಕ್ ಮಾಡುವ ಮೂಲಕ, ನಾನು, ಅರ್ಜಿದಾರ, ಈ ಸಾಲದ ಅರ್ಜಿಯ ಉದ್ದೇಶಕ್ಕಾಗಿ ನನ್ನ ವೈಯಕ್ತಿಕ ಮತ್ತು ಹಣಕಾಸು ಮಾಹಿತಿಯನ್ನು ಪ್ರವೇಶಿಸಲು, ಪ್ರಕ್ರಿಯೆಗೊಳಿಸಲು ಮತ್ತು ಸಂಗ್ರಹಿಸಲು ಲೋನ್‌ಸ್ವಿಫ್ಟ್ (LSP) ಮತ್ತು ಅದರ ಪಾಲುದಾರ ಫೇರ್‌ಫೈನಾನ್ಸ್ NBFC (RE) ಗೆ ನನ್ನ ಸ್ಪಷ್ಟ ಸಮ್ಮತಿಯನ್ನು ನೀಡುತ್ತೇನೆ. ಇದು ಕ್ರೆಡಿಟ್ ಬ್ಯೂರೋಗಳೊಂದಿಗೆ (ಉದಾಹರಣೆಗೆ, ಸಿಬಿಲ್) ಡೇಟಾವನ್ನು ಹಂಚಿಕೊಳ್ಳುವುದು ಮತ್ತು ಪ್ಯಾನ್, ಆಧಾರ್ ಮತ್ತು ಬ್ಯಾಂಕ್ ಖಾತೆ ಪರಿಶೀಲನೆಗಾಗಿ ತೃತೀಯ ಸೇವೆಗಳನ್ನು ಬಳಸುವುದು ಒಳಗೊಂಡಿರುತ್ತದೆ. ಈ ಸಮ್ಮತಿ ಸ್ವಯಂಪ್ರೇರಿತವಾಗಿದೆ ಮತ್ತು ನಮ್ಮ ಗೌಪ್ಯತೆ ನೀತಿಯಲ್ಲಿ ವಿವರಿಸಿದ ನಿಯಮಗಳ ಪ್ರಕಾರ ಅದನ್ನು ಹಿಂತೆಗೆದುಕೊಳ್ಳಬಹುದು.' },
@@ -335,6 +516,42 @@ const kn: Dictionary = {
     view_kfs_button: { en: 'View Detailed Key Facts Statement (KFS)', regional: 'ವಿವರವಾದ ಪ್ರಮುಖ ವಾಸ್ತವಗಳ ಹೇಳಿಕೆ (KFS) ವೀಕ್ಷಿಸಿ' },
     accept_consent: { en: 'I have read and understood the Key Facts Statement and accept the loan offer.', regional: 'ನಾನು ಪ್ರಮುಖ ವಾస్తವಗಳ ಹೇಳಿಕೆಯನ್ನು ಓದಿದ್ದೇನೆ ಮತ್ತು ಅರ್ಥಮಾಡಿಕೊಂಡಿದ್ದೇನೆ ಮತ್ತು ಸಾಲದ ಕೊಡುಗೆಯನ್ನು ಒಪ್ಪಿಕೊಳ್ಳುತ್ತೇನೆ.' },
     accept_button: { en: 'Accept Offer & Continue', regional: 'ಕೊಡುಗೆಯನ್ನು ಒಪ್ಪಿ ಮತ್ತು ಮುಂದುವರಿಸಿ' },
+  },
+  sanction_letter: {
+    title: { en: 'Loan Sanction Letter', regional: 'ಸಾಲ ಮಂಜೂರಾತಿ ಪತ್ರ' },
+    description: { en: 'Subject to terms and conditions.', regional: 'ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳಿಗೆ ಒಳಪಟ್ಟಿರುತ್ತದೆ' },
+    borrower_details: { en: 'Borrower Details', regional: 'ಸಾಲಗಾರರ ವಿವರಗಳು' },
+    borrower_name: { en: 'Borrower Name', regional: 'ಸಾಲಗಾರರ ಹೆಸರು' },
+    app_id: { en: 'Application ID', regional: 'ಅರ್ಜಿ ಐಡಿ' },
+    pan: { en: 'PAN', regional: 'ಪ್ಯಾನ್' },
+    sanction_date: { en: 'Date of Sanction', regional: 'ಮಂಜೂರಾತಿ ದಿನಾಂಕ' },
+    loan_details: { en: 'Loan Details', regional: 'ಸಾಲದ ವಿವರಗಳು' },
+    sanctioned_amount: { en: 'Sanctioned Amount', regional: 'ಮಂಜೂರಾದ ಮೊತ್ತ' },
+    loan_type: { en: 'Loan Type', regional: 'ಸಾಲದ ಪ್ರಕಾರ' },
+    tenure: { en: 'Tenure', regional: 'ಅವಧಿ' },
+    interest_rate: { en: 'Interest Rate', regional: 'ಬಡ್ಡಿ ದರ' },
+    emi_amount: { en: 'EMI Amount', regional: 'ಇಎಂಐ ಮೊತ್ತ' },
+    emi_start_date: { en: 'EMI Start Date', regional: 'ಇಎಂಐ ಪ್ರಾರಂಭ ದಿನಾಂಕ' },
+    fees_disbursal: { en: 'Fees & Disbursal', regional: 'ಶುಲ್ಕಗಳು ಮತ್ತು ವಿತರಣೆ' },
+    processing_fee: { en: 'Processing Fee (2%)', regional: 'ಸಂಸ್ಕರಣಾ ಶುಲ್ಕ (2%)' },
+    gst: { en: 'GST (18%)', regional: 'ಜಿಎಸ್ಟಿ (18%)' },
+    net_disbursal: { en: 'Net Disbursal Amount', regional: 'ನಿವ್ವಳ ವಿತರಣಾ ಮೊತ್ತ' },
+    key_terms: { en: 'Key Terms', regional: 'ಪ್ರಮುಖ ನಿಯಮಗಳು' },
+    term1: { en: 'Sanction is subject to successful e-Mandate registration.', regional: 'ಮಂಜೂರಾತಿ ಯಶಸ್ವಿ ಇ-ಮ್ಯಾಂಡೇಟ್ ನೋಂದಣಿಗೆ ಒಳಪಟ್ಟಿರುತ್ತದೆ.' },
+    term2: { en: 'Loan is subject to execution of final loan agreement.', regional: 'ಸಾಲವು ಅಂತಿಮ ಸಾಲ ಒಪ್ಪಂದದ εκτέλεσηςಗೆ ಒಳಪಟ್ಟಿರುತ್ತದೆ.' },
+    term3: { en: 'You may cancel the loan before disbursement.', regional: 'ವಿತರಣೆಯ ಮೊದಲು ನೀವು ಸಾಲವನ್ನು ರದ್ದುಗೊಳಿಸಬಹುದು.' },
+    lender_disclosure1: { en: 'Loan provided by FairFinance NBFC (Regulated Entity - RE).', regional: 'ಫೇರ್‌ಫೈನಾನ್ಸ್ ಎನ್‌ಬಿಎಫ್‌ಸಿ (ನಿಯಂತ್ರಿತ ಘಟಕ - ಆರ್‌ಇ) ಒದಗಿಸಿದ ಸಾಲ.' },
+    lender_disclosure2: { en: 'Loan facilitated by LoanSwift (Lending Service Provider - LSP).', regional: 'ಲೋನ್‌ಸ್ವಿಫ್ಟ್ (ಸಾಲ ಸೇವಾ ಪೂರೈಕೆದಾರ - ಎಲ್‌ಎಸ್‌ಪಿ) ಮೂಲಕ ಸುಗಮಗೊಳಿಸಿದ ಸಾಲ.' },
+    lender_disclosure3: { en: 'Grievance Contact', regional: 'ದೂರು ಸಂಪರ್ಕ' },
+    accept_button: { en: 'Accept & e-Sign', regional: 'ಒಪ್ಪಿ ಮತ್ತು ಇ-ಸಹಿ ಮಾಡಿ' },
+    decline_button: { en: 'Do Not Accept', regional: 'ಒಪ್ಪಬೇಡಿ' },
+    decline_title: { en: 'Application Paused', regional: 'ಅರ್ಜಿ ವಿರಾಮಗೊಳಿಸಲಾಗಿದೆ' },
+    decline_description: { en: 'Your application ID is <ID>. Our relationship manager will contact you shortly to assist you further or clarify any questions.', regional: 'ನಿಮ್ಮ ಅರ್ಜಿ ಐಡಿ <ID> ಆಗಿದೆ. ನಮ್ಮ ಸಂಬಂಧ ವ್ಯವಸ್ಥಾಪಕರು ನಿಮಗೆ ಮತ್ತಷ್ಟು ಸಹಾಯ ಮಾಡಲು ಅಥವಾ ಯಾವುದೇ ಪ್ರಶ್ನೆಗಳನ್ನು ಸ್ಪಷ್ಟಪಡಿಸಲು ಶೀಘ್ರದಲ್ಲೇ ನಿಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸುತ್ತಾರೆ.' },
+    support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'ನೀವು ನಮ್ಮನ್ನು support@loanswift.com ನಲ್ಲಿಯೂ ಸಂಪರ್ಕಿಸಬಹುದು' },
+    esign_title: { en: 'e-Sign Sanction Letter', regional: 'ಮಂಜೂರಾತಿ ಪತ್ರವನ್ನು ಇ-ಸಹಿ ಮಾಡಿ' },
+    esign_description: { en: 'Enter the OTP sent to your Aadhaar-linked mobile number to sign.', regional: 'ಸಹಿ ಮಾಡಲು ನಿಮ್ಮ ಆಧಾರ್-ಸಂಯೋಜಿತ ಮೊಬೈల్ ಸಂಖ್ಯೆಗೆ ಕಳುಹಿಸಿದ OTPಯನ್ನು ನಮೂದಿಸಿ.' },
+    otp_label: { en: 'Enter 6-digit OTP', regional: '6-അക്ക OTP ನಮೂದಿಸಿ' },
+    esign_button: { en: 'Verify & e-Sign', regional: 'ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಇ-ಸಹಿ ಮಾಡಿ' },
   }
 };
 
