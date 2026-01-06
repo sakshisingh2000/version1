@@ -1755,13 +1755,41 @@ export function SanctionLetterStep({ onCompleted }: StepProps) {
 
 const bankDetailsSchema = z.object({
     accountNumber: z.string().min(9, "Invalid account number").max(18, "Invalid account number"),
-    ifsc: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code format."),
+    ifsc: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code format.").length(11, "IFSC code must be 11 characters."),
 });
+
+type BankInfo = {
+  bankName: string;
+  branch: string;
+  address: string;
+  city: string;
+  state: string;
+};
+
+// Simulated IFSC lookup service
+const getBankDetailsFromIFSC = (ifsc: string): Promise<BankInfo | null> => {
+    const mockDb: Record<string, BankInfo> = {
+        "SBIN0001234": { bankName: "State Bank of India", branch: "Parliament Street", address: "11, Parliament Street", city: "New Delhi", state: "Delhi" },
+        "HDFC0000060": { bankName: "HDFC Bank", branch: "Sandoz House", address: "Dr. Annie Besant Road, Worli", city: "Mumbai", state: "Maharashtra" },
+        "ICIC0000104": { bankName: "ICICI Bank", branch: "Bandra West", address: "123, Linking Road, Bandra (W)", city: "Mumbai", state: "Maharashtra" },
+        "UTIB0000009": { bankName: "Axis Bank", branch: "Jubilee Hills", address: "Plot No. 123, Road No. 36, Jubilee Hills", city: "Hyderabad", state: "Telangana" },
+        "PUNB0024400": { bankName: "Punjab National Bank", branch: "Sector 17, Chandigarh", address: "SCO 45-47, Sector 17-C", city: "Chandigarh", state: "Chandigarh" },
+    };
+
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve(mockDb[ifsc.toUpperCase()] || null);
+        }, 1000);
+    });
+};
   
 export function BankDetailsStep({ onCompleted }: StepProps) {
     const { application, setApplication } = useLoanApplication();
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
+    const [ifsc, setIfsc] = useState("");
+    const [bankInfo, setBankInfo] = useState<BankInfo | null>(null);
+    const [isFetchingBank, setIsFetchingBank] = useState(false);
   
     const form = useForm<z.infer<typeof bankDetailsSchema>>({
       resolver: zodResolver(bankDetailsSchema),
@@ -1770,12 +1798,35 @@ export function BankDetailsStep({ onCompleted }: StepProps) {
         ifsc: "",
       },
     });
+
+    useEffect(() => {
+      const currentIfsc = form.getValues("ifsc").toUpperCase();
+      if (currentIfsc.length === 11) {
+          setIsFetchingBank(true);
+          setBankInfo(null);
+          getBankDetailsFromIFSC(currentIfsc).then(info => {
+              setIsFetchingBank(false);
+              if (info) {
+                  setBankInfo(info);
+                  form.clearErrors("ifsc");
+              } else {
+                  form.setError("ifsc", { type: "custom", message: "IFSC code not found." });
+              }
+          });
+      } else {
+          setBankInfo(null);
+      }
+    }, [ifsc, form]);
   
     function onSubmit(values: z.infer<typeof bankDetailsSchema>) {
+      if (!bankInfo) {
+          toast({ variant: "destructive", title: "Invalid IFSC", description: "Please enter a valid IFSC code to fetch bank details."});
+          return;
+      }
       startTransition(() => {
         // Penny Drop verification
         setTimeout(() => {
-          setApplication(prev => ({ ...prev, bankDetails: { ...values, isVerified: true } }));
+          setApplication(prev => ({ ...prev, bankDetails: { ...values, ...bankInfo, isVerified: true } }));
           toast({
             title: "Bank Account Verified",
             description: "We've successfully deposited ₹1 in your account.",
@@ -1805,11 +1856,44 @@ export function BankDetailsStep({ onCompleted }: StepProps) {
           <FormField control={form.control} name="ifsc" render={({ field }) => (
             <FormItem>
               <FormLabel>IFSC Code</FormLabel>
-              <FormControl><Input placeholder="SBIN0001234" {...field} value={field.value ?? ''} className="uppercase" /></FormControl>
+              <FormControl>
+                <Input 
+                  placeholder="SBIN0001234" 
+                  {...field} 
+                  value={field.value ?? ''}
+                  onChange={(e) => {
+                      field.onChange(e);
+                      setIfsc(e.target.value);
+                  }}
+                  className="uppercase" 
+                  maxLength={11}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )} />
-          <Button type="submit" disabled={isPending} className="w-full">
+
+          {isFetchingBank && (
+              <div className="flex items-center text-sm text-muted-foreground p-2">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Fetching bank details...
+              </div>
+          )}
+
+          {bankInfo && (
+              <Card className="bg-muted/50">
+                  <CardHeader className="p-4">
+                      <CardTitle className="text-base">Bank Details</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0 text-sm space-y-1">
+                      <p><span className="font-semibold">Bank:</span> {bankInfo.bankName}</p>
+                      <p><span className="font-semibold">Branch:</span> {bankInfo.branch}</p>
+                      <p><span className="font-semibold">City:</span> {bankInfo.city}</p>
+                  </CardContent>
+              </Card>
+          )}
+
+          <Button type="submit" disabled={isPending || isFetchingBank} className="w-full">
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isPending ? "Verifying..." : "Verify Account"}
           </Button>
@@ -2015,3 +2099,4 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
 }
 
     
+
