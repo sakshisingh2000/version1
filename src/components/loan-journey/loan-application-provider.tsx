@@ -5,7 +5,7 @@
 import type { LoanApplication } from '@/lib/types';
 import { createContext, useContext, useState, useMemo, type Dispatch, type SetStateAction, type ReactNode, useEffect } from 'react';
 import { StepIndicator } from './step-indicator';
-import { BankDetailsStep, CreditCheckStep, DigiLockerStep, DisbursementStep, EMandateStep, KfsStep, KycStep, EligibilityResultStep, PersonalDetailsStep, AgreementStep } from './steps';
+import { BankDetailsStep, CreditCheckStep, DocumentVerificationStep, DisbursementStep, EMandateStep, KfsStep, KycStep, EligibilityResultStep, PersonalDetailsStep, AgreementStep } from './steps';
 import { Card, CardContent } from '../ui/card';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, doc, serverTimestamp } from 'firebase/firestore';
@@ -28,10 +28,14 @@ const initialApplicationState: LoanApplication = {
   personalDetails: undefined,
   requested_amount: 0,
   kyc: {
+    panStatus: 'PENDING',
+    aadhaarAuthStatus: 'PENDING',
     digilockerStatus: 'PENDING',
+    documentVerificationStatus: 'PENDING',
   },
   bureauReport: null,
   application_status: "DRAFT",
+  approved_tenure_options: null,
 };
 
 
@@ -71,7 +75,7 @@ export function useLoanApplication() {
 const STEPS = [
   { title: "Personal Details", component: PersonalDetailsStep },
   { title: "KYC Verification", component: KycStep },
-  { title: "DigiLocker KYC", component: DigiLockerStep },
+  { title: "Document Verification", component: DocumentVerificationStep },
   { title: "Credit Check", component: CreditCheckStep },
   { title: "Eligibility Result", component: EligibilityResultStep },
   { title: "Key Facts", component: KfsStep },

@@ -1,4 +1,5 @@
 
+
 import type { User } from 'firebase/auth';
 
 export type DigiLockerDocument = {
@@ -7,6 +8,16 @@ export type DigiLockerDocument = {
   verification_status: 'VERIFIED' | 'NOT_PROVIDED' | 'FAILED';
   expiry_date?: string;
 };
+
+export type UploadableDocument = {
+  id: string;
+  name: string;
+  status: 'PENDING' | 'UPLOADED' | 'VERIFIED_OCR' | 'VERIFIED_DIGITALLY' | 'FAILED';
+  category: 'Identity' | 'Financial' | 'Other';
+  optional?: boolean;
+  file?: File;
+};
+
 
 export type TenureOption = {
   tenure_months: number;
@@ -38,14 +49,16 @@ export type LoanApplication = {
     consent: boolean;
   };
   kyc?: {
-    panStatus?: 'VERIFIED' | 'MISMATCH' | 'FAILED';
-    aadhaarAuthStatus?: 'OTP_SUCCESS' | 'FAILED';
+    panStatus?: 'PENDING' | 'VERIFIED' | 'MISMATCH' | 'FAILED';
+    aadhaarAuthStatus?: 'PENDING' | 'OTP_SENT' | 'OTP_SUCCESS' | 'FAILED';
     aadhaarMaskedNumber?: string;
-    digilockerStatus?: 'SUCCESS' | 'FAILED' | 'PENDING';
+    digilockerStatus?: 'PENDING' | 'SUCCESS' | 'FAILED';
     digilockerDocuments?: DigiLockerDocument[];
+    documentVerificationStatus?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
     addressVerified?: boolean;
     kycCompleted?: boolean;
   };
+   uploadedDocuments?: UploadableDocument[];
   bureauReport?: {
     bureau_name: string;
     score: number;

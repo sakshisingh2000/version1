@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useTransition, useEffect, useMemo } from "react";
-import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet, FileText, BadgeCheck, AlertCircle } from "lucide-react";
+import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet, FileText, BadgeCheck, AlertCircle, UploadCloud, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -34,7 +34,7 @@ import { Badge } from "../ui/badge";
 import { ScrollArea } from "../ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { addDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import type { TenureOption, PaymentScheduleItem } from "@/lib/types";
+import type { TenureOption, PaymentScheduleItem, UploadableDocument } from "@/lib/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { DobPicker } from "@/components/ui/dob-picker";
 import { addMonths, format, startOfMonth } from 'date-fns';
@@ -227,10 +227,10 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
           <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
             <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
             <div className="space-y-1 leading-none">
-              <FormLabel>
+              <Label>
                 {d.consent_label.en}
                 <span className="block text-sm font-normal text-muted-foreground mt-1">{d.consent_label.regional}</span>
-              </FormLabel>
+              </Label>
               <FormDescription>
                 {d.consent_description.en}
                  <span className="block text-sm font-normal text-muted-foreground mt-1">{d.consent_description.regional}</span>
@@ -417,139 +417,254 @@ export function KycStep({ onCompleted }: StepProps) {
 
       {(isPanVerified && isAadhaarVerified) && (
         <Button onClick={onCompleted} className="w-full md:w-auto">
-          Continue to DigiLocker KYC
+          Continue to Document Verification
         </Button>
       )}
     </div>
   );
 }
 
-const availableDocs = [
-    { id: 'AADHAAR_XML', label: 'Aadhaar XML / e-KYC' },
-    { id: 'DRIVING_LICENSE', label: 'Driving License' },
-    { id: 'PAN_CARD', label: 'PAN Card (e-PAN)' },
-    { id: 'PASSPORT', label: 'Passport' },
-    { id: 'VOTER_ID', label: 'Voter ID' },
-    { id: 'UTILITY_BILL', label: 'Utility Bill (e.g., Electricity)' },
-    { id: 'BANK_STATEMENT', label: 'Bank Statement (last 3 months)' },
+const availableDigiLockerDocs = [
+    { id: 'AADHAAR', label: 'Aadhaar Card' },
+    { id: 'PAN_CARD', label: 'PAN Card' },
 ];
 
-const digilockerSchema = z.object({
-  selectedDocs: z.array(z.string()).refine(value => value.some(item => item), {
-    message: "You have to select at least one document.",
-  })
-});
+const manualUploadDocs: UploadableDocument[] = [
+    { id: 'AADHAAR_FRONT', name: 'Aadhaar Card (Front)', status: 'PENDING', category: 'Identity' },
+    { id: 'AADHAAR_BACK', name: 'Aadhaar Card (Back)', status: 'PENDING', category: 'Identity' },
+    { id: 'PAN_CARD', name: 'PAN Card', status: 'PENDING', category: 'Identity' },
+    { id: 'BANK_STATEMENT', name: 'Bank Statement (Last 6 months)', status: 'PENDING', category: 'Financial' },
+    { id: 'SALARY_SLIP', name: 'Salary Slips (Last 3 months)', status: 'PENDING', category: 'Financial', optional: true },
+];
 
-export function DigiLockerStep({ onCompleted }: StepProps) {
-  const { application, setApplication } = useLoanApplication();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isVerifying, startTransition] = useTransition();
-  const [digilockerStatus, setDigilockerStatus] = useState(application.kyc?.digilockerStatus);
-  const { user } = useUser();
-  const firestore = useFirestore();
-  const { toast } = useToast();
+export function DocumentVerificationStep({ onCompleted }: StepProps) {
+    const { application, setApplication } = useLoanApplication();
+    const [isDigiLockerModalOpen, setIsDigiLockerModalOpen] = useState(false);
+    const [isUploading, startUploading] = useTransition();
+    const [isVerifying, startVerifying] = useTransition();
+    const [uploadedDocs, setUploadedDocs] = useState<UploadableDocument[]>(
+        application.uploadedDocuments || manualUploadDocs
+    );
 
-  const form = useForm<z.infer<typeof digilockerSchema>>({
-    resolver: zodResolver(digilockerSchema),
-    defaultValues: { selectedDocs: [] },
-  });
+    const { toast } = useToast();
 
-  const onSubmit = (data: z.infer<typeof digilockerSchema>) => {
-    startTransition(async () => {
-        if (!user || !application.loanApplicationId) return;
+    // DigiLocker Logic
+    const handleDigiLockerFetch = (selectedDocIds: string[]) => {
+        setIsDigiLockerModalOpen(false);
+        startVerifying(() => {
+            setTimeout(() => {
+                const fetchedDocs = selectedDocIds.map(id => ({
+                    id,
+                    name: availableDigiLockerDocs.find(d => d.id === id)?.label || 'Document',
+                    status: 'VERIFIED_DIGITALLY' as const,
+                    category: 'Identity' as const,
+                }));
 
-        setIsModalOpen(false);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        const simDocuments = data.selectedDocs.map(docId => {
-            const docInfo = availableDocs.find(d => d.id === docId);
-            return {
-                doc_type: docId,
-                doc_name: docInfo?.label || "Unknown Document",
-                verification_status: "VERIFIED" as const,
-                ...(docId === 'DRIVING_LICENSE' && { expiry_date: "2030-12-31" })
-            };
+                const newUploadedDocs = uploadedDocs.map(doc => {
+                    const fetched = fetchedDocs.find(f => f.id === doc.id);
+                    return fetched || doc;
+                });
+                
+                setUploadedDocs(newUploadedDocs);
+                setApplication(prev => ({
+                    ...prev,
+                    uploadedDocuments: newUploadedDocs,
+                    kyc: { ...prev.kyc, digilockerStatus: 'SUCCESS' }
+                }));
+
+                toast({ title: 'DigiLocker Documents Fetched' });
+            }, 1500);
         });
+    };
 
-        // address verification
-        const aadhaarInDocs = simDocuments.some(d => d.doc_type === 'AADHAAR_XML');
-        const addressVerified = aadhaarInDocs && application.personalDetails?.pincode;
+    // Manual Upload Logic
+    const handleFileUpload = (docId: string, file: File) => {
+        startUploading(() => {
+            // Simulate upload
+            setTimeout(() => {
+                setUploadedDocs(prev => prev.map(doc =>
+                    doc.id === docId ? { ...doc, status: 'UPLOADED', file } : doc
+                ));
+                toast({ title: `${file.name} uploaded.` });
 
-        const kycCompleted = application.kyc?.panStatus === 'VERIFIED' && application.kyc?.aadhaarAuthStatus === 'OTP_SUCCESS' && !!addressVerified;
+                // Simulate OCR
+                setTimeout(() => {
+                    setUploadedDocs(prev => prev.map(doc =>
+                        doc.id === docId ? { ...doc, status: 'VERIFIED_OCR' } : doc
+                    ));
+                     setApplication(prev => ({
+                        ...prev,
+                        uploadedDocuments: uploadedDocs.map(d => d.id === docId ? { ...d, status: 'VERIFIED_OCR' } : d),
+                    }));
+                    toast({ title: `Verified ${file.name}` });
+                }, 1500);
+            }, 1000);
+        });
+    };
 
-        const kycUpdate = {
-            ...application.kyc,
-            digilockerStatus: 'SUCCESS' as const,
-            digilockerDocuments: simDocuments,
-            addressVerified: !!addressVerified,
-            kycCompleted: kycCompleted
-        };
+    const isStepComplete = useMemo(() => {
+        const requiredDocs = uploadedDocs.filter(doc => !doc.optional);
+        return requiredDocs.every(doc => doc.status === 'VERIFIED_DIGITALLY' || doc.status === 'VERIFIED_OCR');
+    }, [uploadedDocs]);
+
+    const getVerificationStatus = (docStatus: UploadableDocument['status']) => {
+        switch(docStatus) {
+            case 'VERIFIED_DIGITALLY': return <Badge variant="default" className="bg-green-600">Digitally Verified</Badge>;
+            case 'VERIFIED_OCR': return <Badge variant="secondary" className="bg-blue-500 text-white">Verified via OCR</Badge>;
+            case 'UPLOADED': return <Badge variant="outline">Uploaded, Verifying...</Badge>;
+            default: return <Badge variant="outline">Pending</Badge>;
+        }
+    };
+    
+    if (isVerifying) {
+         return (
+            <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <h3 className="text-xl font-semibold">Connecting to DigiLocker...</h3>
+                <p className="text-muted-foreground">Please wait while we securely connect and fetch your documents.</p>
+            </div>
+        );
+    }
+    
+    const VerificationSummary = () => {
+        const { personalDetails } = application;
+        // Mocked data from verified docs
+        const aadhaarData = { name: personalDetails?.fullName.toUpperCase(), dob: personalDetails?.birthDate };
+        const panData = { name: personalDetails?.fullName.toUpperCase(), dob: personalDetails?.birthDate };
+
+        const nameMatchAadhaar = personalDetails?.fullName.toLowerCase() === aadhaarData.name.toLowerCase();
+        const dobMatchAadhaar = personalDetails?.birthDate.toDateString() === aadhaarData.dob?.toDateString();
         
-        setApplication(prev => ({ ...prev, kyc: kycUpdate, kyc_completed: kycCompleted }));
-        
-        const kycDocRef = doc(firestore, 'borrowers', user.uid, 'kyc_records', application.loanApplicationId);
-        
-        const kycData = {
-            digilockerStatus: 'SUCCESS',
-            digilockerDocuments: simDocuments,
-            addressVerified: !!addressVerified,
-            kycCompleted: kycCompleted,
-            borrowerId: user.uid
-        };
+        const nameMatchPan = personalDetails?.fullName.toLowerCase() === panData.name.toLowerCase();
+        const dobMatchPan = personalDetails?.birthDate.toDateString() === panData.dob?.toDateString();
 
-        updateDocumentNonBlocking(kycDocRef, kycData);
+        const MatchBadge = ({ isMatch }: {isMatch: boolean}) => (
+            <Badge variant={isMatch ? 'default' : 'destructive'} className={cn(isMatch && 'bg-accent text-accent-foreground')}>
+                {isMatch ? 'Matches' : 'Mismatch'}
+            </Badge>
+        );
 
-        const auditData = {
-            entityType: 'KYC', entityId: kycDocRef.id, action: 'DIGILOCKER_KYC_SUCCESS',
-            actorType: 'SYSTEM', timestamp: serverTimestamp(), borrowerId: user.uid
-        };
-        addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditData);
-        setDigilockerStatus('SUCCESS');
-        toast({ title: "DigiLocker KYC Successful", description: "Documents have been fetched and verified." });
-    });
-  }
-  
-  if (digilockerStatus === 'SUCCESS') {
-    const kycCompleted = application.kyc?.kycCompleted;
-    return (
-        <div className="space-y-6">
-             <Alert variant="default" className="bg-green-50 border-green-200">
-                <Verified className="h-4 w-4 !text-green-600" />
-                <AlertTitle className="text-green-800">DigiLocker Connected</AlertTitle>
-                <AlertDescription className="text-green-700">
-                    We have successfully fetched your documents from DigiLocker.
-                </AlertDescription>
-            </Alert>
+        return (
             <Card>
-                <CardHeader><CardTitle>Fetched Documents</CardTitle></CardHeader>
-                <CardContent className="space-y-2">
-                    {application.kyc?.digilockerDocuments?.map(doc => (
-                        <div key={doc.doc_type} className="flex justify-between items-center p-2 border rounded-md">
-                            <span>{doc.doc_name}</span>
-                            <Badge variant={doc.verification_status === 'VERIFIED' ? 'default' : 'destructive'} className={doc.verification_status === 'VERIFIED' ? 'bg-accent text-accent-foreground' : ''}>
-                                {doc.verification_status}
-                            </Badge>
+                <CardHeader>
+                    <CardTitle>Verification Summary</CardTitle>
+                    <CardDescription>We've matched your provided details against your verified documents.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex justify-between items-center p-2 border rounded-md">
+                        <div>
+                            <p className="font-semibold">Full Name</p>
+                            <p className="text-sm text-muted-foreground">{personalDetails?.fullName}</p>
                         </div>
-                    ))}
+                        <div className="space-x-2">
+                           <MatchBadge isMatch={nameMatchAadhaar} />
+                           <span className="text-xs">Aadhaar</span>
+                           <MatchBadge isMatch={nameMatchPan} />
+                           <span className="text-xs">PAN</span>
+                        </div>
+                    </div>
+                     <div className="flex justify-between items-center p-2 border rounded-md">
+                        <div>
+                            <p className="font-semibold">Date of Birth</p>
+                            <p className="text-sm text-muted-foreground">{personalDetails?.birthDate.toLocaleDateString()}</p>
+                        </div>
+                         <div className="space-x-2">
+                           <MatchBadge isMatch={dobMatchAadhaar} />
+                           <span className="text-xs">Aadhaar</span>
+                           <MatchBadge isMatch={dobMatchPan} />
+                           <span className="text-xs">PAN</span>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
-            {kycCompleted && (
-                 <Alert>
-                    <CheckCircle className="h-4 w-4" />
-                    <AlertTitle>KYC Completed!</AlertTitle>
-                    <AlertDescription>
-                       All your KYC steps including PAN, Aadhaar, and Address verification are complete.
-                    </AlertDescription>
-                </Alert>
-            )}
-            <Button onClick={onCompleted} className="w-full">Continue to Credit Check</Button>
-        </div>
-    )
-  }
+        );
+    }
 
-  return (
-    <div className="space-y-6">
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+    return (
+        <div className="space-y-8">
+            <DigiLockerModal
+                isOpen={isDigiLockerModalOpen}
+                onOpenChange={setIsDigiLockerModalOpen}
+                onFetch={handleDigiLockerFetch}
+            />
+
+            <Card className="bg-blue-50 border-blue-200">
+                <CardHeader className="flex-row items-center gap-4">
+                     <Wallet className="h-10 w-10 text-blue-600 flex-shrink-0" />
+                    <div>
+                        <CardTitle className="text-blue-900">Option 1: Use DigiLocker (Recommended)</CardTitle>
+                        <CardDescription className="text-blue-800">Fetch your Aadhaar and PAN instantly for faster processing.</CardDescription>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <Button onClick={() => setIsDigiLockerModalOpen(true)} disabled={isVerifying}>
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        Connect to DigiLocker
+                    </Button>
+                </CardContent>
+            </Card>
+
+            <div className="relative text-center">
+                <Separator />
+                <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-sm text-muted-foreground">OR</span>
+            </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Option 2: Manual Upload</CardTitle>
+                    <CardDescription>Upload your documents manually. We'll use OCR to verify them.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {uploadedDocs.map(doc => (
+                        <div key={doc.id} className="p-4 border rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <p className="font-semibold">{doc.name} {doc.optional && <span className="text-xs font-normal text-muted-foreground">(Optional)</span>}</p>
+                                <div className="mt-1">{getVerificationStatus(doc.status)}</div>
+                            </div>
+                            {doc.status === 'PENDING' && (
+                                 <div className="relative">
+                                    <Button variant="outline" asChild className="cursor-pointer">
+                                        <div>
+                                            <UploadCloud className="mr-2 h-4 w-4" />
+                                            Upload
+                                        </div>
+                                    </Button>
+                                    <input 
+                                        type="file" 
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        accept="image/*,application/pdf"
+                                        onChange={(e) => e.target.files?.[0] && handleFileUpload(doc.id, e.target.files[0])}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                    {isUploading && (
+                        <div className="flex items-center text-sm text-muted-foreground">
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                            Uploading and verifying...
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+            
+            {isStepComplete && <VerificationSummary />}
+
+            {isStepComplete && (
+                <Button onClick={onCompleted} className="w-full">
+                    Continue to Credit Check
+                </Button>
+            )}
+        </div>
+    );
+}
+
+
+function DigiLockerModal({ isOpen, onOpenChange, onFetch }: { isOpen: boolean, onOpenChange: (open: boolean) => void, onFetch: (docs: string[]) => void }) {
+    const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
+    
+    return (
+         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Share Documents from DigiLocker</DialogTitle>
@@ -557,81 +672,30 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
                         Select the documents you want to share for KYC verification.
                     </DialogDescription>
                 </DialogHeader>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                        control={form.control}
-                        name="selectedDocs"
-                        render={() => (
-                            <FormItem>
-                            {availableDocs.map((item) => (
-                                <FormField
-                                key={item.id}
-                                control={form.control}
-                                name="selectedDocs"
-                                render={({ field }) => {
-                                    return (
-                                    <FormItem
-                                        key={item.id}
-                                        className="flex flex-row items-start space-x-3 space-y-0"
-                                    >
-                                        <FormControl>
-                                        <Checkbox
-                                            checked={field.value?.includes(item.id)}
-                                            onCheckedChange={(checked) => {
-                                            return checked
-                                                ? field.onChange([...(field.value ?? []), item.id])
-                                                : field.onChange(
-                                                    field.value?.filter(
-                                                    (value) => value !== item.id
-                                                    )
-                                                )
-                                            }}
-                                        />
-                                        </FormControl>
-                                        <FormLabel className="font-normal">
-                                        {item.label}
-                                        </FormLabel>
-                                    </FormItem>
+                <div className="space-y-4 py-4">
+                    {availableDigiLockerDocs.map(doc => (
+                        <div key={doc.id} className="flex items-center space-x-2 p-3 border rounded-md">
+                           <Checkbox
+                                id={doc.id}
+                                onCheckedChange={(checked) => {
+                                    setSelectedDocs(prev => 
+                                        checked ? [...prev, doc.id] : prev.filter(id => id !== doc.id)
                                     )
                                 }}
-                                />
-                            ))}
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <Button type="submit" disabled={isVerifying} className="w-full">
-                            {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                            Share Selected Documents
-                        </Button>
-                    </form>
-                </Form>
+                            />
+                            <label htmlFor={doc.id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                {doc.label}
+                            </label>
+                        </div>
+                    ))}
+                </div>
+                <Button onClick={() => onFetch(selectedDocs)} disabled={selectedDocs.length === 0}>
+                    Share Selected Documents
+                </Button>
             </DialogContent>
         </Dialog>
-
-        {isVerifying ? (
-            <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
-                <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                <h3 className="text-xl font-semibold">Connecting to DigiLocker...</h3>
-                <p className="text-muted-foreground">Please wait while we securely connect and fetch your documents.</p>
-            </div>
-        ) : (
-             <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
-                <Wallet className="h-16 w-16 text-primary"/>
-                <h3 className="text-2xl font-headline font-bold">Connect with DigiLocker</h3>
-                <p className="text-muted-foreground max-w-md">
-                    To complete your KYC, we need to fetch your official documents (like Aadhaar, PAN) from your DigiLocker account with your consent. This is a secure and RBI-approved method.
-                </p>
-                <Button onClick={() => setIsModalOpen(true)} size="lg">
-                    Connect to DigiLocker
-                </Button>
-            </div>
-        )}
-    </div>
-  );
+    )
 }
-
 
 export function CreditCheckStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
