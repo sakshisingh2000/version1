@@ -442,19 +442,20 @@ const manualUploadDocs: UploadableDocument[] = [
 
 export function DocumentVerificationStep({ onCompleted }: StepProps) {
     const { application, setApplication } = useLoanApplication();
+    const { user } = useUser();
+    const firestore = useFirestore();
     const [isDigiLockerModalOpen, setIsDigiLockerModalOpen] = useState(false);
+    const [isProcessing, startProcessing] = useTransition();
     const [isUploading, startUploading] = useTransition();
-    const [isVerifying, startVerifying] = useTransition();
     const [uploadedDocs, setUploadedDocs] = useState<UploadableDocument[]>(
         application.uploadedDocuments || manualUploadDocs
     );
-
     const { toast } = useToast();
 
     // DigiLocker Logic
     const handleDigiLockerFetch = (selectedDocIds: string[]) => {
         setIsDigiLockerModalOpen(false);
-        startVerifying(() => {
+        startProcessing(() => {
             setTimeout(() => {
                 const fetchedDocs = selectedDocIds.map(id => ({
                     id,
@@ -483,14 +484,12 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
     // Manual Upload Logic
     const handleFileUpload = (docId: string, file: File) => {
         startUploading(() => {
-            // Simulate upload
             setTimeout(() => {
                 setUploadedDocs(prev => prev.map(doc =>
                     doc.id === docId ? { ...doc, status: 'UPLOADED', file } : doc
                 ));
                 toast({ title: `${file.name} uploaded.` });
 
-                // Simulate OCR
                 setTimeout(() => {
                     setUploadedDocs(prev => prev.map(doc =>
                         doc.id === docId ? { ...doc, status: 'VERIFIED_OCR' } : doc
@@ -510,6 +509,103 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
         return requiredDocs.every(doc => doc.status === 'VERIFIED_DIGITALLY' || doc.status === 'VERIFIED_OCR');
     }, [uploadedDocs]);
 
+    const handleVerificationAndCreditCheck = () => {
+      if (!user || !application.loanApplicationId || !application.personalDetails) {
+        toast({ variant: 'destructive', title: 'Error', description: 'User or application context is missing.' });
+        return;
+      }
+  
+      startProcessing(async () => {
+        // 1. Simulate Bureau Pull
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const simReport = {
+          bureau_name: "CIBIL",
+          score: Math.floor(Math.random() * (850 - 680 + 1)) + 680,
+          total_active_loans: Math.floor(Math.random() * 3) + 1,
+          total_overdue_amount: 0,
+          max_dpd: 0,
+          recent_enquiries_count: Math.floor(Math.random() * 3),
+          decision_summary: "ELIGIBLE",
+          bureau_raw_json: JSON.stringify({ "tradelines": 5, "inquiries_last_6m": 2, "simulatedData": true }, null, 2),
+        };
+  
+        // 2. Perform Automated Underwriting Logic
+        const { monthlyIncome, loanAmount } = application.personalDetails!;
+        const existingMonthlyEmis = 5000;
+        const foir = ((existingMonthlyEmis + (loanAmount / 12)) / monthlyIncome) * 100;
+        
+        let underwritingDecision: {
+            status: 'APPROVED' | 'REJECTED' | 'PENDING_REVIEW';
+            reason: string;
+            risk_score: 'LOW_RISK' | 'MEDIUM_RISK' | 'HIGH_RISK';
+            approved_amount: number | null;
+            approved_tenure_options: TenureOption[] | null;
+        };
+        
+        // Force APPROVED status for prototype demo
+        underwritingDecision = { 
+            status: 'APPROVED', 
+            reason: `Strong credit profile (score: ${simReport.score}) and low FOIR (${foir.toFixed(2)}%).`,
+            risk_score: 'LOW_RISK',
+            approved_amount: loanAmount,
+            approved_tenure_options: [{ tenure_months: 6 }, { tenure_months: 9 }, { tenure_months: 12 }, { tenure_months: 18 }]
+        };
+  
+        // 3. Update application state and Firestore
+        const appUpdate = {
+          bureauReport: simReport,
+          application_status: underwritingDecision.status,
+          internal_risk_score: underwritingDecision.risk_score,
+          bureau_score: simReport.score,
+          eligibility_decision_reason: underwritingDecision.reason,
+          approved_amount: underwritingDecision.approved_amount,
+          approved_tenure_options: underwritingDecision.approved_tenure_options,
+        };
+        setApplication(prev => ({ ...prev, ...appUpdate }));
+  
+        const loanAppRef = doc(firestore, 'borrowers', user.uid, 'loan_applications', application.loanApplicationId);
+        
+        const loanAppUpdateData = {
+          application_status: underwritingDecision.status,
+          bureau_score: simReport.score,
+          bureau_decision_summary: simReport.decision_summary,
+          eligibility_decision_reason: underwritingDecision.reason,
+          internal_risk_score: underwritingDecision.risk_score,
+          approved_amount: underwritingDecision.approved_amount,
+          approved_tenure_options: underwritingDecision.approved_tenure_options,
+          updated_at: serverTimestamp(),
+        };
+  
+        setDocumentNonBlocking(loanAppRef, loanAppUpdateData, { merge: true });
+        
+        const auditLog1Data = {
+          entityType: 'LOAN_APPLICATION',
+          entityId: application.loanApplicationId,
+          action: 'BUREAU_PULL',
+          actorType: 'SYSTEM',
+          timestamp: serverTimestamp(),
+          details: { score: simReport.score },
+          borrowerId: user.uid,
+        };
+        addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLog1Data);
+        
+        const auditLog2Data = {
+          entityType: 'LOAN_APPLICATION',
+          entityId: application.loanApplicationId,
+          action: 'UNDERWRITING_DECISION',
+          actorType: 'SYSTEM',
+          timestamp: serverTimestamp(),
+          details: { decision: underwritingDecision.status, reason: underwritingDecision.reason },
+          borrowerId: user.uid,
+        };
+        addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLog2Data);
+  
+        toast({ title: 'Credit Check Complete', description: `Your application is ${underwritingDecision.status}.` });
+        
+        onCompleted();
+      });
+    };
+
     const getVerificationStatus = (docStatus: UploadableDocument['status']) => {
         switch(docStatus) {
             case 'VERIFIED_DIGITALLY': return <Badge variant="default" className="bg-green-600">Digitally Verified</Badge>;
@@ -519,19 +615,18 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
         }
     };
     
-    if (isVerifying) {
+    if (isProcessing) {
          return (
             <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                <h3 className="text-xl font-semibold">Connecting to DigiLocker...</h3>
-                <p className="text-muted-foreground">Please wait while we securely connect and fetch your documents.</p>
+                <h3 className="text-xl font-semibold">Verifying Documents & Checking Credit...</h3>
+                <p className="text-muted-foreground">Please wait while we securely process your information.</p>
             </div>
         );
     }
     
     const VerificationSummary = () => {
         const { personalDetails } = application;
-        // Mocked data from verified docs - in a real app, this would come from OCR/DigiLocker
         const aadhaarData = { 
             name: personalDetails?.fullName.toUpperCase(), 
             dob: personalDetails?.birthDate,
@@ -614,7 +709,7 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <Button onClick={() => setIsDigiLockerModalOpen(true)} disabled={isVerifying}>
+                    <Button onClick={() => setIsDigiLockerModalOpen(true)} disabled={isProcessing}>
                         <ShieldCheck className="mr-2 h-4 w-4" />
                         Connect to DigiLocker
                     </Button>
@@ -668,8 +763,9 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
             {isStepComplete && <VerificationSummary />}
 
             {isStepComplete && (
-                <Button onClick={onCompleted} className="w-full">
-                    Continue to Credit Check
+                <Button onClick={handleVerificationAndCreditCheck} className="w-full" disabled={isProcessing}>
+                    {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Continue to Eligibility
                 </Button>
             )}
         </div>
@@ -1106,7 +1202,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
       );
     }
     
-    if (application.application_status !== 'APPROVED' || !application.approved_amount) {
+    if (!application.bureauReport) {
       return (
         <div className="flex flex-col items-center justify-center space-y-4 p-12 text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -1116,11 +1212,57 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
       );
     }
 
+    const score = application.bureauReport?.score || 0;
+    const getScoreColor = () => {
+        if (score >= 750) return 'text-green-600';
+        if (score >= 700) return 'text-lime-600';
+        if (score >= 650) return 'text-yellow-500';
+        return 'text-red-500';
+    }
+    const scoreBand = score >= 750 ? "Excellent" : score >= 700 ? "Good" : score >= 650 ? "Fair" : "Poor";
+
     return (
         <div className="space-y-8">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-center">Your Credit Report Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Card className="text-center p-4 rounded-lg bg-muted/50 overflow-hidden relative flex flex-col items-center">
+                      <div className={cn("flex items-center justify-center w-40 h-40 rounded-full border-8", 
+                          score >= 750 ? "border-green-600" :
+                          score >= 700 ? "border-lime-600" :
+                          score >= 650 ? "border-yellow-500" : "border-red-500"
+                      )}>
+                          <div className="text-center">
+                              <p className={cn("text-5xl font-bold", getScoreColor())}>{score}</p>
+                              <p className="font-semibold">{scoreBand}</p>
+                          </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">CIBIL Score - Decision: {application.bureauReport?.decision_summary}</p>
+                  </Card>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="p-2 bg-background rounded-md">
+                          <p className="font-bold text-lg">{application.bureauReport?.total_active_loans}</p>
+                          <p className="text-xs text-muted-foreground">Active Loans</p>
+                        </div>
+                        <div className="p-2 bg-background rounded-md">
+                          <p className="font-bold text-lg">₹{application.bureauReport?.total_overdue_amount}</p>
+                          <p className="text-xs text-muted-foreground">Overdue</p>
+                        </div>
+                        <div className="p-2 bg-background rounded-md">
+                          <p className="font-bold text-lg">{application.bureauReport?.recent_enquiries_count}</p>
+                          <p className="text-xs text-muted-foreground">Recent Enquiries</p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Separator />
+            
             <div className="text-center">
-                <p className="text-muted-foreground">You are eligible for a loan up to</p>
-                <h3 className="font-headline text-4xl font-bold text-primary">₹{application.approved_amount.toLocaleString('en-IN')}</h3>
+                <p className="text-muted-foreground">Based on your profile, you are eligible for a loan up to</p>
+                <h3 className="font-headline text-4xl font-bold text-primary">₹{application.approved_amount?.toLocaleString('en-IN')}</h3>
             </div>
             
              <div>

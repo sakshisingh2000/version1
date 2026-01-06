@@ -76,7 +76,6 @@ const STEPS = [
   { title: "Personal Details", component: PersonalDetailsStep },
   { title: "KYC Verification", component: KycStep },
   { title: "Document Verification", component: DocumentVerificationStep },
-  { title: "Credit Check", component: CreditCheckStep },
   { title: "Eligibility Result", component: EligibilityResultStep },
   { title: "Key Facts", component: KfsStep },
   { title: "Bank Details", component: BankDetailsStep },
@@ -89,9 +88,9 @@ export function LoanJourney() {
   const { step, nextStep, application } = useLoanApplication();
   
   const handleStepCompletion = () => {
-    if(step === 3 && application.application_status === 'REJECTED') {
-      // If rejected at credit check, we stay on the same component which shows the rejection message.
-      // The "Continue" button won't be visible.
+    if(step === 2 && application.application_status === 'REJECTED') { // Step 2 is now Doc Verification
+      // If rejected, we move to the next step (Eligibility) which will show the rejection message.
+      nextStep();
       return; 
     }
     nextStep();
