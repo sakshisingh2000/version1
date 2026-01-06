@@ -39,7 +39,7 @@ interface ConsentFormProps {
 }
 
 export function ConsentForm({ onSubmit, isPending }: ConsentFormProps) {
-  const { dict } = useLanguage();
+  const { dict, language } = useLanguage();
   const d = dict.consent;
 
   const form = useForm<z.infer<typeof consentSchema>>({
@@ -50,7 +50,7 @@ export function ConsentForm({ onSubmit, isPending }: ConsentFormProps) {
   const BilingualLabel = ({ translationKey }: { translationKey: keyof typeof d['items'] }) => (
     <div>
         <span className="font-medium">{d.items[translationKey].en}</span>
-        <p className="text-sm text-muted-foreground">{d.items[translationKey].regional}</p>
+        {language !== 'en' && <p className="text-sm text-muted-foreground">{d.items[translationKey].regional}</p>}
     </div>
   );
 
@@ -81,13 +81,13 @@ export function ConsentForm({ onSubmit, isPending }: ConsentFormProps) {
               {Object.values(form.formState.errors).length > 0 && (
                 <div>
                   <p>{d.all_consents_required.en}</p>
-                  <p className="text-sm text-muted-foreground">{d.all_consents_required.regional}</p>
+                  {language !== 'en' && <p className="text-sm text-muted-foreground">{d.all_consents_required.regional}</p>}
                 </div>
               )}
           </FormMessage>
           <ScrollArea className="h-32 w-full rounded-md border p-4 text-xs">
               <p className="text-foreground">{d.agree_notice_text.en}</p>
-              <p className="mt-2 text-muted-foreground">{d.agree_notice_text.regional}</p>
+              {language !== 'en' && <p className="mt-2 text-muted-foreground">{d.agree_notice_text.regional}</p>}
           </ScrollArea>
            <FormField
               control={form.control}
@@ -107,7 +107,8 @@ export function ConsentForm({ onSubmit, isPending }: ConsentFormProps) {
         <CardFooter>
           <Button type="submit" disabled={isPending || !form.formState.isValid} className="w-full">
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {d.accept_button.en} / {d.accept_button.regional}
+            {d.accept_button.en}
+            {language !== 'en' && ` / ${d.accept_button.regional}`}
           </Button>
         </CardFooter>
       </form>

@@ -25,7 +25,7 @@ export default function ConsentPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isPending, setPending] = useState(false);
-  const { dict } = useLanguage();
+  const { dict, language } = useLanguage();
   const d = dict.consent;
 
   useEffect(() => {
@@ -89,11 +89,11 @@ export default function ConsentPage() {
           <CardHeader>
             <CardTitle>
               {d.title.en}
-              <span className="block text-xl font-normal text-muted-foreground mt-1">{d.title.regional}</span>
+              {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.title.regional}</span>}
             </CardTitle>
             <CardDescription>
               {d.description.en}
-              <span className="block text-sm text-muted-foreground mt-1">{d.description.regional}</span>
+              {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.description.regional}</span>}
             </CardDescription>
           </CardHeader>
           <ConsentForm onSubmit={handleConsentSubmit} isPending={isPending} />

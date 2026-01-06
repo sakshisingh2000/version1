@@ -62,12 +62,15 @@ const personalDetailsSchema = z.object({
   consent: z.literal(true, { errorMap: () => ({ message: "You must accept the terms and conditions." }) }),
 });
 
-const BilingualLabel = ({ en, regional }: { en: string, regional: string }) => (
-    <FormLabel>
-        {en}
-        <span className="block text-sm font-normal text-muted-foreground mt-1">{regional}</span>
-    </FormLabel>
-);
+const BilingualLabel = ({ en, regional }: { en: string, regional: string }) => {
+    const { language } = useLanguage();
+    return (
+        <FormLabel>
+            {en}
+            {language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{regional}</span>}
+        </FormLabel>
+    )
+};
 
 export function PersonalDetailsStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
@@ -75,7 +78,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
   const firestore = useFirestore();
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
-  const { dict } = useLanguage();
+  const { dict, language } = useLanguage();
   const d = dict.personal_details;
 
   const form = useForm<z.infer<typeof personalDetailsSchema>>({
@@ -209,7 +212,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
             </FormItem>
           )} />
           <div className="md:col-span-2 space-y-4">
-            <h3 className="font-semibold">{d.address_label.en}<span className="block text-sm font-normal text-muted-foreground mt-1">{d.address_label.regional}</span></h3>
+            <h3 className="font-semibold">{d.address_label.en}{language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.address_label.regional}</span>}</h3>
             <FormField control={form.control} name="addressLine1" render={({ field }) => (
               <FormItem><FormControl><Input placeholder={d.address_placeholder.en} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
             )} />
@@ -229,11 +232,11 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
             <div className="space-y-1 leading-none">
               <Label>
                 {d.consent_label.en}
-                <span className="block text-sm font-normal text-muted-foreground mt-1">{d.consent_label.regional}</span>
+                {language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.consent_label.regional}</span>}
               </Label>
               <FormDescription>
                 {d.consent_description.en}
-                 <span className="block text-sm font-normal text-muted-foreground mt-1">{d.consent_description.regional}</span>
+                 {language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.consent_description.regional}</span>}
               </FormDescription>
               <FormMessage />
             </div>
@@ -241,7 +244,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
         )} />
         <Button type="submit" disabled={isPending} className="w-full md:w-auto">
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isPending ? "Saving..." : `${d.save_button.en} / ${d.save_button.regional}`}
+          {isPending ? "Saving..." : `${d.save_button.en}${language !== 'en' ? ` / ${d.save_button.regional}` : ''}`}
         </Button>
       </form>
     </Form>
@@ -1213,7 +1216,7 @@ export function KfsStep({ onCompleted }: StepProps) {
   const [isKfsOpen, setIsKfsOpen] = useState(false);
   const [kfsViewed, setKfsViewed] = useState(false);
   const { toast } = useToast();
-  const { dict } = useLanguage();
+  const { dict, language } = useLanguage();
   const d = dict.kfs;
 
 
@@ -1264,11 +1267,11 @@ export function KfsStep({ onCompleted }: StepProps) {
           <DialogHeader>
             <DialogTitle className="font-headline text-2xl text-center">
                 {d.kfs_title.en}
-                <span className="block text-xl font-normal text-muted-foreground mt-1">{d.kfs_title.regional}</span>
+                {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.kfs_title.regional}</span>}
             </DialogTitle>
             <DialogDescription className="text-center">
                 {d.kfs_description.en}
-                 <span className="block text-sm text-muted-foreground mt-1">{d.kfs_description.regional}</span>
+                 {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.kfs_description.regional}</span>}
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="h-96 w-full rounded-md border p-4">
@@ -1335,32 +1338,32 @@ export function KfsStep({ onCompleted }: StepProps) {
         <CardHeader>
           <CardTitle className="font-headline text-center text-2xl">
             {d.title.en}
-            <span className="block text-xl font-normal text-muted-foreground mt-1">{d.title.regional}</span>
+            {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.title.regional}</span>}
           </CardTitle>
           <p className="text-sm text-muted-foreground text-center">
             {d.description.en}
-            <span className="block text-sm text-muted-foreground mt-1">{d.description.regional}</span>
+            {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.description.regional}</span>}
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg bg-muted/50">
-            <p className="text-muted-foreground">{d.loan_amount.en}<br/><span className="text-xs">{d.loan_amount.regional}</span></p>
+            <p className="text-muted-foreground">{d.loan_amount.en}{language !== 'en' && <><br/><span className="text-xs">{d.loan_amount.regional}</span></> }</p>
             <p className="font-semibold text-right">₹{approved_amount.toLocaleString('en-IN')}</p>
-            <p className="text-muted-foreground">{d.processing_fee.en}<br/><span className="text-xs">{d.processing_fee.regional}</span></p>
+            <p className="text-muted-foreground">{d.processing_fee.en}{language !== 'en' && <><br/><span className="text-xs">{d.processing_fee.regional}</span></> }</p>
             <p className="font-semibold text-right">- ₹{processingFee.toLocaleString('en-IN')}</p>
             <Separator className="col-span-2 my-1" />
-            <p className="text-muted-foreground font-bold">{d.net_disbursed.en}<br/><span className="text-xs">{d.net_disbursed.regional}</span></p>
+            <p className="text-muted-foreground font-bold">{d.net_disbursed.en}{language !== 'en' && <><br/><span className="text-xs">{d.net_disbursed.regional}</span></> }</p>
             <p className="font-bold text-right text-lg">₹{disbursedAmount.toLocaleString('en-IN')}</p>
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg">
-            <p className="text-muted-foreground">{d.monthly_emi.en}<br/><span className="text-xs">{d.monthly_emi.regional}</span></p>
+            <p className="text-muted-foreground">{d.monthly_emi.en}{language !== 'en' && <><br/><span className="text-xs">{d.monthly_emi.regional}</span></> }</p>
             <p className="font-semibold text-right">₹{selected_emi_amount.toLocaleString('en-IN')}</p>
-            <p className="text-muted-foreground">{d.total_repayment.en}<br/><span className="text-xs">{d.total_repayment.regional}</span></p>
+            <p className="text-muted-foreground">{d.total_repayment.en}{language !== 'en' && <><br/><span className="text-xs">{d.total_repayment.regional}</span></> }</p>
             <p className="font-semibold text-right">₹{Math.round(totalRepayment).toLocaleString('en-IN')}</p>
           </div>
           <Button variant="link" onClick={openKfs} className="p-0 h-auto">
             {d.view_kfs_button.en}
-            <span className="text-sm font-normal text-muted-foreground ml-1">/ {d.view_kfs_button.regional}</span>
+            {language !== 'en' && <span className="text-sm font-normal text-muted-foreground ml-1">/ {d.view_kfs_button.regional}</span>}
             </Button>
         </CardContent>
       </Card>
@@ -1382,7 +1385,7 @@ export function KfsStep({ onCompleted }: StepProps) {
                 <div className="space-y-1 leading-none">
                   <Label className={!kfsViewed ? 'text-muted-foreground' : ''}>
                     {d.accept_consent.en}
-                    <span className="block text-sm font-normal text-muted-foreground mt-1">{d.accept_consent.regional}</span>
+                    {language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.accept_consent.regional}</span>}
                   </Label>
                   {!kfsViewed && (
                     <p className="text-sm text-muted-foreground">Please view the KFS document before accepting.</p>
@@ -1393,7 +1396,8 @@ export function KfsStep({ onCompleted }: StepProps) {
             )}
           />
           <Button type="submit" disabled={!form.formState.isValid} className="w-full mt-6">
-            {d.accept_button.en} / {d.accept_button.regional}
+            {d.accept_button.en}
+            {language !== 'en' && ` / ${d.accept_button.regional}`}
           </Button>
         </form>
       </Form>
