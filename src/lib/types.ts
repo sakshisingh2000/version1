@@ -1,6 +1,5 @@
 
 
-
 import type { User } from 'firebase/auth';
 
 export type DigiLockerDocument = {
@@ -81,6 +80,7 @@ export type LoanApplication = {
   eligibility_decision_reason?: string;
 
   approved_amount?: number | null;
+  eligible_amount?: number;
   approved_tenure_options?: TenureOption[] | null;
   selected_tenure_months?: number;
   selected_emi_amount?: number;

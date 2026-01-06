@@ -540,15 +540,23 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
             reason: string;
             risk_score: 'LOW_RISK' | 'MEDIUM_RISK' | 'HIGH_RISK';
             approved_amount: number | null;
+            eligible_amount: number;
             approved_tenure_options: TenureOption[] | null;
         };
         
-        // Force APPROVED status for prototype demo
+        // Mock LOS logic
+        const eligibleAmountRaw = Math.min(
+            monthlyIncome * 10, // Max 10x monthly income
+            200000 // Product max
+        );
+
+        // Force APPROVED status for prototype demo, but respect LOS calculation
         underwritingDecision = { 
             status: 'APPROVED', 
             reason: `Strong credit profile (score: ${simReport.score}) and low FOIR (${foir.toFixed(2)}%).`,
             risk_score: 'LOW_RISK',
-            approved_amount: loanAmount,
+            approved_amount: Math.min(loanAmount, eligibleAmountRaw), // Default to lower of requested or eligible
+            eligible_amount: eligibleAmountRaw,
             approved_tenure_options: [{ tenure_months: 6 }, { tenure_months: 9 }, { tenure_months: 12 }, { tenure_months: 18 }]
         };
   
@@ -560,6 +568,7 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
           bureau_score: simReport.score,
           eligibility_decision_reason: underwritingDecision.reason,
           approved_amount: underwritingDecision.approved_amount,
+          eligible_amount: underwritingDecision.eligible_amount,
           approved_tenure_options: underwritingDecision.approved_tenure_options,
         };
         setApplication(prev => ({ ...prev, ...appUpdate }));
@@ -572,7 +581,8 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
           bureau_decision_summary: simReport.decision_summary,
           eligibility_decision_reason: underwritingDecision.reason,
           internal_risk_score: underwritingDecision.risk_score,
-          approved_amount: underwritingDecision.approved_amount,
+          approved_amount: underwritingDecision.approved_amount, // initially set
+          eligible_amount: underwritingDecision.eligible_amount,
           approved_tenure_options: underwritingDecision.approved_tenure_options,
           updated_at: serverTimestamp(),
         };
@@ -705,7 +715,7 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
                 <CardHeader className="flex-row items-center gap-4">
                      <Wallet className="h-10 w-10 text-blue-600 flex-shrink-0" />
                     <div>
-                        <CardTitle className="text-blue-900">Option 1: Use DigiLocker (Recommended)</CardTitle>
+                        <CardTitle className="text-blue-900">Option 1: Use DigiLocker</CardTitle>
                         <CardDescription className="text-blue-800">Fetch your Aadhaar and PAN instantly for faster processing.</CardDescription>
                     </div>
                 </CardHeader>
@@ -997,8 +1007,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
                           <AccordionContent>
                               <pre className="text-xs bg-gray-100 p-2 rounded-md overflow-x-auto">
                                   {application.bureauReport?.bureau_raw_json}
-                              </pre>
-                          </AccordionContent>
+                              </pre>                          </AccordionContent>
                       </AccordionItem>
                   </Accordion>
               </CardContent>
@@ -1097,6 +1106,10 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
 
+    // State for LOS-driven amount choice
+    const [finalLoanAmount, setFinalLoanAmount] = useState(application.approved_amount || 0);
+    const [amountChoice, setAmountChoice] = useState<'requested' | 'eligible' | null>(null);
+
     const [selectedTenure, setSelectedTenure] = useState<number | null>(null);
     const [calculatedEmi, setCalculatedEmi] = useState<number | null>(null);
     const [paymentSchedulePreview, setPaymentSchedulePreview] = useState<PaymentScheduleItem[]>([]);
@@ -1105,9 +1118,35 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
     const ANNUAL_INTEREST_RATE = 24; // 24% p.a.
     const tenureOptions = application.approved_tenure_options?.map(opt => opt.tenure_months) || [3, 6, 9, 12];
 
-    const calculateEmiAndSchedule = (tenure: number) => {
-      if (application.approved_amount) {
-        const P = application.approved_amount;
+    const requestedAmount = application.requested_amount || 0;
+    const eligibleAmount = application.eligible_amount || 0;
+    
+    // This effect handles initializing the state when the component mounts or application data changes
+    useEffect(() => {
+        if (eligibleAmount > requestedAmount) {
+            setAmountChoice('requested'); // Default to user's requested amount
+            setFinalLoanAmount(requestedAmount);
+        } else {
+            setFinalLoanAmount(eligibleAmount);
+        }
+    }, [eligibleAmount, requestedAmount]);
+
+    // Handle user's choice between requested and eligible amount
+    const handleAmountChoiceChange = (choice: 'requested' | 'eligible') => {
+        setAmountChoice(choice);
+        const newFinalAmount = choice === 'eligible' ? eligibleAmount : requestedAmount;
+        setFinalLoanAmount(newFinalAmount);
+        
+        // Recalculate EMI if tenure is already selected
+        if (selectedTenure) {
+            calculateEmiAndSchedule(newFinalAmount, selectedTenure);
+        }
+    };
+
+
+    const calculateEmiAndSchedule = (amount: number, tenure: number) => {
+      if (amount > 0) {
+        const P = amount;
         const r = (ANNUAL_INTEREST_RATE / 12) / 100; // Monthly interest rate
         const n = tenure;
         const emiValue = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
@@ -1127,7 +1166,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
     const handleTenureChange = (tenureStr: string) => {
       const tenure = parseInt(tenureStr);
       setSelectedTenure(tenure);
-      calculateEmiAndSchedule(tenure);
+      calculateEmiAndSchedule(finalLoanAmount, tenure);
     };
 
     const handleConfirmAndContinue = () => {
@@ -1147,13 +1186,14 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
         startTransition(() => {
             const firstEmiDate = addMonths(new Date(), 1);
             const { schedule, summary } = generatePaymentSchedule(
-              application.approved_amount!,
+              finalLoanAmount,
               ANNUAL_INTEREST_RATE,
               selectedTenure,
               firstEmiDate
             );
 
             const appUpdate = {
+                approved_amount: finalLoanAmount, // This is the crucial update
                 selected_tenure_months: selectedTenure,
                 selected_emi_amount: calculatedEmi,
                 offer_status: 'OFFER_GENERATED' as const,
@@ -1261,10 +1301,48 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
 
             <Separator />
             
-            <div className="text-center">
-                <p className="text-muted-foreground">Based on your profile, you are eligible for a loan up to</p>
-                <h3 className="font-headline text-4xl font-bold text-primary">₹{application.approved_amount?.toLocaleString('en-IN')}</h3>
-            </div>
+            {eligibleAmount > requestedAmount ? (
+                <Card className="bg-blue-50 border-blue-200">
+                    <CardHeader>
+                        <CardTitle className="text-blue-900">Great News!</CardTitle>
+                        <CardDescription className="text-blue-800">Based on your profile, you are eligible for a higher loan amount.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <RadioGroup 
+                            defaultValue="requested"
+                            onValueChange={(value: 'requested' | 'eligible') => handleAmountChoiceChange(value)}
+                            className="space-y-2"
+                        >
+                            <Label htmlFor="amount-requested" className={cn(
+                                "flex items-center justify-between p-4 rounded-lg border cursor-pointer",
+                                amountChoice === 'requested' ? "bg-white border-blue-600" : ""
+                            )}>
+                                <RadioGroupItem value="requested" id="amount-requested" className="mr-2"/>
+                                <div>
+                                    <p className="font-semibold">Keep Requested Amount</p>
+                                    <p className="text-2xl font-bold">₹{requestedAmount.toLocaleString('en-IN')}</p>
+                                </div>
+                            </Label>
+                             <Label htmlFor="amount-eligible" className={cn(
+                                "flex items-center justify-between p-4 rounded-lg border cursor-pointer",
+                                amountChoice === 'eligible' ? "bg-white border-blue-600" : ""
+                            )}>
+                                <RadioGroupItem value="eligible" id="amount-eligible" className="mr-2"/>
+                                <div>
+                                    <p className="font-semibold">Revise to Eligible Amount <Badge variant="default" className="bg-green-600 ml-1">Recommended</Badge></p>
+                                    <p className="text-2xl font-bold">₹{eligibleAmount.toLocaleString('en-IN')}</p>
+                                </div>
+                            </Label>
+                        </RadioGroup>
+                    </CardContent>
+                </Card>
+            ) : (
+                <div className="text-center">
+                    <p className="text-muted-foreground">Based on your profile, your approved loan amount is</p>
+                    <h3 className="font-headline text-4xl font-bold text-primary">₹{finalLoanAmount.toLocaleString('en-IN')}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">This approved amount is based on your credit profile and repayment capacity.</p>
+                </div>
+            )}
             
              <div>
                 <Label className="font-semibold">Choose your tenure</Label>
@@ -1324,9 +1402,6 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                             ))}
                         </TableBody>
                     </Table>
-                    <Button variant="link" className="p-0 h-auto" onClick={() => toast({ title: "Action", description: "This would show the full payment schedule." })}>
-                        View Full Payment Schedule
-                    </Button>
                 </div>
             )}
 
@@ -2099,4 +2174,5 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
 }
 
     
+
 
