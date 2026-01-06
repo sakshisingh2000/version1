@@ -235,7 +235,6 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
 
 const panSchema = z.object({
   pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN format."),
-  fullName: z.string().min(2, "Full name is required."),
 });
 
 const aadhaarSchema = z.object({
@@ -255,7 +254,7 @@ export function KycStep({ onCompleted }: StepProps) {
 
   const panForm = useForm<z.infer<typeof panSchema>>({
     resolver: zodResolver(panSchema),
-    defaultValues: { pan: application.personalDetails?.pan || "", fullName: application.personalDetails?.fullName || "" },
+    defaultValues: { pan: application.personalDetails?.pan || "" },
   });
 
   const aadhaarForm = useForm<z.infer<typeof aadhaarSchema>>({
@@ -266,9 +265,10 @@ export function KycStep({ onCompleted }: StepProps) {
   async function onPanSubmit(values: z.infer<typeof panSchema>) {
     if (!user || !application.loanApplicationId) return;
     startTransition(() => {
+      // Simulate backend verification
       setTimeout(() => {
         setIsPanVerified(true);
-        const kycUpdate = { ...application.kyc, panStatus: 'VERIFIED' };
+        const kycUpdate = { ...application.kyc, panStatus: 'VERIFIED' as const };
         setApplication(prev => ({ ...prev, kyc: kycUpdate }));
         
         const kycRef = doc(firestore, 'borrowers', user.uid, 'kyc_records', application.loanApplicationId);
@@ -303,7 +303,7 @@ export function KycStep({ onCompleted }: StepProps) {
             if (otp === "123456") {
                 setIsAadhaarVerified(true);
                 const maskedAadhaar = `XXXX-XXXX-${aadhaarForm.getValues("aadhaar").slice(-4)}`;
-                const kycUpdate = { ...application.kyc, aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar };
+                const kycUpdate = { ...application.kyc, aadhaarAuthStatus: 'OTP_SUCCESS' as const, aadhaarMaskedNumber: maskedAadhaar };
                 setApplication(prev => ({ ...prev, kyc: kycUpdate }));
 
                 const kycRef = doc(firestore, 'borrowers', user.uid, 'kyc_records', application.loanApplicationId);
@@ -329,6 +329,7 @@ export function KycStep({ onCompleted }: StepProps) {
       <Card>
         <CardHeader>
           <CardTitle>1. PAN Verification (Mock)</CardTitle>
+          <CardDescription>Enter your PAN to verify your identity. This is a simulated backend check.</CardDescription>
         </CardHeader>
         <CardContent>
           {isPanVerified ? (
@@ -345,9 +346,6 @@ export function KycStep({ onCompleted }: StepProps) {
                 <FormField control={panForm.control} name="pan" render={({ field }) => (
                   <FormItem><FormLabel>PAN</FormLabel><FormControl><Input {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>
                 )} />
-                <FormField control={panForm.control} name="fullName" render={({ field }) => (
-                  <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
                 <Button type="submit" disabled={isVerifying}>
                   {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Verify PAN
@@ -361,6 +359,7 @@ export function KycStep({ onCompleted }: StepProps) {
       <Card>
         <CardHeader>
           <CardTitle>2. Aadhaar e-KYC (Mock)</CardTitle>
+          <CardDescription>Enter your Aadhaar to perform e-KYC via OTP.</CardDescription>
         </CardHeader>
         <CardContent>
           {!isPanVerified ? (
@@ -391,7 +390,7 @@ export function KycStep({ onCompleted }: StepProps) {
                 ) : (
                   <div className="space-y-4">
                     <Label>Enter OTP</Label>
-                    <Input value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="Enter 6-digit OTP" />
+                    <Input value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="Enter 6-digit OTP (123456)" />
                     <Button type="button" onClick={onOtpSubmit} disabled={isVerifying}>
                       {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Verify OTP
@@ -455,7 +454,7 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
             return {
                 doc_type: docId,
                 doc_name: docInfo?.label || "Unknown Document",
-                verification_status: "VERIFIED",
+                verification_status: "VERIFIED" as const,
                 ...(docId === 'DRIVING_LICENSE' && { expiry_date: "2030-12-31" })
             };
         });
@@ -468,7 +467,7 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
 
         const kycUpdate = {
             ...application.kyc,
-            digilockerStatus: 'SUCCESS',
+            digilockerStatus: 'SUCCESS' as const,
             digilockerDocuments: mockDocuments,
             addressVerified: !!addressVerified,
             kycCompleted: kycCompleted
@@ -652,9 +651,6 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
 
       // 2. Perform Automated Underwriting Logic
       const { monthlyIncome, loanAmount } = application.personalDetails!;
-      const randomEMILoad = mockReport.total_active_loans * 3000;
-      const fixedObligations = 5000;
-      const foir = (randomEMILoad + fixedObligations) / monthlyIncome;
       
       let underwritingDecision: {
           status: 'APPROVED' | 'REJECTED' | 'PENDING_REVIEW';
@@ -667,7 +663,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
       // Force APPROVED status for prototype demo
       underwritingDecision = { 
           status: 'APPROVED', 
-          reason: `Strong credit profile (score: ${mockReport.score}) and low FOIR (${(foir * 100).toFixed(2)}%).`,
+          reason: `Strong credit profile (score: ${mockReport.score}).`,
           risk_score: 'LOW_RISK',
           approved_amount: loanAmount, // Approve requested amount
           approved_tenure_options: [{ tenure_months: 6 }, { tenure_months: 9 }, { tenure_months: 12 }, { tenure_months: 18 }]
@@ -1563,3 +1559,4 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
     
 
     
+

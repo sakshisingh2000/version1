@@ -4,13 +4,13 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/icons';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, ShieldCheck, Globe } from 'lucide-react';
+import { Menu, ShieldCheck, Globe, ArrowLeft } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { getAuth } from 'firebase/auth';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/components/language-provider';
 import type { Language } from '@/lib/dictionaries';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
@@ -30,12 +30,16 @@ export function Header() {
   const [isClient, setIsClient] = useState(false);
   const { language, setLanguage } = useLanguage();
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   const showLanguageToggle = multilingualPages.some(p => pathname.startsWith(p));
+  
+  const showBackButton = ![ '/', '/home', '/application'].includes(pathname);
+
 
   const handleLanguageChange = (langCode: string) => {
     setLanguage(langCode as Language);
@@ -61,7 +65,13 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
-        <div className="mr-4 hidden md:flex">
+        <div className="mr-4 hidden md:flex items-center">
+          {showBackButton && (
+              <Button variant="ghost" size="icon" onClick={() => router.back()} className="mr-2">
+                  <ArrowLeft className="h-5 w-5" />
+                  <span className="sr-only">Back</span>
+              </Button>
+          )}
           <Link href="/home" className="mr-6 flex items-center space-x-2">
             <Logo className="h-6 w-6 text-primary" />
             <span className="hidden font-bold sm:inline-block font-headline">
