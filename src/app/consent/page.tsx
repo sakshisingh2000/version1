@@ -3,41 +3,20 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, writeBatch, serverTimestamp, doc } from 'firebase/firestore';
+import type * as z from 'zod';
 
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { Loader2 } from 'lucide-react';
 import { useLanguage } from '@/components/language-provider';
+import { ConsentForm } from '@/components/consent/consent-form';
 
-const consentKeys = [
-  "PAN_VERIFICATION",
-  "AADHAAR_AUTH",
-  "DIGILOCKER_KYC",
-  "BUREAU_PULL",
-  "BANK_VERIFICATION",
-  "DATA_SHARING",
-] as const;
-
-const consentSchema = z.object({
-  PAN_VERIFICATION: z.literal(true, { errorMap: () => ({ message: "This consent is required." }) }),
-  AADHAAR_AUTH: z.literal(true, { errorMap: () => ({ message: "This consent is required." }) }),
-  DIGILOCKER_KYC: z.literal(true, { errorMap: () => ({ message: "This consent is required." }) }),
-  BUREAU_PULL: z.literal(true, { errorMap: () => ({ message: "This consent is required." }) }),
-  BANK_VERIFICATION: z.literal(true, { errorMap: () => ({ message: "This consent is required." }) }),
-  DATA_SHARING: z.literal(true, { errorMap: () => ({ message: "This consent is required." }) }),
-  AGREE_NOTICE: z.literal(true, { errorMap: () => ({ message: "You must agree to the notice." }) })
-}).catchall(z.boolean());
+// The schema is now inferred from the form component
+type ConsentFormSchema = Parameters<React.ComponentProps<typeof ConsentForm>['onSubmit']>[0];
 
 
 export default function ConsentPage() {
@@ -45,13 +24,9 @@ export default function ConsentPage() {
   const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const [isPending, setPending] = useState(false);
   const { dict } = useLanguage();
-
-  const form = useForm<z.infer<typeof consentSchema>>({
-    resolver: zodResolver(consentSchema),
-    defaultValues: Object.fromEntries(consentKeys.map(key => [key, false]).concat([['AGREE_NOTICE', false]]))
-  });
+  const d = dict.consent;
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -59,12 +34,12 @@ export default function ConsentPage() {
     }
   }, [isUserLoading, user, router]);
 
-  const onSubmit = async (values: z.infer<typeof consentSchema>) => {
+  const handleConsentSubmit = async (values: ConsentFormSchema) => {
     if (!user) {
       toast({ variant: 'destructive', title: 'You are not logged in.' });
       return;
     }
-    setLoading(true);
+    setPending(true);
 
     try {
       const batch = writeBatch(firestore);
@@ -94,7 +69,7 @@ export default function ConsentPage() {
       console.error("Error saving consents: ", error);
       toast({ variant: 'destructive', title: 'Error', description: error.message || "Could not save your consent preferences." });
     } finally {
-      setLoading(false);
+      setPending(false);
     }
   };
   
@@ -112,60 +87,16 @@ export default function ConsentPage() {
       <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
         <Card className="w-full max-w-3xl">
           <CardHeader>
-            <CardTitle>{dict.consent.title}</CardTitle>
-            <CardDescription>{dict.consent.description}</CardDescription>
+            <CardTitle>
+              {d.title.en}
+              <span className="block text-xl font-normal text-muted-foreground mt-1">{d.title.regional}</span>
+            </CardTitle>
+            <CardDescription>
+              {d.description.en}
+              <span className="block text-sm text-muted-foreground mt-1">{d.description.regional}</span>
+            </CardDescription>
           </CardHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  {consentKeys.map((key) => (
-                    <FormField
-                      key={key}
-                      control={form.control}
-                      name={key}
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                          <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>{dict.consent[key.toLowerCase() as keyof typeof dict.consent]}</FormLabel>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                  ))}
-                </div>
-                 <FormMessage>
-                    {Object.values(form.formState.errors).length > 0 && dict.consent.all_consents_required}
-                </FormMessage>
-                <ScrollArea className="h-32 w-full rounded-md border p-4 text-xs text-muted-foreground">
-                    <p>{dict.consent.agree_notice_text}</p>
-                </ScrollArea>
-                 <FormField
-                    control={form.control}
-                    name="AGREE_NOTICE"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
-                        <FormControl>
-                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>{dict.consent.agree_notice_title}</FormLabel>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-              </CardContent>
-              <CardFooter>
-                <Button type="submit" disabled={loading || !form.formState.isValid} className="w-full">
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {dict.consent.accept_button} / {dict.consent.accept_button_native}
-                </Button>
-              </CardFooter>
-            </form>
-          </Form>
+          <ConsentForm onSubmit={handleConsentSubmit} isPending={isPending} />
         </Card>
       </main>
       <Footer />

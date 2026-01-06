@@ -1,5 +1,6 @@
 
 
+
 "use client";
 
 import { useLoanApplication } from "./loan-application-provider";
@@ -42,23 +43,33 @@ import { addMonths, format, startOfMonth } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useLanguage } from "../language-provider";
 
-
 interface StepProps {
   onCompleted: () => void;
 }
 
+const englishOnly = /^[a-zA-Z0-9\s.,'-]*$/;
+const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+const pincodeRegex = /^\d{6}$/;
+
 const personalDetailsSchema = z.object({
-  fullName: z.string().min(2, "Full name must be at least 2 characters."),
-  pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN format."),
+  fullName: z.string().min(2, "Full name must be at least 2 characters.").regex(englishOnly, "Please enter in English only."),
+  pan: z.string().regex(panRegex, "Invalid PAN format.").regex(englishOnly, "Please enter in English only."),
   birthDate: z.date({ required_error: "A date of birth is required." }),
   loanAmount: z.coerce.number().min(10000, "Loan amount must be at least ₹10,000.").max(200000, "Maximum loan amount is ₹2,00,000."),
   employmentType: z.string({ required_error: "Please select an employment type." }),
   monthlyIncome: z.coerce.number().min(10000, "Monthly income must be at least ₹10,000."),
-  addressLine1: z.string().min(5, "Address is too short."),
-  city: z.string().min(2, "City is too short."),
-  pincode: z.string().regex(/^\d{6}$/, "Invalid pincode."),
+  addressLine1: z.string().min(5, "Address is too short.").regex(englishOnly, "Please enter in English only."),
+  city: z.string().min(2, "City is too short.").regex(englishOnly, "Please enter in English only."),
+  pincode: z.string().regex(pincodeRegex, "Invalid pincode."),
   consent: z.literal(true, { errorMap: () => ({ message: "You must accept the terms and conditions." }) }),
 });
+
+const BilingualLabel = ({ en, regional }: { en: string, regional: string }) => (
+    <FormLabel>
+        {en}
+        <span className="block text-sm font-normal text-muted-foreground mt-1">{regional}</span>
+    </FormLabel>
+);
 
 export function PersonalDetailsStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
@@ -122,6 +133,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
         application_status: 'DRAFT',
         created_at: serverTimestamp(),
         updated_at: serverTimestamp(),
+        bureauReport: null,
       };
       setDocumentNonBlocking(loanAppRef, loanAppData, {});
       
@@ -141,15 +153,15 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <FormField control={form.control} name="fullName" render={({ field }) => (
             <FormItem>
-              <FormLabel>{d.full_name_label}</FormLabel>
-              <FormControl><Input placeholder={d.full_name_placeholder} {...field} value={field.value ?? ''} /></FormControl>
+              <BilingualLabel en={d.full_name_label.en} regional={d.full_name_label.regional} />
+              <FormControl><Input placeholder={d.full_name_placeholder.en} {...field} value={field.value ?? ''} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <FormField control={form.control} name="pan" render={({ field }) => (
             <FormItem>
-              <FormLabel>{d.pan_label}</FormLabel>
-              <FormControl><Input placeholder={d.pan_placeholder} {...field} value={field.value ?? ''} className="uppercase" /></FormControl>
+              <BilingualLabel en={d.pan_label.en} regional={d.pan_label.regional} />
+              <FormControl><Input placeholder={d.pan_placeholder.en} {...field} value={field.value ?? ''} className="uppercase" /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
@@ -158,11 +170,11 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
               name="birthDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>{d.dob_label}</FormLabel>
+                   <BilingualLabel en={d.dob_label.en} regional={d.dob_label.regional} />
                     <DobPicker
                       value={field.value}
                       onChange={field.onChange}
-                      placeholder={d.dob_placeholder}
+                      placeholder={d.dob_placeholder.en}
                     />
                   <FormMessage />
                 </FormItem>
@@ -170,10 +182,10 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
             />
           <FormField control={form.control} name="employmentType" render={({ field }) => (
             <FormItem>
-              <FormLabel>{d.employment_label}</FormLabel>
+              <BilingualLabel en={d.employment_label.en} regional={d.employment_label.regional} />
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger><SelectValue placeholder={d.employment_placeholder} /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={d.employment_placeholder.en} /></SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="Salaried">Salaried</SelectItem>
@@ -186,29 +198,29 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
           )} />
           <FormField control={form.control} name="monthlyIncome" render={({ field }) => (
             <FormItem>
-              <FormLabel>{d.income_label}</FormLabel>
-              <FormControl><Input type="number" placeholder={d.income_placeholder} {...field} value={field.value ?? ''} /></FormControl>
+              <BilingualLabel en={d.income_label.en} regional={d.income_label.regional} />
+              <FormControl><Input type="number" placeholder={d.income_placeholder.en} {...field} value={field.value ?? ''} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <FormField control={form.control} name="loanAmount" render={({ field }) => (
             <FormItem>
-              <FormLabel>{d.loan_amount_label}</FormLabel>
-              <FormControl><Input type="number" placeholder={d.loan_amount_placeholder} {...field} value={field.value ?? ''} /></FormControl>
+              <BilingualLabel en={d.loan_amount_label.en} regional={d.loan_amount_label.regional} />
+              <FormControl><Input type="number" placeholder={d.loan_amount_placeholder.en} {...field} value={field.value ?? ''} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <div className="md:col-span-2 space-y-4">
-            <h3 className="text-sm font-medium">{d.address_label}</h3>
+            <h3 className="font-semibold">{d.address_label.en}<span className="block text-sm font-normal text-muted-foreground mt-1">{d.address_label.regional}</span></h3>
             <FormField control={form.control} name="addressLine1" render={({ field }) => (
-              <FormItem><FormControl><Input placeholder={d.address_placeholder} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+              <FormItem><FormControl><Input placeholder={d.address_placeholder.en} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
             )} />
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="city" render={({ field }) => (
-                <FormItem><FormControl><Input placeholder={d.city_placeholder} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormControl><Input placeholder={d.city_placeholder.en} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
               )} />
               <FormField control={form.control} name="pincode" render={({ field }) => (
-                <FormItem><FormControl><Input placeholder={d.pincode_placeholder} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormControl><Input placeholder={d.pincode_placeholder.en} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
           </div>
@@ -217,25 +229,27 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
           <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
             <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
             <div className="space-y-1 leading-none">
-              <FormLabel>{d.consent_label}</FormLabel>
-              <FormDescription>{d.consent_description}</FormDescription>
+              <FormLabel>
+                {d.consent_label.en}
+                <span className="block text-sm font-normal text-muted-foreground mt-1">{d.consent_label.regional}</span>
+              </FormLabel>
+              <FormDescription>
+                {d.consent_description.en}
+                 <span className="block text-sm font-normal text-muted-foreground mt-1">{d.consent_description.regional}</span>
+              </FormDescription>
               <FormMessage />
             </div>
           </FormItem>
         )} />
         <Button type="submit" disabled={isPending} className="w-full md:w-auto">
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isPending ? "Saving..." : `${d.save_button} / ${d.save_button_native}`}
+          {isPending ? "Saving..." : `${d.save_button.en} / ${d.save_button.regional}`}
         </Button>
       </form>
     </Form>
   );
 }
 
-
-const panSchema = z.object({
-  pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN format."),
-});
 
 const aadhaarSchema = z.object({
   aadhaar: z.string().regex(/^\d{12}$/, "Invalid Aadhaar number."),
@@ -251,19 +265,17 @@ export function KycStep({ onCompleted }: StepProps) {
   const [otp, setOtp] = useState("");
   const [isVerifying, startTransition] = useTransition();
   const { toast } = useToast();
+  
+  const [panValue, setPanValue] = useState(application.personalDetails?.pan || "");
 
-  const panForm = useForm<z.infer<typeof panSchema>>({
-    resolver: zodResolver(panSchema),
-    defaultValues: { pan: application.personalDetails?.pan || "" },
-  });
 
-  const aadhaarForm = useForm<z.infer<typeof aadhaarSchema>>({
-    resolver: zodResolver(aadhaarSchema),
-    defaultValues: { aadhaar: "" },
-  });
-
-  async function onPanSubmit(values: z.infer<typeof panSchema>) {
+  async function onPanSubmit() {
     if (!user || !application.loanApplicationId) return;
+    if(!panRegex.test(panValue)) {
+      toast({ variant: "destructive", title: "Invalid PAN Format" });
+      return;
+    }
+    
     startTransition(() => {
       // Simulate backend verification
       setTimeout(() => {
@@ -285,6 +297,11 @@ export function KycStep({ onCompleted }: StepProps) {
       }, 1500);
     });
   }
+  
+  const aadhaarForm = useForm<z.infer<typeof aadhaarSchema>>({
+    resolver: zodResolver(aadhaarSchema),
+    defaultValues: { aadhaar: "" },
+  });
 
   function onAadhaarSubmit(values: z.infer<typeof aadhaarSchema>) {
     startTransition(() => {
@@ -341,17 +358,14 @@ export function KycStep({ onCompleted }: StepProps) {
                 </AlertDescription>
             </Alert>
           ) : (
-            <Form {...panForm}>
-              <form onSubmit={panForm.handleSubmit(onPanSubmit)} className="space-y-4">
-                <FormField control={panForm.control} name="pan" render={({ field }) => (
-                  <FormItem><FormLabel>PAN</FormLabel><FormControl><Input {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>
-                )} />
-                <Button type="submit" disabled={isVerifying}>
+             <div className="space-y-4">
+                <Label htmlFor="pan">PAN</Label>
+                <Input id="pan" value={panValue} onChange={(e) => setPanValue(e.target.value.toUpperCase())} />
+                <Button onClick={onPanSubmit} disabled={isVerifying}>
                   {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Verify PAN
                 </Button>
-              </form>
-            </Form>
+              </div>
           )}
         </CardContent>
       </Card>
@@ -651,19 +665,21 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
 
       // 2. Perform Automated Underwriting Logic
       const { monthlyIncome, loanAmount } = application.personalDetails!;
+      const existingMonthlyEmis = 5000; // Mock existing EMIs
+      const foir = ((existingMonthlyEmis + (loanAmount / 12)) / monthlyIncome) * 100;
       
       let underwritingDecision: {
           status: 'APPROVED' | 'REJECTED' | 'PENDING_REVIEW';
           reason: string;
           risk_score: 'LOW_RISK' | 'MEDIUM_RISK' | 'HIGH_RISK';
           approved_amount: number | null;
-          approved_tenure_options: { tenure_months: number }[] | null;
+          approved_tenure_options: TenureOption[] | null;
       };
       
       // Force APPROVED status for prototype demo
       underwritingDecision = { 
           status: 'APPROVED', 
-          reason: `Strong credit profile (score: ${mockReport.score}).`,
+          reason: `Strong credit profile (score: ${mockReport.score}) and low FOIR (${foir.toFixed(2)}%).`,
           risk_score: 'LOW_RISK',
           approved_amount: loanAmount, // Approve requested amount
           approved_tenure_options: [{ tenure_months: 6 }, { tenure_months: 9 }, { tenure_months: 12 }, { tenure_months: 18 }]
@@ -1170,8 +1186,14 @@ export function KfsStep({ onCompleted }: StepProps) {
       <Dialog open={isKfsOpen} onOpenChange={setIsKfsOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle className="font-headline text-2xl text-center">Key Facts Statement</DialogTitle>
-            <DialogDescription className="text-center">This document summarizes all terms of your loan offer.</DialogDescription>
+            <DialogTitle className="font-headline text-2xl text-center">
+                {d.kfs_title.en}
+                <span className="block text-xl font-normal text-muted-foreground mt-1">{d.kfs_title.regional}</span>
+            </DialogTitle>
+            <DialogDescription className="text-center">
+                {d.kfs_description.en}
+                 <span className="block text-sm text-muted-foreground mt-1">{d.kfs_description.regional}</span>
+            </DialogDescription>
           </DialogHeader>
           <ScrollArea className="h-96 w-full rounded-md border p-4">
               <div className="space-y-4">
@@ -1235,26 +1257,35 @@ export function KfsStep({ onCompleted }: StepProps) {
         
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline text-center text-2xl">{d.title}</CardTitle>
-          <p className="text-sm text-muted-foreground text-center">{d.description}</p>
+          <CardTitle className="font-headline text-center text-2xl">
+            {d.title.en}
+            <span className="block text-xl font-normal text-muted-foreground mt-1">{d.title.regional}</span>
+          </CardTitle>
+          <p className="text-sm text-muted-foreground text-center">
+            {d.description.en}
+            <span className="block text-sm text-muted-foreground mt-1">{d.description.regional}</span>
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg bg-muted/50">
-            <p className="text-muted-foreground">{d.loan_amount}</p>
+            <p className="text-muted-foreground">{d.loan_amount.en}<br/><span className="text-xs">{d.loan_amount.regional}</span></p>
             <p className="font-semibold text-right">₹{approved_amount.toLocaleString('en-IN')}</p>
-            <p className="text-muted-foreground">{d.processing_fee}</p>
+            <p className="text-muted-foreground">{d.processing_fee.en}<br/><span className="text-xs">{d.processing_fee.regional}</span></p>
             <p className="font-semibold text-right">- ₹{processingFee.toLocaleString('en-IN')}</p>
             <Separator className="col-span-2 my-1" />
-            <p className="text-muted-foreground font-bold">{d.net_disbursed}</p>
+            <p className="text-muted-foreground font-bold">{d.net_disbursed.en}<br/><span className="text-xs">{d.net_disbursed.regional}</span></p>
             <p className="font-bold text-right text-lg">₹{disbursedAmount.toLocaleString('en-IN')}</p>
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg">
-            <p className="text-muted-foreground">{d.monthly_emi}</p>
+            <p className="text-muted-foreground">{d.monthly_emi.en}<br/><span className="text-xs">{d.monthly_emi.regional}</span></p>
             <p className="font-semibold text-right">₹{selected_emi_amount.toLocaleString('en-IN')}</p>
-            <p className="text-muted-foreground">{d.total_repayment}</p>
+            <p className="text-muted-foreground">{d.total_repayment.en}<br/><span className="text-xs">{d.total_repayment.regional}</span></p>
             <p className="font-semibold text-right">₹{Math.round(totalRepayment).toLocaleString('en-IN')}</p>
           </div>
-          <Button variant="link" onClick={openKfs} className="p-0 h-auto">{d.view_kfs_button}</Button>
+          <Button variant="link" onClick={openKfs} className="p-0 h-auto">
+            {d.view_kfs_button.en}
+            <span className="text-sm font-normal text-muted-foreground ml-1">/ {d.view_kfs_button.regional}</span>
+            </Button>
         </CardContent>
       </Card>
       
@@ -1274,7 +1305,8 @@ export function KfsStep({ onCompleted }: StepProps) {
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <Label className={!kfsViewed ? 'text-muted-foreground' : ''}>
-                    {d.accept_consent}
+                    {d.accept_consent.en}
+                    <span className="block text-sm font-normal text-muted-foreground mt-1">{d.accept_consent.regional}</span>
                   </Label>
                   {!kfsViewed && (
                     <p className="text-sm text-muted-foreground">Please view the KFS document before accepting.</p>
@@ -1285,7 +1317,7 @@ export function KfsStep({ onCompleted }: StepProps) {
             )}
           />
           <Button type="submit" disabled={!form.formState.isValid} className="w-full mt-6">
-            {d.accept_button} / {d.accept_button_native}
+            {d.accept_button.en} / {d.accept_button.regional}
           </Button>
         </form>
       </Form>
@@ -1553,10 +1585,3 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
-
-    
-
-    
-
-    
-
