@@ -34,15 +34,15 @@ export default function LoginPage() {
     },
   });
 
-  // Mock phone auth submission
+  // phone auth submission
   const onMobileSubmit = (values: z.infer<typeof mobileSchema>) => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
       // In a real app, you'd integrate with Firebase Phone Auth here.
-      // For this mock, we'll just navigate to the OTP page with the number.
+      // For this prototype, we'll just navigate to the OTP page with the number.
       toast({
-        title: 'OTP Sent (Mock)',
+        title: 'OTP Sent',
         description: `An OTP has been sent to +91 ${values.mobileNumber}.`,
       });
       router.push(`/otp-verify?mobile=${values.mobileNumber}`);

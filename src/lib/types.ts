@@ -54,8 +54,8 @@ export type LoanApplication = {
     max_dpd: number;
     recent_enquiries_count: number;
     decision_summary: string;
-    bureau_raw_mock_json: string;
-  };
+    bureau_raw_json: string;
+  } | null;
   // Fields from your new spec
   requested_amount?: number;
   requested_tenure_months?: number;
@@ -66,8 +66,8 @@ export type LoanApplication = {
   kyc_completed?: boolean;
   eligibility_decision_reason?: string;
 
-  approved_amount?: number;
-  approved_tenure_options?: TenureOption[];
+  approved_amount?: number | null;
+  approved_tenure_options?: TenureOption[] | null;
   selected_tenure_months?: number;
   selected_emi_amount?: number;
   offer_status?: 'NONE' | 'OFFER_GENERATED' | 'OFFER_ACCEPTED' | 'OFFER_REJECTED';

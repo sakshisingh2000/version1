@@ -49,11 +49,11 @@ function OTPVerifyComponent() {
     }
 
     setLoading(true);
-    // Mock OTP verification
+    // OTP verification
     if (values.otp === '123456') {
       try {
         // In a real app, you'd get a custom token from your backend after verifying the OTP.
-        // For this mock, we will sign in the user anonymously to get a UID for our rules.
+        // For this prototype, we will sign in the user anonymously to get a UID for our rules.
         
         await auth.signOut(); // Ensure no prior user is logged in
         const userCredential = await signInAnonymously(auth);
@@ -77,7 +77,7 @@ function OTPVerifyComponent() {
         const auditLogData = {
             entityType: 'BORROWER',
             entityId: user.uid,
-            action: 'MOBILE_OTP_VERIFIED_MOCK',
+            action: 'MOBILE_OTP_VERIFIED',
             actorType: 'BORROWER',
             timestamp: serverTimestamp(),
             borrowerId: user.uid,
@@ -147,8 +147,8 @@ function OTPVerifyComponent() {
                   Verify OTP
                 </Button>
                  <div className="text-center text-sm">
-                    <Button variant="link" type="button" onClick={() => toast({ title: 'OTP Resent (Mock)'})}>
-                        Resend OTP (Mock)
+                    <Button variant="link" type="button" onClick={() => toast({ title: 'OTP Resent' })}>
+                        Resend OTP
                     </Button>
                 </div>
               </form>

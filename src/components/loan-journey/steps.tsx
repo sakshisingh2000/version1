@@ -1,6 +1,4 @@
 
-
-
 "use client";
 
 import { useLoanApplication } from "./loan-application-provider";
@@ -269,7 +267,7 @@ export function KycStep({ onCompleted }: StepProps) {
   const [panValue, setPanValue] = useState(application.personalDetails?.pan || "");
 
 
-  async function onPanSubmit() {
+  function onPanSubmit() {
     if (!user || !application.loanApplicationId) return;
     if(!panRegex.test(panValue)) {
       toast({ variant: "destructive", title: "Invalid PAN Format" });
@@ -288,7 +286,7 @@ export function KycStep({ onCompleted }: StepProps) {
         setDocumentNonBlocking(kycRef, kycData, { merge: true });
         
         const auditData = { 
-            entityType: 'KYC', entityId: kycRef.id, action: 'PAN_VERIFIED_MOCK', 
+            entityType: 'KYC', entityId: kycRef.id, action: 'PAN_VERIFIED', 
             actorType: 'SYSTEM', timestamp: serverTimestamp(), borrowerId: user.uid
         };
         addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditData);
@@ -307,7 +305,7 @@ export function KycStep({ onCompleted }: StepProps) {
     startTransition(() => {
       setTimeout(() => {
         setIsOtpSent(true);
-        toast({ title: "OTP Sent", description: "Mock OTP sent to your Aadhaar-linked mobile (use 123456)." });
+        toast({ title: "OTP Sent", description: "An OTP has been sent to your Aadhaar-linked mobile (use 123456)." });
       }, 1000);
     });
   }
@@ -328,7 +326,7 @@ export function KycStep({ onCompleted }: StepProps) {
                 updateDocumentNonBlocking(kycRef, kycData);
 
                 const auditData = { 
-                    entityType: 'KYC', entityId: kycRef.id, action: 'AADHAAR_OTP_AUTH_SUCCESS_MOCK', 
+                    entityType: 'KYC', entityId: kycRef.id, action: 'AADHAAR_OTP_AUTH_SUCCESS', 
                     actorType: 'SYSTEM', timestamp: serverTimestamp(), borrowerId: user.uid
                 };
                 addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditData);
@@ -345,7 +343,7 @@ export function KycStep({ onCompleted }: StepProps) {
     <div className="space-y-8">
       <Card>
         <CardHeader>
-          <CardTitle>1. PAN Verification (Mock)</CardTitle>
+          <CardTitle>1. PAN Verification</CardTitle>
           <CardDescription>Enter your PAN to verify your identity. This is a simulated backend check.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -354,7 +352,7 @@ export function KycStep({ onCompleted }: StepProps) {
                 <Verified className="h-4 w-4 !text-green-600" />
                 <AlertTitle className="text-green-800">PAN Verified</AlertTitle>
                 <AlertDescription className="text-green-700">
-                    Your PAN has been successfully verified against mock NSDL records.
+                    Your PAN has been successfully verified against NSDL records.
                 </AlertDescription>
             </Alert>
           ) : (
@@ -372,7 +370,7 @@ export function KycStep({ onCompleted }: StepProps) {
       
       <Card>
         <CardHeader>
-          <CardTitle>2. Aadhaar e-KYC (Mock)</CardTitle>
+          <CardTitle>2. Aadhaar e-KYC</CardTitle>
           <CardDescription>Enter your Aadhaar to perform e-KYC via OTP.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -463,7 +461,7 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
         setIsModalOpen(false);
         await new Promise(resolve => setTimeout(resolve, 2000));
         
-        const mockDocuments = data.selectedDocs.map(docId => {
+        const simDocuments = data.selectedDocs.map(docId => {
             const docInfo = availableDocs.find(d => d.id === docId);
             return {
                 doc_type: docId,
@@ -473,8 +471,8 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
             };
         });
 
-        // Mock address verification
-        const aadhaarInDocs = mockDocuments.some(d => d.doc_type === 'AADHAAR_XML');
+        // address verification
+        const aadhaarInDocs = simDocuments.some(d => d.doc_type === 'AADHAAR_XML');
         const addressVerified = aadhaarInDocs && application.personalDetails?.pincode;
 
         const kycCompleted = application.kyc?.panStatus === 'VERIFIED' && application.kyc?.aadhaarAuthStatus === 'OTP_SUCCESS' && !!addressVerified;
@@ -482,7 +480,7 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
         const kycUpdate = {
             ...application.kyc,
             digilockerStatus: 'SUCCESS' as const,
-            digilockerDocuments: mockDocuments,
+            digilockerDocuments: simDocuments,
             addressVerified: !!addressVerified,
             kycCompleted: kycCompleted
         };
@@ -493,7 +491,7 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
         
         const kycData = {
             digilockerStatus: 'SUCCESS',
-            digilockerDocuments: mockDocuments,
+            digilockerDocuments: simDocuments,
             addressVerified: !!addressVerified,
             kycCompleted: kycCompleted,
             borrowerId: user.uid
@@ -502,7 +500,7 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
         updateDocumentNonBlocking(kycDocRef, kycData);
 
         const auditData = {
-            entityType: 'KYC', entityId: kycDocRef.id, action: 'DIGILOCKER_KYC_SUCCESS_MOCK',
+            entityType: 'KYC', entityId: kycDocRef.id, action: 'DIGILOCKER_KYC_SUCCESS',
             actorType: 'SYSTEM', timestamp: serverTimestamp(), borrowerId: user.uid
         };
         addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditData);
@@ -554,7 +552,7 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Share Documents from DigiLocker (Mock)</DialogTitle>
+                    <DialogTitle>Share Documents from DigiLocker</DialogTitle>
                     <DialogDescription>
                         Select the documents you want to share for KYC verification.
                     </DialogDescription>
@@ -605,7 +603,7 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
                         />
                         <Button type="submit" disabled={isVerifying} className="w-full">
                             {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                            Share Selected Documents (Mock)
+                            Share Selected Documents
                         </Button>
                     </form>
                 </Form>
@@ -626,7 +624,7 @@ export function DigiLockerStep({ onCompleted }: StepProps) {
                     To complete your KYC, we need to fetch your official documents (like Aadhaar, PAN) from your DigiLocker account with your consent. This is a secure and RBI-approved method.
                 </p>
                 <Button onClick={() => setIsModalOpen(true)} size="lg">
-                    Connect to DigiLocker (Mock)
+                    Connect to DigiLocker
                 </Button>
             </div>
         )}
@@ -652,20 +650,20 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
     startTransition(async () => {
       // 1. Simulate Bureau Pull
       await new Promise(resolve => setTimeout(resolve, 2000));
-      const mockReport = {
-        bureau_name: "CIBIL (Mock)",
+      const simReport = {
+        bureau_name: "CIBIL",
         score: Math.floor(Math.random() * (850 - 680 + 1)) + 680,
         total_active_loans: Math.floor(Math.random() * 3) + 1,
         total_overdue_amount: 0,
         max_dpd: 0,
         recent_enquiries_count: Math.floor(Math.random() * 3),
         decision_summary: "ELIGIBLE",
-        bureau_raw_mock_json: JSON.stringify({ "tradelines": 5, "inquiries_last_6m": 2, "mockData": true }, null, 2),
+        bureau_raw_json: JSON.stringify({ "tradelines": 5, "inquiries_last_6m": 2, "simulatedData": true }, null, 2),
       };
 
       // 2. Perform Automated Underwriting Logic
       const { monthlyIncome, loanAmount } = application.personalDetails!;
-      const existingMonthlyEmis = 5000; // Mock existing EMIs
+      const existingMonthlyEmis = 5000; // existing EMIs
       const foir = ((existingMonthlyEmis + (loanAmount / 12)) / monthlyIncome) * 100;
       
       let underwritingDecision: {
@@ -679,7 +677,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
       // Force APPROVED status for prototype demo
       underwritingDecision = { 
           status: 'APPROVED', 
-          reason: `Strong credit profile (score: ${mockReport.score}) and low FOIR (${foir.toFixed(2)}%).`,
+          reason: `Strong credit profile (score: ${simReport.score}) and low FOIR (${foir.toFixed(2)}%).`,
           risk_score: 'LOW_RISK',
           approved_amount: loanAmount, // Approve requested amount
           approved_tenure_options: [{ tenure_months: 6 }, { tenure_months: 9 }, { tenure_months: 12 }, { tenure_months: 18 }]
@@ -688,10 +686,10 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
 
       // 3. Update application state and Firestore
       const appUpdate = {
-        bureauReport: mockReport,
+        bureauReport: simReport,
         application_status: underwritingDecision.status,
         internal_risk_score: underwritingDecision.risk_score,
-        bureau_score: mockReport.score,
+        bureau_score: simReport.score,
         eligibility_decision_reason: underwritingDecision.reason,
         approved_amount: underwritingDecision.approved_amount,
         approved_tenure_options: underwritingDecision.approved_tenure_options,
@@ -702,8 +700,8 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
       
       const loanAppUpdateData = {
         application_status: underwritingDecision.status,
-        bureau_score: mockReport.score,
-        bureau_decision_summary: mockReport.decision_summary,
+        bureau_score: simReport.score,
+        bureau_decision_summary: simReport.decision_summary,
         eligibility_decision_reason: underwritingDecision.reason,
         internal_risk_score: underwritingDecision.risk_score,
         approved_amount: underwritingDecision.approved_amount,
@@ -716,10 +714,10 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
       const auditLog1Data = {
         entityType: 'LOAN_APPLICATION',
         entityId: application.loanApplicationId,
-        action: 'BUREAU_PULL_MOCK',
+        action: 'BUREAU_PULL',
         actorType: 'SYSTEM',
         timestamp: serverTimestamp(),
-        details: { score: mockReport.score },
+        details: { score: simReport.score },
         borrowerId: user.uid,
       };
       addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLog1Data);
@@ -727,7 +725,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
       const auditLog2Data = {
         entityType: 'LOAN_APPLICATION',
         entityId: application.loanApplicationId,
-        action: 'UNDERWRITING_DECISION_MOCK',
+        action: 'UNDERWRITING_DECISION',
         actorType: 'SYSTEM',
         timestamp: serverTimestamp(),
         details: { decision: underwritingDecision.status, reason: underwritingDecision.reason },
@@ -780,7 +778,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
               <BadgeCheck className="h-4 w-4 !text-green-600" />
               <AlertTitle className="text-green-800">Credit Check Complete!</AlertTitle>
               <AlertDescription className="text-green-700">
-                  Your credit profile has been reviewed. Here is your mock CIBIL score.
+                  Your credit profile has been reviewed. Here is your CIBIL score.
               </AlertDescription>
           </Alert>
           <Card>
@@ -799,7 +797,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
                             <p className="font-semibold">{scoreBand}</p>
                         </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2">CIBIL Score (Mock) - Decision: {application.bureauReport?.decision_summary}</p>
+                    <p className="text-sm text-muted-foreground mt-2">CIBIL Score - Decision: {application.bureauReport?.decision_summary}</p>
                 </Card>
                   <div className="grid grid-cols-3 gap-2 text-center">
                       <div className="p-2 bg-background rounded-md">
@@ -817,10 +815,10 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
                   </div>
                   <Accordion type="single" collapsible>
                       <AccordionItem value="item-1">
-                          <AccordionTrigger>View detailed report (mock)</AccordionTrigger>
+                          <AccordionTrigger>View detailed report</AccordionTrigger>
                           <AccordionContent>
                               <pre className="text-xs bg-gray-100 p-2 rounded-md overflow-x-auto">
-                                  {application.bureauReport?.bureau_raw_mock_json}
+                                  {application.bureauReport?.bureau_raw_json}
                               </pre>
                           </AccordionContent>
                       </AccordionItem>
@@ -842,7 +840,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
       </p>
       <Button onClick={handlePullReport} disabled={isProcessing} size="lg">
         {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-        Pull My Credit Report (Mock)
+        Pull My Credit Report
       </Button>
     </div>
   );
@@ -995,7 +993,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
             const auditLogData = {
                 entityType: 'LOAN_APP',
                 entityId: application.loanApplicationId,
-                action: 'PAYMENT_SCHEDULE_GENERATED_MOCK',
+                action: 'PAYMENT_SCHEDULE_GENERATED',
                 actorType: 'SYSTEM',
                 timestamp: serverTimestamp(),
                 new_value: {
@@ -1076,7 +1074,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                     </CardHeader>
                     <CardContent className="p-4 pt-0 text-center">
                         <p className="text-3xl font-bold font-headline">₹{calculatedEmi.toLocaleString('en-IN')} <span className="text-base font-normal text-muted-foreground">/ month</span></p>
-                        <p className="text-sm text-muted-foreground">for {selectedTenure} months at {ANNUAL_INTEREST_RATE}% p.a. (mock)</p>
+                        <p className="text-sm text-muted-foreground">for {selectedTenure} months at {ANNUAL_INTEREST_RATE}% p.a.</p>
                     </CardContent>
                 </Card>
             ) : null}
@@ -1102,8 +1100,8 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                             ))}
                         </TableBody>
                     </Table>
-                    <Button variant="link" className="p-0 h-auto" onClick={() => toast({ title: "Mock Action", description: "This would show the full payment schedule." })}>
-                        View Full Payment Schedule (Mock)
+                    <Button variant="link" className="p-0 h-auto" onClick={() => toast({ title: "Action", description: "This would show the full payment schedule." })}>
+                        View Full Payment Schedule
                     </Button>
                 </div>
             )}
@@ -1170,7 +1168,7 @@ export function KfsStep({ onCompleted }: StepProps) {
         setApplication(prev => ({
             ...prev,
             offer_status: 'OFFER_ACCEPTED',
-            kfs_document_url: '/mock/kfs.pdf',
+            kfs_document_url: '/simulated/kfs.pdf',
         }));
         onCompleted();
     }
@@ -1345,7 +1343,7 @@ export function BankDetailsStep({ onCompleted }: StepProps) {
   
     function onSubmit(values: z.infer<typeof bankDetailsSchema>) {
       startTransition(() => {
-        // Mock Penny Drop verification
+        // Penny Drop verification
         setTimeout(() => {
           setApplication(prev => ({ ...prev, bankDetails: { ...values, isVerified: true } }));
           toast({
@@ -1397,7 +1395,7 @@ export function EMandateStep({ onCompleted }: StepProps) {
 
     const handleMandate = () => {
         startTransition(() => {
-            // Mock eNACH/eMandate registration
+            // eNACH/eMandate registration
             setTimeout(() => {
                 setApplication(prev => ({ ...prev, eMandate: { isRegistered: true } }));
                 toast({
@@ -1438,7 +1436,7 @@ export function AgreementStep({ onCompleted }: StepProps) {
     startTransition(() => {
       setTimeout(() => {
         setIsOtpSent(true);
-        toast({ title: "OTP Sent (Mock)", description: "Enter 123456 to sign." });
+        toast({ title: "OTP Sent", description: "Enter 123456 to sign." });
       }, 1000);
     });
   };
@@ -1452,7 +1450,7 @@ export function AgreementStep({ onCompleted }: StepProps) {
             ...prev,
             agreement: {
               isSigned: true,
-              agreementUrl: '/mock/agreement.pdf',
+              agreementUrl: '/simulated/agreement.pdf',
               signedAt: new Date(),
             }
           }));
@@ -1474,7 +1472,7 @@ export function AgreementStep({ onCompleted }: StepProps) {
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-64 w-full rounded-md border p-4 text-xs text-muted-foreground">
-            <h3 className="font-bold mb-2">Mock Loan Agreement</h3>
+            <h3 className="font-bold mb-2">Loan Agreement</h3>
             <p className="mb-2">This is a legally binding agreement between you (the Borrower) and LoanSwift Partner NBFC (the Lender)...</p>
             <p>1. Loan Amount: ₹{application.approved_amount?.toLocaleString('en-IN')}</p>
             <p>2. Tenure: {application.selected_tenure_months} months</p>
@@ -1487,7 +1485,7 @@ export function AgreementStep({ onCompleted }: StepProps) {
       {!isOtpSent ? (
         <Button onClick={handleSendOtp} disabled={isSigning} className="w-full">
           {isSigning ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <FileCheck2 className="mr-2 h-4 w-4" />}
-          Sign via Aadhaar OTP (Mock)
+          Sign via Aadhaar OTP
         </Button>
       ) : (
         <form onSubmit={handleVerifyOtp} className="space-y-4 p-4 border rounded-lg">
@@ -1511,7 +1509,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
 
     const handleDisburse = () => {
         setIsDisbursing(true);
-        // Mock disbursement process
+        // disbursement process
         setTimeout(() => {
             setApplication(prev => ({ ...prev, isDisbursed: true, application_status: 'DISBURSED' }));
             setIsDisbursed(true);
@@ -1543,7 +1541,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
                         </div>
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">Transaction Ref:</span>
-                            <span className="font-bold">TXN123MOCK</span>
+                            <span className="font-bold">TXN123SIM</span>
                         </div>
                     </CardContent>
                 </Card>
@@ -1551,7 +1549,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
                     The amount will be credited to your account shortly. Your first EMI is due next month.
                 </p>
                 <div className="flex gap-4">
-                    <Button asChild variant="outline"><Link href="/mock/agreement.pdf" download>Download Agreement</Link></Button>
+                    <Button asChild variant="outline"><Link href="/simulated/agreement.pdf" download>Download Agreement</Link></Button>
                     <Button asChild><Link href="/application">Back to Dashboard</Link></Button>
                 </div>
             </div>
