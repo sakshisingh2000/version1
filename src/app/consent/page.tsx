@@ -18,16 +18,16 @@ import { useToast } from '@/hooks/use-toast';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { Loader2 } from 'lucide-react';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useLanguage } from '@/components/language-provider';
 
-const consentTypes = {
-  PAN_VERIFICATION: "I consent to verification of my PAN from issuing authority/NSDL.",
-  AADHAAR_AUTH: "I consent to Aadhaar OTP-based offline verification / e-KYC through authorized partners.",
-  DIGILOCKER_KYC: "I consent to fetch KYC documents from DigiLocker using my DigiLocker account.",
-  BUREAU_PULL: "I consent to pull my credit report from credit bureaus for the purpose of this loan.",
-  BANK_VERIFICATION: "I consent to verification of my bank account and registration of e-mandate for EMI debit.",
-  DATA_SHARING: "I consent to processing of my data by the NBFC/BANK (RE) and its authorized service providers, in line with RBI digital lending guidelines.",
-};
+const consentKeys = [
+  "PAN_VERIFICATION",
+  "AADHAAR_AUTH",
+  "DIGILOCKER_KYC",
+  "BUREAU_PULL",
+  "BANK_VERIFICATION",
+  "DATA_SHARING",
+] as const;
 
 const consentSchema = z.object({
   PAN_VERIFICATION: z.literal(true, { errorMap: () => ({ message: "This consent is required." }) }),
@@ -46,18 +46,11 @@ export default function ConsentPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const { dict } = useLanguage();
 
   const form = useForm<z.infer<typeof consentSchema>>({
     resolver: zodResolver(consentSchema),
-    defaultValues: {
-      PAN_VERIFICATION: false,
-      AADHAAR_AUTH: false,
-      DIGILOCKER_KYC: false,
-      BUREAU_PULL: false,
-      BANK_VERIFICATION: false,
-      DATA_SHARING: false,
-      AGREE_NOTICE: false,
-    },
+    defaultValues: Object.fromEntries(consentKeys.map(key => [key, false]).concat([['AGREE_NOTICE', false]]))
   });
 
   useEffect(() => {
@@ -119,27 +112,25 @@ export default function ConsentPage() {
       <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
         <Card className="w-full max-w-3xl">
           <CardHeader>
-            <CardTitle>Consent Hub</CardTitle>
-            <CardDescription>
-              As per RBI guidelines, we need your explicit consent for the following data processing activities.
-            </CardDescription>
+            <CardTitle>{dict.consent.title}</CardTitle>
+            <CardDescription>{dict.consent.description}</CardDescription>
           </CardHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
-                  {Object.entries(consentTypes).map(([key, label]) => (
+                  {consentKeys.map((key) => (
                     <FormField
                       key={key}
                       control={form.control}
-                      name={key as keyof typeof consentTypes}
+                      name={key}
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                           <FormControl>
                             <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                           </FormControl>
                           <div className="space-y-1 leading-none">
-                            <FormLabel>{label}</FormLabel>
+                            <FormLabel>{dict.consent[key.toLowerCase() as keyof typeof dict.consent]}</FormLabel>
                           </div>
                         </FormItem>
                       )}
@@ -147,13 +138,10 @@ export default function ConsentPage() {
                   ))}
                 </div>
                  <FormMessage>
-                    {Object.values(form.formState.errors).length > 0 && "You must accept all consents to proceed."}
+                    {Object.values(form.formState.errors).length > 0 && dict.consent.all_consents_required}
                 </FormMessage>
                 <ScrollArea className="h-32 w-full rounded-md border p-4 text-xs text-muted-foreground">
-                    <h3 className="font-bold mb-2">Detailed Consent & Privacy Notice</h3>
-                    <p>
-                        By checking the boxes above and clicking &quot;Accept & Continue&quot;, I, the applicant, hereby provide my explicit consent to LoanSwift (the LSP) and its partner FairFinance NBFC (the RE) to access, process, and store my personal and financial information for the purpose of this loan application. This includes sharing data with credit bureaus (e.g., CIBIL), and using third-party services for PAN, Aadhaar, and bank account verification. This consent is voluntary and can be revoked as per the terms outlined in our privacy policy.
-                    </p>
+                    <p>{dict.consent.agree_notice_text}</p>
                 </ScrollArea>
                  <FormField
                     control={form.control}
@@ -164,7 +152,7 @@ export default function ConsentPage() {
                           <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                         </FormControl>
                         <div className="space-y-1 leading-none">
-                          <FormLabel>I have read and agree to these consents and the privacy notice.</FormLabel>
+                          <FormLabel>{dict.consent.agree_notice_title}</FormLabel>
                         </div>
                       </FormItem>
                     )}
@@ -173,7 +161,7 @@ export default function ConsentPage() {
               <CardFooter>
                 <Button type="submit" disabled={loading || !form.formState.isValid} className="w-full">
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Accept & Continue
+                  {dict.consent.accept_button} / {dict.consent.accept_button_native}
                 </Button>
               </CardFooter>
             </form>

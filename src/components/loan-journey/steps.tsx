@@ -40,6 +40,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { DobPicker } from "@/components/ui/dob-picker";
 import { addMonths, format, startOfMonth } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useLanguage } from "../language-provider";
 
 
 interface StepProps {
@@ -65,6 +66,8 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
   const firestore = useFirestore();
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const { dict } = useLanguage();
+  const d = dict.personal_details;
 
   const form = useForm<z.infer<typeof personalDetailsSchema>>({
     resolver: zodResolver(personalDetailsSchema),
@@ -77,7 +80,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
       monthlyIncome: undefined,
       addressLine1: "",
       city: "",
-pincode: "",
+      pincode: "",
       consent: false
     },
   });
@@ -138,15 +141,15 @@ pincode: "",
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <FormField control={form.control} name="fullName" render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name (as per PAN)</FormLabel>
-              <FormControl><Input placeholder="John Doe" {...field} value={field.value ?? ''} /></FormControl>
+              <FormLabel>{d.full_name_label}</FormLabel>
+              <FormControl><Input placeholder={d.full_name_placeholder} {...field} value={field.value ?? ''} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <FormField control={form.control} name="pan" render={({ field }) => (
             <FormItem>
-              <FormLabel>PAN Number</FormLabel>
-              <FormControl><Input placeholder="ABCDE1234F" {...field} value={field.value ?? ''} className="uppercase" /></FormControl>
+              <FormLabel>{d.pan_label}</FormLabel>
+              <FormControl><Input placeholder={d.pan_placeholder} {...field} value={field.value ?? ''} className="uppercase" /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
@@ -155,10 +158,11 @@ pincode: "",
               name="birthDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Date of Birth</FormLabel>
+                  <FormLabel>{d.dob_label}</FormLabel>
                     <DobPicker
                       value={field.value}
                       onChange={field.onChange}
+                      placeholder={d.dob_placeholder}
                     />
                   <FormMessage />
                 </FormItem>
@@ -166,10 +170,10 @@ pincode: "",
             />
           <FormField control={form.control} name="employmentType" render={({ field }) => (
             <FormItem>
-              <FormLabel>Employment Type</FormLabel>
+              <FormLabel>{d.employment_label}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger><SelectValue placeholder="Select your employment type" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={d.employment_placeholder} /></SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="Salaried">Salaried</SelectItem>
@@ -182,29 +186,29 @@ pincode: "",
           )} />
           <FormField control={form.control} name="monthlyIncome" render={({ field }) => (
             <FormItem>
-              <FormLabel>Monthly Net Income (₹)</FormLabel>
-              <FormControl><Input type="number" placeholder="40000" {...field} value={field.value ?? ''} /></FormControl>
+              <FormLabel>{d.income_label}</FormLabel>
+              <FormControl><Input type="number" placeholder={d.income_placeholder} {...field} value={field.value ?? ''} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <FormField control={form.control} name="loanAmount" render={({ field }) => (
             <FormItem>
-              <FormLabel>Loan Amount Required (₹)</FormLabel>
-              <FormControl><Input type="number" placeholder="100000" {...field} value={field.value ?? ''} /></FormControl>
+              <FormLabel>{d.loan_amount_label}</FormLabel>
+              <FormControl><Input type="number" placeholder={d.loan_amount_placeholder} {...field} value={field.value ?? ''} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <div className="md:col-span-2 space-y-4">
-            <h3 className="text-sm font-medium">Current Address</h3>
+            <h3 className="text-sm font-medium">{d.address_label}</h3>
             <FormField control={form.control} name="addressLine1" render={({ field }) => (
-              <FormItem><FormControl><Input placeholder="Address Line" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+              <FormItem><FormControl><Input placeholder={d.address_placeholder} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
             )} />
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="city" render={({ field }) => (
-                <FormItem><FormControl><Input placeholder="City" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormControl><Input placeholder={d.city_placeholder} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
               )} />
               <FormField control={form.control} name="pincode" render={({ field }) => (
-                <FormItem><FormControl><Input placeholder="Pincode" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormControl><Input placeholder={d.pincode_placeholder} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
           </div>
@@ -213,15 +217,15 @@ pincode: "",
           <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
             <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
             <div className="space-y-1 leading-none">
-              <FormLabel>Explicit Consent</FormLabel>
-              <FormDescription>I hereby consent to LoanSwift fetching my credit information and other details for the purpose of this loan application.</FormDescription>
+              <FormLabel>{d.consent_label}</FormLabel>
+              <FormDescription>{d.consent_description}</FormDescription>
               <FormMessage />
             </div>
           </FormItem>
         )} />
         <Button type="submit" disabled={isPending} className="w-full md:w-auto">
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isPending ? "Saving..." : "Save and Continue"}
+          {isPending ? "Saving..." : `${d.save_button} / ${d.save_button_native}`}
         </Button>
       </form>
     </Form>
@@ -651,8 +655,7 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
       const randomEMILoad = mockReport.total_active_loans * 3000;
       const fixedObligations = 5000;
       const foir = (randomEMILoad + fixedObligations) / monthlyIncome;
-      const foirThreshold = 0.55;
-
+      
       let underwritingDecision: {
           status: 'APPROVED' | 'REJECTED' | 'PENDING_REVIEW';
           reason: string;
@@ -1122,6 +1125,9 @@ export function KfsStep({ onCompleted }: StepProps) {
   const [isKfsOpen, setIsKfsOpen] = useState(false);
   const [kfsViewed, setKfsViewed] = useState(false);
   const { toast } = useToast();
+  const { dict } = useLanguage();
+  const d = dict.kfs;
+
 
   const form = useForm({
     resolver: zodResolver(z.object({ consent: z.literal(true) })),
@@ -1233,26 +1239,26 @@ export function KfsStep({ onCompleted }: StepProps) {
         
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline text-center text-2xl">Your Loan Offer Summary</CardTitle>
-          <p className="text-sm text-muted-foreground text-center">Please review and accept your final loan details.</p>
+          <CardTitle className="font-headline text-center text-2xl">{d.title}</CardTitle>
+          <p className="text-sm text-muted-foreground text-center">{d.description}</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg bg-muted/50">
-            <p className="text-muted-foreground">Loan Amount</p>
+            <p className="text-muted-foreground">{d.loan_amount}</p>
             <p className="font-semibold text-right">₹{approved_amount.toLocaleString('en-IN')}</p>
-            <p className="text-muted-foreground">Processing Fee (2%)</p>
+            <p className="text-muted-foreground">{d.processing_fee}</p>
             <p className="font-semibold text-right">- ₹{processingFee.toLocaleString('en-IN')}</p>
             <Separator className="col-span-2 my-1" />
-            <p className="text-muted-foreground font-bold">Net Disbursed Amount</p>
+            <p className="text-muted-foreground font-bold">{d.net_disbursed}</p>
             <p className="font-bold text-right text-lg">₹{disbursedAmount.toLocaleString('en-IN')}</p>
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg">
-            <p className="text-muted-foreground">Monthly EMI</p>
+            <p className="text-muted-foreground">{d.monthly_emi}</p>
             <p className="font-semibold text-right">₹{selected_emi_amount.toLocaleString('en-IN')}</p>
-            <p className="text-muted-foreground">Total Repayment</p>
+            <p className="text-muted-foreground">{d.total_repayment}</p>
             <p className="font-semibold text-right">₹{Math.round(totalRepayment).toLocaleString('en-IN')}</p>
           </div>
-          <Button variant="link" onClick={openKfs} className="p-0 h-auto">View Detailed Key Facts Statement (KFS)</Button>
+          <Button variant="link" onClick={openKfs} className="p-0 h-auto">{d.view_kfs_button}</Button>
         </CardContent>
       </Card>
       
@@ -1272,7 +1278,7 @@ export function KfsStep({ onCompleted }: StepProps) {
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <Label className={!kfsViewed ? 'text-muted-foreground' : ''}>
-                    I have read and understood the Key Facts Statement and accept the loan offer.
+                    {d.accept_consent}
                   </Label>
                   {!kfsViewed && (
                     <p className="text-sm text-muted-foreground">Please view the KFS document before accepting.</p>
@@ -1283,7 +1289,7 @@ export function KfsStep({ onCompleted }: StepProps) {
             )}
           />
           <Button type="submit" disabled={!form.formState.isValid} className="w-full mt-6">
-            Accept Offer & Continue
+            {d.accept_button} / {d.accept_button_native}
           </Button>
         </form>
       </Form>

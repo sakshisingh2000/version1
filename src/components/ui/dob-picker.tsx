@@ -13,11 +13,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { add, format } from "date-fns";
+import { format } from "date-fns";
 
 interface DobPickerProps {
   value: Date | undefined;
   onChange: (date: Date | undefined) => void;
+  placeholder?: string;
 }
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -35,7 +36,7 @@ const months = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-export function DobPicker({ value, onChange }: DobPickerProps) {
+export function DobPicker({ value, onChange, placeholder = "Select your Date of Birth" }: DobPickerProps) {
   const [isOpen, setIsOpen] = React.useState(false);
 
   const [selectedYear, setSelectedYear] = React.useState<number | undefined>(
@@ -116,7 +117,7 @@ export function DobPicker({ value, onChange }: DobPickerProps) {
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {value ? format(value, "dd / MM / yyyy") : <span>Select your Date of Birth</span>}
+          {value ? format(value, "dd / MM / yyyy") : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-4" align="start">
