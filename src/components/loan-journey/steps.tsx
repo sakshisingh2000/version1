@@ -661,31 +661,15 @@ export function CreditCheckStep({ onCompleted }: StepProps) {
           approved_tenure_options: { tenure_months: number }[] | null;
       };
       
-      if (mockReport.score >= 700 && mockReport.total_overdue_amount === 0 && foir <= foirThreshold) {
-          underwritingDecision = { 
-              status: 'APPROVED', 
-              reason: `Strong credit profile (score: ${mockReport.score}) and low FOIR (${(foir * 100).toFixed(2)}%).`,
-              risk_score: 'LOW_RISK',
-              approved_amount: loanAmount, // Approve requested amount
-              approved_tenure_options: [{ tenure_months: 6 }, { tenure_months: 9 }, { tenure_months: 12 }, { tenure_months: 18 }]
-          };
-      } else if (mockReport.score >= 650) {
-          underwritingDecision = { 
-            status: 'PENDING_REVIEW', 
-            reason: 'Credit score is fair. Requires manual underwriting review.',
-            risk_score: 'MEDIUM_RISK',
-            approved_amount: null,
-            approved_tenure_options: null,
-          };
-      } else {
-          underwritingDecision = { 
-            status: 'REJECTED', 
-            reason: 'Credit score below minimum threshold.',
-            risk_score: 'HIGH_RISK',
-            approved_amount: null,
-            approved_tenure_options: null,
-          };
-      }
+      // Force APPROVED status for prototype demo
+      underwritingDecision = { 
+          status: 'APPROVED', 
+          reason: `Strong credit profile (score: ${mockReport.score}) and low FOIR (${(foir * 100).toFixed(2)}%).`,
+          risk_score: 'LOW_RISK',
+          approved_amount: loanAmount, // Approve requested amount
+          approved_tenure_options: [{ tenure_months: 6 }, { tenure_months: 9 }, { tenure_months: 12 }, { tenure_months: 18 }]
+      };
+
 
       // 3. Update application state and Firestore
       const appUpdate = {
@@ -1567,6 +1551,8 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
+    
 
     
 
