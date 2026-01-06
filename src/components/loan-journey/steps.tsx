@@ -544,11 +544,14 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
             approved_tenure_options: TenureOption[] | null;
         };
         
-        // Mock LOS logic
-        const eligibleAmountRaw = Math.min(
-            monthlyIncome * 10, // Max 10x monthly income
-            200000 // Product max
-        );
+        // Mock LOS logic for demo
+        let eligibleAmountRaw: number;
+        if (loanAmount <= 100000) {
+            eligibleAmountRaw = 150000;
+        } else {
+            eligibleAmountRaw = 75000;
+        }
+
 
         // Force APPROVED status for prototype demo, but respect LOS calculation
         underwritingDecision = { 
@@ -2174,5 +2177,6 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
 }
 
     
+
 
 
