@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -85,7 +86,7 @@ export function Header() {
             {/* Can add search here if needed */}
           </div>
           <nav className="hidden md:flex items-center gap-2">
-            {showLanguageToggle && <LanguageSwitcher />}
+            {isClient && showLanguageToggle && <LanguageSwitcher />}
             {user ? (
                 <Button variant="ghost" onClick={() => auth.signOut()}>Sign Out</Button>
             ) : (
