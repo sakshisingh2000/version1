@@ -41,6 +41,7 @@ import { DobPicker } from "@/components/ui/dob-picker";
 import { addMonths, format, startOfMonth } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useLanguage } from "../language-provider";
+import { Slider } from "@/components/ui/slider";
 
 interface StepProps {
   onCompleted: () => void;
@@ -1111,7 +1112,6 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
 
     // State for LOS-driven amount choice
     const [finalLoanAmount, setFinalLoanAmount] = useState(application.approved_amount || 0);
-    const [amountChoice, setAmountChoice] = useState<'requested' | 'eligible' | null>(null);
 
     const [selectedTenure, setSelectedTenure] = useState<number | null>(null);
     const [calculatedEmi, setCalculatedEmi] = useState<number | null>(null);
@@ -1127,23 +1127,38 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
     // This effect handles initializing the state when the component mounts or application data changes
     useEffect(() => {
         if (eligibleAmount > requestedAmount) {
-            setAmountChoice('requested'); // Default to user's requested amount
-            setFinalLoanAmount(requestedAmount);
+            setFinalLoanAmount(eligibleAmount); // Default to higher eligible amount
         } else {
             setFinalLoanAmount(eligibleAmount);
         }
     }, [eligibleAmount, requestedAmount]);
 
-    // Handle user's choice between requested and eligible amount
-    const handleAmountChoiceChange = (choice: 'requested' | 'eligible') => {
-        setAmountChoice(choice);
-        const newFinalAmount = choice === 'eligible' ? eligibleAmount : requestedAmount;
-        setFinalLoanAmount(newFinalAmount);
+    // Recalculate EMI whenever amount or tenure changes
+    useEffect(() => {
+      if (selectedTenure && finalLoanAmount > 0) {
+        calculateEmiAndSchedule(finalLoanAmount, selectedTenure);
+      } else {
+        setCalculatedEmi(null);
+        setPaymentSchedulePreview([]);
+      }
+    }, [finalLoanAmount, selectedTenure]);
+
+    const handleAmountChange = (value: number[]) => {
+      const newAmount = value[0];
+      if (newAmount >= requestedAmount && newAmount <= eligibleAmount) {
+        setFinalLoanAmount(newAmount);
+      }
+    };
+    
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        let newAmount = Number(event.target.value);
+        if (isNaN(newAmount)) return;
         
-        // Recalculate EMI if tenure is already selected
-        if (selectedTenure) {
-            calculateEmiAndSchedule(newFinalAmount, selectedTenure);
-        }
+        // Clamp the value to be within the allowed range
+        if (newAmount < requestedAmount) newAmount = requestedAmount;
+        if (newAmount > eligibleAmount) newAmount = eligibleAmount;
+
+        setFinalLoanAmount(newAmount);
     };
 
 
@@ -1169,7 +1184,6 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
     const handleTenureChange = (tenureStr: string) => {
       const tenure = parseInt(tenureStr);
       setSelectedTenure(tenure);
-      calculateEmiAndSchedule(finalLoanAmount, tenure);
     };
 
     const handleConfirmAndContinue = () => {
@@ -1279,24 +1293,24 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                           score >= 650 ? "border-yellow-500" : "border-red-500"
                       )}>
                           <div className="text-center">
-                              <p className={cn("text-5xl font-bold", getScoreColor())}>{score}</p>
-                              <p className="font-semibold">{scoreBand}</p>
+                              <div className={cn("text-5xl font-bold", getScoreColor())}>{score}</div>
+                              <div className="font-semibold">{scoreBand}</div>
                           </div>
                       </div>
                       <p className="text-sm text-muted-foreground mt-2">CIBIL Score - Decision: {application.bureauReport?.decision_summary}</p>
                   </Card>
                     <div className="grid grid-cols-3 gap-2 text-center">
                         <div className="p-2 bg-background rounded-md">
-                          <p className="font-bold text-lg">{application.bureauReport?.total_active_loans}</p>
-                          <p className="text-xs text-muted-foreground">Active Loans</p>
+                          <div className="font-bold text-lg">{application.bureauReport?.total_active_loans}</div>
+                          <div className="text-xs text-muted-foreground">Active Loans</div>
                         </div>
                         <div className="p-2 bg-background rounded-md">
-                          <p className="font-bold text-lg">₹{application.bureauReport?.total_overdue_amount}</p>
-                          <p className="text-xs text-muted-foreground">Overdue</p>
+                          <div className="font-bold text-lg">₹{application.bureauReport?.total_overdue_amount}</div>
+                          <div className="text-xs text-muted-foreground">Overdue</div>
                         </div>
                         <div className="p-2 bg-background rounded-md">
-                          <p className="font-bold text-lg">{application.bureauReport?.recent_enquiries_count}</p>
-                          <p className="text-xs text-muted-foreground">Recent Enquiries</p>
+                          <div className="font-bold text-lg">{application.bureauReport?.recent_enquiries_count}</div>
+                          <div className="text-xs text-muted-foreground">Recent Enquiries</div>
                         </div>
                     </div>
                 </CardContent>
@@ -1308,35 +1322,36 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                 <Card className="bg-blue-50 border-blue-200">
                     <CardHeader>
                         <CardTitle className="text-blue-900">Great News!</CardTitle>
-                        <CardDescription className="text-blue-800">Based on your profile, you are eligible for a higher loan amount.</CardDescription>
+                        <CardDescription className="text-blue-800">You applied for ₹{requestedAmount.toLocaleString('en-IN')}, but you're eligible for up to ₹{eligibleAmount.toLocaleString('en-IN')}.</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <RadioGroup 
-                            defaultValue="requested"
-                            onValueChange={(value: 'requested' | 'eligible') => handleAmountChoiceChange(value)}
-                            className="space-y-2"
-                        >
-                            <Label htmlFor="amount-requested" className={cn(
-                                "flex items-center justify-between p-4 rounded-lg border cursor-pointer",
-                                amountChoice === 'requested' ? "bg-white border-blue-600" : ""
-                            )}>
-                                <RadioGroupItem value="requested" id="amount-requested" className="mr-2"/>
-                                <div>
-                                    <p className="font-semibold">Keep Requested Amount</p>
-                                    <p className="text-2xl font-bold">₹{requestedAmount.toLocaleString('en-IN')}</p>
-                                </div>
-                            </Label>
-                             <Label htmlFor="amount-eligible" className={cn(
-                                "flex items-center justify-between p-4 rounded-lg border cursor-pointer",
-                                amountChoice === 'eligible' ? "bg-white border-blue-600" : ""
-                            )}>
-                                <RadioGroupItem value="eligible" id="amount-eligible" className="mr-2"/>
-                                <div>
-                                    <div className="font-semibold flex items-center">Revise to Eligible Amount <Badge variant="default" className="bg-green-600 ml-2">Recommended</Badge></div>
-                                    <div className="text-2xl font-bold">₹{eligibleAmount.toLocaleString('en-IN')}</div>
-                                </div>
-                            </Label>
-                        </RadioGroup>
+                    <CardContent className="space-y-4">
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <Label htmlFor="loan-amount-slider">Select Your Loan Amount</Label>
+                             <Badge variant="default" className="bg-green-600">Recommended</Badge>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <Slider
+                                id="loan-amount-slider"
+                                min={requestedAmount}
+                                max={eligibleAmount}
+                                step={1000}
+                                value={[finalLoanAmount]}
+                                onValueChange={handleAmountChange}
+                                className="flex-1"
+                            />
+                            <Input
+                                type="text"
+                                value={`₹${finalLoanAmount.toLocaleString('en-IN')}`}
+                                onChange={handleInputChange}
+                                className="w-32 font-bold"
+                            />
+                          </div>
+                          <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                            <span>₹{requestedAmount.toLocaleString('en-IN')}</span>
+                            <span>₹{eligibleAmount.toLocaleString('en-IN')}</span>
+                          </div>
+                        </div>
                     </CardContent>
                 </Card>
             ) : (
@@ -1422,7 +1437,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                 size="lg"
             >
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Confirm Tenure & Continue
+                Confirm Loan Amount & Continue
             </Button>
             {(!selectedTenure || !consentChecked) && (
                  <p className="text-sm text-destructive text-center">Please select a tenure and confirm your choice to proceed.</p>
@@ -2255,3 +2270,4 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
 
 
     
+
