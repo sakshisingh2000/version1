@@ -17,24 +17,14 @@ const languages: { code: Language; name: string; nativeName: string }[] = [
   { code: 'kn', name: 'Kannada', nativeName: 'ಕನ್ನಡ' },
 ];
 
-const nonBilingualRootPages = ['/'];
-
 interface HeaderProps {
   onBack?: () => void;
 }
 
 export function Header({ onBack }: HeaderProps) {
-  const [isClient, setIsClient] = useState(false);
   const { language, setLanguage } = useLanguage();
-  const pathname = usePathname();
   const router = useRouter();
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  const showInlineSelector = isClient && nonBilingualRootPages.includes(pathname);
-  
   // The presence of the onBack function determines if the back button should be shown.
   // This gives parent components control over its visibility.
   const showBackButton = typeof onBack === 'function';
@@ -87,7 +77,7 @@ export function Header({ onBack }: HeaderProps) {
         </div>
 
         <div className="flex flex-1 items-center justify-end">
-           {showInlineSelector && <InlineLanguageSelector />}
+           <InlineLanguageSelector />
         </div>
       </div>
     </header>
