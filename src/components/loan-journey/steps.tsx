@@ -258,6 +258,13 @@ const aadhaarSchema = z.object({
   aadhaar: z.string().regex(/^\d{12}$/, "Invalid Aadhaar number."),
 });
 
+const panDetailsSchema = z.object({
+  fullName: z.string().min(2, "Full name must be at least 2 characters."),
+  pan: z.string().regex(panRegex, "Invalid PAN format."),
+  birthDate: z.date({ required_error: "A date of birth is required." }),
+});
+
+
 export function KycStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
   const { user } = useUser();
@@ -269,24 +276,25 @@ export function KycStep({ onCompleted }: StepProps) {
   const [isVerifying, startTransition] = useTransition();
   const { toast } = useToast();
   
-  const panValue = application.personalDetails?.pan || "";
-  const fullName = application.personalDetails?.fullName || "";
-  const birthDate = application.personalDetails?.birthDate;
-
-
-  function onPanSubmit() {
-    if (!user || !application.loanApplicationId) return;
-    if(!panRegex.test(panValue)) {
-      toast({ variant: "destructive", title: "Invalid PAN Format" });
-      return;
+  const panForm = useForm<z.infer<typeof panDetailsSchema>>({
+    resolver: zodResolver(panDetailsSchema),
+    defaultValues: {
+      fullName: application.personalDetails?.fullName || "",
+      pan: application.personalDetails?.pan || "",
+      birthDate: application.personalDetails?.birthDate,
     }
+  });
+  
+  const onPanSubmit = (values: z.infer<typeof panDetailsSchema>) => {
+    if (!user || !application.loanApplicationId) return;
     
     startTransition(() => {
       // Simulate backend verification
       setTimeout(() => {
         setIsPanVerified(true);
         const kycUpdate = { ...application.kyc, panStatus: 'VERIFIED' as const };
-        setApplication(prev => ({ ...prev, kyc: kycUpdate }));
+        const personalDetailsUpdate = { ...application.personalDetails, ...values };
+        setApplication(prev => ({ ...prev, kyc: kycUpdate, personalDetails: personalDetailsUpdate }));
         
         const kycRef = doc(firestore, 'borrowers', user.uid, 'kyc_records', application.loanApplicationId);
         const kycData = { borrowerId: user.uid, panStatus: 'VERIFIED', kycCompleted: false, applicationId: application.loanApplicationId };
@@ -351,7 +359,6 @@ export function KycStep({ onCompleted }: StepProps) {
       <Card>
         <CardHeader>
           <CardTitle>1. PAN Verification</CardTitle>
-          <CardDescription>Confirm your details below to verify your PAN. This is a simulated backend check.</CardDescription>
         </CardHeader>
         <CardContent>
           {isPanVerified ? (
@@ -363,26 +370,50 @@ export function KycStep({ onCompleted }: StepProps) {
                 </AlertDescription>
             </Alert>
           ) : (
-             <div className="space-y-4">
-                <div className="space-y-2 p-4 border rounded-md bg-muted/50">
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Full Name</Label>
-                      <p className="font-medium">{fullName}</p>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Date of Birth</Label>
-                      <p className="font-medium">{birthDate ? format(birthDate, 'dd MMMM, yyyy') : 'N/A'}</p>
-                    </div>
-                     <div>
-                      <Label className="text-xs text-muted-foreground">PAN</Label>
-                      <p className="font-medium">{panValue}</p>
-                    </div>
-                </div>
-                <Button onClick={onPanSubmit} disabled={isVerifying}>
+            <Form {...panForm}>
+              <form onSubmit={panForm.handleSubmit(onPanSubmit)} className="space-y-4">
+                <FormDescription>
+                  Pre-filled based on earlier details. Please review and edit if required.
+                </FormDescription>
+                <FormField
+                  control={panForm.control}
+                  name="fullName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl><Input {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={panForm.control}
+                  name="birthDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Date of Birth</FormLabel>
+                      <DobPicker value={field.value} onChange={field.onChange} />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={panForm.control}
+                  name="pan"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>PAN</FormLabel>
+                      <FormControl><Input {...field} className="uppercase" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" disabled={isVerifying}>
                   {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Verify PAN
                 </Button>
-              </div>
+              </form>
+            </Form>
           )}
         </CardContent>
       </Card>
@@ -1342,7 +1373,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                         <div>
                           <div className="flex justify-between items-center mb-2">
                             <Label htmlFor="loan-amount-slider">Select Your Loan Amount</Label>
-                             <Badge variant="default" className="bg-green-600">Recommended</Badge>
+                            <Badge variant="default" className="bg-green-600">Recommended</Badge>
                           </div>
                           <div className="flex items-center gap-4">
                             <Slider
@@ -1454,7 +1485,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                 Confirm Loan Amount & Continue
             </Button>
             {(!selectedTenure || !consentChecked) && (
-                 <p className="text-sm text-destructive text-center">Please select a tenure and confirm your choice to proceed.</p>
+                 <div className="text-sm text-destructive text-center"><p>Please select a tenure and confirm your choice to proceed.</p></div>
             )}
         </div>
     );
