@@ -1333,7 +1333,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                                 <RadioGroupItem value="eligible" id="amount-eligible" className="mr-2"/>
                                 <div>
                                     <div className="font-semibold flex items-center">Revise to Eligible Amount <Badge variant="default" className="bg-green-600 ml-2">Recommended</Badge></div>
-                                    <p className="text-2xl font-bold">₹{eligibleAmount.toLocaleString('en-IN')}</p>
+                                    <div className="text-2xl font-bold">₹{eligibleAmount.toLocaleString('en-IN')}</div>
                                 </div>
                             </Label>
                         </RadioGroup>
@@ -1488,11 +1488,11 @@ export function KfsStep({ onCompleted }: StepProps) {
           <DialogHeader>
             <DialogTitle className="font-headline text-2xl text-center">
                 {d.kfs_title.en}
-                {language !== 'en' && language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.kfs_title.regional}</span>}
+                {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.kfs_title.regional}</span>}
             </DialogTitle>
             <DialogDescription className="text-center">
                 {d.kfs_description.en}
-                 {language !== 'en' && language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.kfs_description.regional}</span>}
+                 {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.kfs_description.regional}</span>}
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="h-96 w-full rounded-md border p-4">
@@ -1559,32 +1559,32 @@ export function KfsStep({ onCompleted }: StepProps) {
         <CardHeader>
           <CardTitle className="font-headline text-center text-2xl">
             {d.title.en}
-            {language !== 'en' && language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.title.regional}</span>}
+            {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.title.regional}</span>}
           </CardTitle>
           <p className="text-sm text-muted-foreground text-center">
             {d.description.en}
-            {language !== 'en' && language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.description.regional}</span>}
+            {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.description.regional}</span>}
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg bg-muted/50">
-            <p className="text-muted-foreground">{d.loan_amount.en}{language !== 'en' && language !== 'en' && <><br/><span className="text-xs">{d.loan_amount.regional}</span></> }</p>
+            <p className="text-muted-foreground">{d.loan_amount.en}{language !== 'en' && <><br/><span className="text-xs">{d.loan_amount.regional}</span></> }</p>
             <p className="font-semibold text-right">₹{approved_amount.toLocaleString('en-IN')}</p>
-            <p className="text-muted-foreground">{d.processing_fee.en}{language !== 'en' && language !== 'en' && <><br/><span className="text-xs">{d.processing_fee.regional}</span></> }</p>
+            <p className="text-muted-foreground">{d.processing_fee.en}{language !== 'en' && <><br/><span className="text-xs">{d.processing_fee.regional}</span></> }</p>
             <p className="font-semibold text-right">- ₹{processingFee.toLocaleString('en-IN')}</p>
             <Separator className="col-span-2 my-1" />
-            <p className="text-muted-foreground font-bold">{d.net_disbursed.en}{language !== 'en' && language !== 'en' && <><br/><span className="text-xs">{d.net_disbursed.regional}</span></> }</p>
+            <p className="text-muted-foreground font-bold">{d.net_disbursed.en}{language !== 'en' && <><br/><span className="text-xs">{d.net_disbursed.regional}</span></> }</p>
             <p className="font-bold text-right text-lg">₹{disbursedAmount.toLocaleString('en-IN')}</p>
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-lg">
-            <p className="text-muted-foreground">{d.monthly_emi.en}{language !== 'en' && language !== 'en' && <><br/><span className="text-xs">{d.monthly_emi.regional}</span></> }</p>
+            <p className="text-muted-foreground">{d.monthly_emi.en}{language !== 'en' && <><br/><span className="text-xs">{d.monthly_emi.regional}</span></> }</p>
             <p className="font-semibold text-right">₹{selected_emi_amount.toLocaleString('en-IN')}</p>
-            <p className="text-muted-foreground">{d.total_repayment.en}{language !== 'en' && language !== 'en' && <><br/><span className="text-xs">{d.total_repayment.regional}</span></> }</p>
+            <p className="text-muted-foreground">{d.total_repayment.en}{language !== 'en' && <><br/><span className="text-xs">{d.total_repayment.regional}</span></> }</p>
             <p className="font-semibold text-right">₹{Math.round(totalRepayment).toLocaleString('en-IN')}</p>
           </div>
           <Button variant="link" onClick={openKfs} className="p-0 h-auto">
             {d.view_kfs_button.en}
-            {language !== 'en' && language !== 'en' && <span className="text-sm font-normal text-muted-foreground ml-1">/ {d.view_kfs_button.regional}</span>}
+            {language !== 'en' && <span className="text-sm font-normal text-muted-foreground ml-1">/ {d.view_kfs_button.regional}</span>}
             </Button>
         </CardContent>
       </Card>
@@ -1606,7 +1606,7 @@ export function KfsStep({ onCompleted }: StepProps) {
                 <div className="space-y-1 leading-none">
                   <Label className={!kfsViewed ? 'text-muted-foreground' : ''}>
                     {d.accept_consent.en}
-                    {language !== 'en' && language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.accept_consent.regional}</span>}
+                    {language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.accept_consent.regional}</span>}
                   </Label>
                   {!kfsViewed && (
                     <p className="text-sm text-muted-foreground">Please view the KFS document before accepting.</p>
@@ -1618,7 +1618,7 @@ export function KfsStep({ onCompleted }: StepProps) {
           />
           <Button type="submit" disabled={!form.formState.isValid} className="w-full mt-6">
             {d.accept_button.en}
-            {language !== 'en' && language !== 'en' && ` / ${d.accept_button.regional}`}
+            {language !== 'en' && ` / ${d.accept_button.regional}`}
           </Button>
         </form>
       </Form>
@@ -1693,15 +1693,15 @@ export function SanctionLetterStep({ onCompleted }: StepProps) {
         <XCircle className="h-16 w-16 text-muted-foreground"/>
         <h3 className="text-2xl font-headline font-bold">
             {d.decline_title.en}
-            {language !== 'en' && language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.decline_title.regional}</span>}
+            {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.decline_title.regional}</span>}
         </h3>
         <p className="text-muted-foreground max-w-md">
           {d.decline_description.en.replace('<ID>', loanApplicationId)}
-          {language !== 'en' && language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.decline_description.regional.replace('<ID>', loanApplicationId)}</span>}
+          {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.decline_description.regional.replace('<ID>', loanApplicationId)}</span>}
         </p>
         <p className="text-sm text-muted-foreground">
           {d.support_contact.en}
-          {language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground mt-1">{d.support_contact.regional}</span>}
+          {language !== 'en' && <span className="block text-xs text-muted-foreground mt-1">{d.support_contact.regional}</span>}
         </p>
         <Button asChild><Link href="/">Back to Home</Link></Button>
       </div>
@@ -1715,23 +1715,23 @@ export function SanctionLetterStep({ onCompleted }: StepProps) {
           <DialogHeader>
             <DialogTitle>
                 {d.esign_title.en}
-                {language !== 'en' && language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.esign_title.regional}</span>}
+                {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.esign_title.regional}</span>}
             </DialogTitle>
             <DialogDescription>
                 {d.esign_description.en}
-                {language !== 'en' && language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.esign_description.regional}</span>}
+                {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.esign_description.regional}</span>}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleOtpSubmit} className="space-y-4">
             <Label htmlFor="otp">
                 {d.otp_label.en}
-                {language !== 'en' && language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.otp_label.regional}</span>}
+                {language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.otp_label.regional}</span>}
             </Label>
             <Input id="otp" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="123456" maxLength={6} />
             <Button type="submit" disabled={isSigning} className="w-full">
               {isSigning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {d.esign_button.en}
-              {language !== 'en' && language !== 'en' && ` / ${d.esign_button.regional}`}
+              {language !== 'en' && ` / ${d.esign_button.regional}`}
             </Button>
           </form>
         </DialogContent>
@@ -1741,77 +1741,77 @@ export function SanctionLetterStep({ onCompleted }: StepProps) {
         <CardHeader className="text-center bg-muted/50 p-4">
           <CardTitle className="font-headline text-2xl">
             {d.title.en}
-            {language !== 'en' && language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.title.regional}</span>}
+            {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.title.regional}</span>}
           </CardTitle>
           <CardDescription>
             {d.description.en}
-            {language !== 'en' && language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.description.regional}</span>}
+            {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.description.regional}</span>}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6 space-y-6 text-sm">
           {/* Borrower Details */}
           <div className="space-y-2">
-            <h3 className="font-semibold text-base">{d.borrower_details.en}{language !== 'en' && language !== 'en' && <span className="block text-sm font-normal text-muted-foreground">{d.borrower_details.regional}</span>}</h3>
+            <h3 className="font-semibold text-base">{d.borrower_details.en}{language !== 'en' && <span className="block text-sm font-normal text-muted-foreground">{d.borrower_details.regional}</span>}</h3>
             <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              <span>{d.borrower_name.en}{language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground">{d.borrower_name.regional}</span>}</span>
+              <span>{d.borrower_name.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.borrower_name.regional}</span>}</span>
               <span className="text-right font-medium">{personalDetails.fullName}</span>
-              <span>{d.app_id.en}{language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground">{d.app_id.regional}</span>}</span>
+              <span>{d.app_id.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.app_id.regional}</span>}</span>
               <span className="text-right font-medium">{loanApplicationId}</span>
-              <span>{d.pan.en}{language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground">{d.pan.regional}</span>}</span>
+              <span>{d.pan.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.pan.regional}</span>}</span>
               <span className="text-right font-medium">XXXXXX{personalDetails.pan.slice(-4)}</span>
-              <span>{d.sanction_date.en}{language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground">{d.sanction_date.regional}</span>}</span>
+              <span>{d.sanction_date.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.sanction_date.regional}</span>}</span>
               <span className="text-right font-medium">{format(new Date(), 'dd-MMM-yyyy')}</span>
             </div>
           </div>
           <Separator />
           {/* Loan Details */}
           <div className="space-y-2">
-            <h3 className="font-semibold text-base">{d.loan_details.en}{language !== 'en' && language !== 'en' && <span className="block text-sm font-normal text-muted-foreground">{d.loan_details.regional}</span>}</h3>
+            <h3 className="font-semibold text-base">{d.loan_details.en}{language !== 'en' && <span className="block text-sm font-normal text-muted-foreground">{d.loan_details.regional}</span>}</h3>
             <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              <span>{d.sanctioned_amount.en}{language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground">{d.sanctioned_amount.regional}</span>}</span>
+              <span>{d.sanctioned_amount.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.sanctioned_amount.regional}</span>}</span>
               <span className="text-right font-medium">₹{approved_amount.toLocaleString('en-IN')}</span>
-              <span>{d.loan_type.en}{language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground">{d.loan_type.regional}</span>}</span>
+              <span>{d.loan_type.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.loan_type.regional}</span>}</span>
               <span className="text-right font-medium">Personal Loan</span>
-              <span>{d.tenure.en}{language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground">{d.tenure.regional}</span>}</span>
+              <span>{d.tenure.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.tenure.regional}</span>}</span>
               <span className="text-right font-medium">{selected_tenure_months} Months</span>
-              <span>{d.interest_rate.en}{language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground">{d.interest_rate.regional}</span>}</span>
+              <span>{d.interest_rate.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.interest_rate.regional}</span>}</span>
               <span className="text-right font-medium">24.00% p.a.</span>
-              <span>{d.emi_amount.en}{language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground">{d.emi_amount.regional}</span>}</span>
+              <span>{d.emi_amount.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.emi_amount.regional}</span>}</span>
               <span className="text-right font-medium">₹{selected_emi_amount.toLocaleString('en-IN')}</span>
-              <span>{d.emi_start_date.en}{language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground">{d.emi_start_date.regional}</span>}</span>
+              <span>{d.emi_start_date.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.emi_start_date.regional}</span>}</span>
               <span className="text-right font-medium">{format(addMonths(new Date(), 1), 'dd-MMM-yyyy')}</span>
             </div>
           </div>
           <Separator />
            {/* Fees & Disbursal */}
           <div className="space-y-2">
-            <h3 className="font-semibold text-base">{d.fees_disbursal.en}{language !== 'en' && language !== 'en' && <span className="block text-sm font-normal text-muted-foreground">{d.fees_disbursal.regional}</span>}</h3>
+            <h3 className="font-semibold text-base">{d.fees_disbursal.en}{language !== 'en' && <span className="block text-sm font-normal text-muted-foreground">{d.fees_disbursal.regional}</span>}</h3>
             <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              <span>{d.processing_fee.en}{language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground">{d.processing_fee.regional}</span>}</span>
+              <span>{d.processing_fee.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.processing_fee.regional}</span>}</span>
               <span className="text-right font-medium">- ₹{processingFee.toLocaleString('en-IN')}</span>
-              <span>{d.gst.en}{language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground">{d.gst.regional}</span>}</span>
+              <span>{d.gst.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.gst.regional}</span>}</span>
               <span className="text-right font-medium">- ₹{gst.toLocaleString('en-IN')}</span>
               <Separator className="col-span-2 my-1" />
-              <span className="font-bold">{d.net_disbursal.en}{language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground">{d.net_disbursal.regional}</span>}</span>
+              <span className="font-bold">{d.net_disbursal.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.net_disbursal.regional}</span>}</span>
               <span className="text-right font-bold">₹{netDisbursalAmount.toLocaleString('en-IN')}</span>
             </div>
           </div>
           <Separator />
           {/* Key Terms */}
           <div className="space-y-2">
-            <h3 className="font-semibold text-base">{d.key_terms.en}{language !== 'en' && language !== 'en' && <span className="block text-sm font-normal text-muted-foreground">{d.key_terms.regional}</span>}</h3>
+            <h3 className="font-semibold text-base">{d.key_terms.en}{language !== 'en' && <span className="block text-sm font-normal text-muted-foreground">{d.key_terms.regional}</span>}</h3>
             <ul className="list-disc list-inside text-muted-foreground space-y-1">
-              <li>{d.term1.en}{language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground">{d.term1.regional}</span>}</li>
-              <li>{d.term2.en}{language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground">{d.term2.regional}</span>}</li>
-              <li>{d.term3.en}{language !== 'en' && language !== 'en' && <span className="block text-xs text-muted-foreground">{d.term3.regional}</span>}</li>
+              <li>{d.term1.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.term1.regional}</span>}</li>
+              <li>{d.term2.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.term2.regional}</span>}</li>
+              <li>{d.term3.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.term3.regional}</span>}</li>
             </ul>
           </div>
            <Separator />
            {/* Lender Disclosure */}
           <div className="p-2 bg-muted/50 rounded-md text-xs text-muted-foreground">
-            <p>{d.lender_disclosure1.en}{language !== 'en' && language !== 'en' && <span className="block">{d.lender_disclosure1.regional}</span>}</p>
-            <p>{d.lender_disclosure2.en}{language !== 'en' && language !== 'en' && <span className="block">{d.lender_disclosure2.regional}</span>}</p>
-            <p className="mt-1">{d.lender_disclosure3.en}: grievance@fairfinance.com{language !== 'en' && language !== 'en' && <span className="block">{d.lender_disclosure3.regional}: grievance@fairfinance.com</span>}</p>
+            <p>{d.lender_disclosure1.en}{language !== 'en' && <span className="block">{d.lender_disclosure1.regional}</span>}</p>
+            <p>{d.lender_disclosure2.en}{language !== 'en' && <span className="block">{d.lender_disclosure2.regional}</span>}</p>
+            <p className="mt-1">{d.lender_disclosure3.en}: grievance@fairfinance.com{language !== 'en' && <span className="block">{d.lender_disclosure3.regional}: grievance@fairfinance.com</span>}</p>
           </div>
         </CardContent>
       </Card>
@@ -1819,11 +1819,11 @@ export function SanctionLetterStep({ onCompleted }: StepProps) {
       <div className="grid grid-cols-2 gap-4 mt-6">
         <Button variant="outline" size="lg" onClick={handleDecline}>
             {d.decline_button.en}
-            {language !== 'en' && language !== 'en' && ` / ${d.decline_button.regional}`}
+            {language !== 'en' && ` / ${d.decline_button.regional}`}
         </Button>
         <Button size="lg" onClick={handleAccept}>
           {d.accept_button.en}
-          {language !== 'en' && language !== 'en' && ` / ${d.accept_button.regional}`}
+          {language !== 'en' && ` / ${d.accept_button.regional}`}
         </Button>
       </div>
     </div>
@@ -1981,37 +1981,109 @@ export function BankDetailsStep({ onCompleted }: StepProps) {
 }
 
 export function EMandateStep({ onCompleted }: StepProps) {
-    const [isPending, startTransition] = useTransition();
-    const { setApplication, application } = useLoanApplication();
+    const { application, setApplication } = useLoanApplication();
     const { toast } = useToast();
+    const { dict, language } = useLanguage();
+    const d = dict.e_mandate;
+    const [view, setView] = useState<'setup' | 'unable'>('setup');
+    const [isPending, startTransition] = useTransition();
+
+    if (!application.bankDetails || !application.selected_emi_amount) {
+        return <p>e-Mandate details cannot be displayed. Please complete previous steps.</p>;
+    }
 
     const handleMandate = () => {
         startTransition(() => {
-            // eNACH/eMandate registration
+            // eNACH/eMandate registration simulation
             setTimeout(() => {
-                setApplication(prev => ({ ...prev, eMandate: { isRegistered: true } }));
+                setApplication(prev => ({ ...prev, eMandate: { isRegistered: true, mandateStatus: 'ACTIVE' } }));
                 toast({
-                  title: "e-Mandate Registered",
-                  description: "Auto-debit has been set up for your EMIs.",
+                    title: d.success_title.en,
+                    description: d.success_description.en,
                 });
                 onCompleted();
             }, 2500);
         });
+    };
+    
+    const handleUnableToSetup = () => {
+        setView('unable');
+        setApplication(prev => ({ ...prev, eMandate: { isRegistered: false, mandateStatus: 'FAILED' } }));
+    };
+
+    if (view === 'unable') {
+        return (
+            <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
+                <Info className="h-16 w-16 text-primary" />
+                <h3 className="text-2xl font-headline font-bold">
+                    {d.unable_title.en}
+                    {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.unable_title.regional}</span>}
+                </h3>
+                <p className="text-muted-foreground max-w-md">
+                    {d.unable_description.en.replace('<ID>', application.loanApplicationId)}
+                    {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.unable_description.regional.replace('<ID>', application.loanApplicationId)}</span>}
+                </p>
+                <div className="space-y-2 text-left w-full max-w-sm rounded-lg border p-4">
+                    <div className="flex justify-between"><span>{d.app_id.en}:</span><span className="font-mono">{application.loanApplicationId}</span></div>
+                    <div className="flex justify-between"><span>{d.sanctioned_amount.en}:</span><span className="font-bold">₹{application.approved_amount?.toLocaleString('en-IN')}</span></div>
+                </div>
+                 <p className="text-sm text-muted-foreground pt-4">
+                    {d.support_contact.en}
+                    {language !== 'en' && <span className="block text-xs text-muted-foreground mt-1">{d.support_contact.regional}</span>}
+                </p>
+            </div>
+        );
     }
+    
+    const { bankDetails, selected_emi_amount, firstEmiDate } = application;
 
     return (
         <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
             <ShieldCheck className="h-16 w-16 text-primary"/>
-            <h3 className="text-2xl font-headline font-bold">e-Mandate for Repayments</h3>
+            <h3 className="text-2xl font-headline font-bold">
+                {d.title.en}
+                {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.title.regional}</span>}
+            </h3>
             <p className="text-muted-foreground max-w-md">
-                To automate your monthly EMI payments, please set up an e-mandate. This is a secure process handled by your bank.
+                {d.description.en}
+                {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.description.regional}</span>}
             </p>
-            <p className="font-semibold">
-              EMI Amount: ₹{application.selected_emi_amount?.toLocaleString('en-IN')}
-            </p>
-            <Button onClick={handleMandate} disabled={isPending} size="lg">
+            
+            <Card className="text-left w-full max-w-sm">
+                <CardHeader>
+                    <CardTitle>
+                        {d.mandate_details_title.en}
+                        {language !== 'en' && <span className="block text-lg font-normal text-muted-foreground mt-1">{d.mandate_details_title.regional}</span>}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">{d.account_label.en}</span>
+                        <span className="font-mono">XXXX...{bankDetails.accountNumber.slice(-4)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">{d.emi_amount_label.en}</span>
+                        <span className="font-bold">₹{selected_emi_amount.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">{d.frequency_label.en}</span>
+                        <span>Monthly</span>
+                    </div>
+                    {firstEmiDate && <div className="flex justify-between">
+                        <span className="text-muted-foreground">{d.start_date_label.en}</span>
+                        <span>{format(new Date(firstEmiDate), 'dd MMM yyyy')}</span>
+                    </div>}
+                </CardContent>
+            </Card>
+
+            <Button onClick={handleMandate} disabled={isPending} size="lg" className="w-full max-w-sm">
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isPending ? "Redirecting to bank..." : "Setup e-Mandate"}
+                {isPending ? d.setup_button_pending.en : d.setup_button.en}
+                {language !== 'en' && !isPending && ` / ${d.setup_button.regional}`}
+            </Button>
+            <Button variant="link" onClick={handleUnableToSetup} className="text-muted-foreground">
+                {d.unable_button.en}
+                {language !== 'en' && ` / ${d.unable_button.regional}`}
             </Button>
         </div>
     );

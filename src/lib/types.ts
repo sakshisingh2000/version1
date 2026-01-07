@@ -120,9 +120,12 @@ export type LoanApplication = {
     accountNumber: string;
     ifsc: string;
     isVerified: boolean;
+    bankName: string;
+    branch: string;
   };
   eMandate?: {
     isRegistered: boolean;
+    mandateStatus?: 'PENDING' | 'ACTIVE' | 'FAILED';
   };
   agreement?: {
     isSigned: boolean;

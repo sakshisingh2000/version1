@@ -96,6 +96,25 @@ export interface Dictionary {
     otp_label: BilingualText;
     esign_button: BilingualText;
   };
+  e_mandate: {
+    title: BilingualText;
+    description: BilingualText;
+    mandate_details_title: BilingualText;
+    account_label: BilingualText;
+    emi_amount_label: BilingualText;
+    frequency_label: BilingualText;
+    start_date_label: BilingualText;
+    setup_button: BilingualText;
+    setup_button_pending: BilingualText;
+    unable_button: BilingualText;
+    success_title: BilingualText;
+    success_description: BilingualText;
+    unable_title: BilingualText;
+    unable_description: BilingualText;
+    app_id: BilingualText;
+    sanctioned_amount: BilingualText;
+    support_contact: BilingualText;
+  };
 }
 
 
@@ -187,7 +206,26 @@ const en: Dictionary = {
     esign_description: { en: 'Enter the OTP sent to your Aadhaar-linked mobile number to sign.', regional: 'Enter the OTP sent to your Aadhaar-linked mobile number to sign.' },
     otp_label: { en: 'Enter 6-digit OTP', regional: 'Enter 6-digit OTP' },
     esign_button: { en: 'Verify & e-Sign', regional: 'Verify & e-Sign' },
-  }
+  },
+  e_mandate: {
+    title: { en: 'e-Mandate for Repayments', regional: 'e-Mandate for Repayments' },
+    description: { en: 'To automate your monthly EMI payments, please set up an e-mandate. This is a secure process handled by your bank.', regional: 'To automate your monthly EMI payments, please set up an e-mandate. This is a secure process handled by your bank.' },
+    mandate_details_title: { en: 'Mandate Details', regional: 'Mandate Details' },
+    account_label: { en: 'Account', regional: 'Account' },
+    emi_amount_label: { en: 'EMI Amount', regional: 'EMI Amount' },
+    frequency_label: { en: 'Frequency', regional: 'Frequency' },
+    start_date_label: { en: 'First Debit', regional: 'First Debit' },
+    setup_button: { en: 'Set up Auto Debit', regional: 'Set up Auto Debit' },
+    setup_button_pending: { en: 'Redirecting to bank...', regional: 'Redirecting to bank...' },
+    unable_button: { en: 'I am unable to set up auto debit', regional: 'I am unable to set up auto debit' },
+    success_title: { en: 'e-Mandate Registered', regional: 'e-Mandate Registered' },
+    success_description: { en: 'Auto-debit has been set up for your EMIs.', regional: 'Auto-debit has been set up for your EMIs.' },
+    unable_title: { en: 'Assisted Journey Required', regional: 'Assisted Journey Required' },
+    unable_description: { en: 'Your loan has been sanctioned, but auto debit could not be set up digitally. Our relationship manager will contact you to assist with the next steps.', regional: 'Your loan has been sanctioned, but auto debit could not be set up digitally. Our relationship manager will contact you to assist with the next steps.' },
+    app_id: { en: 'Application ID', regional: 'Application ID' },
+    sanctioned_amount: { en: 'Sanctioned Amount', regional: 'Sanctioned Amount' },
+    support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'You can also reach us at support@loanswift.com' },
+  },
 };
 
 const hi: Dictionary = {
@@ -278,7 +316,26 @@ const hi: Dictionary = {
     esign_description: { en: 'Enter the OTP sent to your Aadhaar-linked mobile number to sign.', regional: 'हस्ताक्षर करने के लिए अपने आधार-लिंक्ड मोबाइल नंबर पर भेजा गया ओटीपी दर्ज करें।' },
     otp_label: { en: 'Enter 6-digit OTP', regional: '6-अंकीय ओटीपी दर्ज करें' },
     esign_button: { en: 'Verify & e-Sign', regional: 'सत्यापित करें और ई-साइन करें' },
-  }
+  },
+  e_mandate: {
+    title: { en: 'e-Mandate for Repayments', regional: 'चुकौती के लिए ई-जनादेश' },
+    description: { en: 'To automate your monthly EMI payments, please set up an e-mandate. This is a secure process handled by your bank.', regional: 'अपने मासिक ईएमआई भुगतानों को स्वचालित करने के लिए, कृपया एक ई-जनादेश स्थापित करें। यह आपके बैंक द्वारा नियंत्रित एक सुरक्षित प्रक्रिया है।' },
+    mandate_details_title: { en: 'Mandate Details', regional: 'जनादेश विवरण' },
+    account_label: { en: 'Account', regional: 'खाता' },
+    emi_amount_label: { en: 'EMI Amount', regional: 'ईएमआई राशि' },
+    frequency_label: { en: 'Frequency', regional: 'आवृत्ति' },
+    start_date_label: { en: 'First Debit', regional: 'पहली कटौती' },
+    setup_button: { en: 'Set up Auto Debit', regional: 'ऑटो डेबिट सेट करें' },
+    setup_button_pending: { en: 'Redirecting to bank...', regional: 'बैंक को पुनः निर्देशित किया जा रहा है...' },
+    unable_button: { en: 'I am unable to set up auto debit', regional: 'मैं ऑटो डेबिट सेट करने में असमर्थ हूं' },
+    success_title: { en: 'e-Mandate Registered', regional: 'ई-जनादेश पंजीकृत' },
+    success_description: { en: 'Auto-debit has been set up for your EMIs.', regional: 'आपके ईएमआई के लिए ऑटो-डेबिट सेट कर दिया गया है।' },
+    unable_title: { en: 'Assisted Journey Required', regional: 'सहायता प्राप्त यात्रा आवश्यक' },
+    unable_description: { en: 'Your loan has been sanctioned, but auto debit could not be set up digitally. Our relationship manager will contact you to assist with the next steps.', regional: 'आपका ऋण स्वीकृत हो गया है, लेकिन ऑटो डेबिट डिजिटल रूप से सेट नहीं किया जा सका। हमारे संबंध प्रबंधक अगले चरणों में सहायता के लिए आपसे संपर्क करेंगे।' },
+    app_id: { en: 'Application ID', regional: 'आवेदन आईडी' },
+    sanctioned_amount: { en: 'Sanctioned Amount', regional: 'स्वीकृत राशि' },
+    support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'आप हमें support@loanswift.com पर भी संपर्क कर सकते हैं' },
+  },
 };
 
 
@@ -370,7 +427,26 @@ const mr: Dictionary = {
     esign_description: { en: 'Enter the OTP sent to your Aadhaar-linked mobile number to sign.', regional: 'सही करण्यासाठी तुमच्या आधार-लिंक्ड मोबाइल नंबरवर पाठवलेला OTP टाका.' },
     otp_label: { en: 'Enter 6-digit OTP', regional: '6-अंकी OTP टाका' },
     esign_button: { en: 'Verify & e-Sign', regional: 'सत्यापित करा आणि ई-सही करा' },
-  }
+  },
+  e_mandate: {
+    title: { en: 'e-Mandate for Repayments', regional: 'परतफेडीसाठी ई-मँडेट' },
+    description: { en: 'To automate your monthly EMI payments, please set up an e-mandate. This is a secure process handled by your bank.', regional: 'तुमचे मासिक ईएमआय पेमेंट स्वयंचलित करण्यासाठी, कृपया ई-मँडेट सेट करा. ही तुमच्या बँकेद्वारे हाताळली जाणारी एक सुरक्षित प्रक्रिया आहे.' },
+    mandate_details_title: { en: 'Mandate Details', regional: 'मँडेट तपशील' },
+    account_label: { en: 'Account', regional: 'खाते' },
+    emi_amount_label: { en: 'EMI Amount', regional: 'ईएमआय रक्कम' },
+    frequency_label: { en: 'Frequency', regional: 'वारंवारता' },
+    start_date_label: { en: 'First Debit', regional: 'पहिली डेबिट' },
+    setup_button: { en: 'Set up Auto Debit', regional: 'ऑटो डेबिट सेट करा' },
+    setup_button_pending: { en: 'Redirecting to bank...', regional: 'बँकेकडे पुनर्निर्देशित करत आहे...' },
+    unable_button: { en: 'I am unable to set up auto debit', regional: 'मी ऑटो डेबिट सेट करू शकत नाही' },
+    success_title: { en: 'e-Mandate Registered', regional: 'ई-मँडेट नोंदणीकृत' },
+    success_description: { en: 'Auto-debit has been set up for your EMIs.', regional: 'तुमच्या ईएमआयसाठी ऑटो-डेबिट सेट केले आहे.' },
+    unable_title: { en: 'Assisted Journey Required', regional: 'सहाय्यित प्रवासाची आवश्यकता' },
+    unable_description: { en: 'Your loan has been sanctioned, but auto debit could not be set up digitally. Our relationship manager will contact you to assist with the next steps.', regional: 'तुमचे कर्ज मंजूर झाले आहे, परंतु ऑटो डेबिट डिजिटल पद्धतीने सेट करता आले नाही. आमचे रिलेशनशिप मॅनेजर पुढील चरणांमध्ये मदत करण्यासाठी तुमच्याशी संपर्क साधतील.' },
+    app_id: { en: 'Application ID', regional: 'अर्ज आयडी' },
+    sanctioned_amount: { en: 'Sanctioned Amount', regional: 'मंजूर रक्कम' },
+    support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'तुम्ही आम्हाला support@loanswift.com वर देखील संपर्क साधू शकता' },
+  },
 };
 
 const te: Dictionary = {
@@ -461,7 +537,26 @@ const te: Dictionary = {
     esign_description: { en: 'Enter the OTP sent to your Aadhaar-linked mobile number to sign.', regional: 'సంతకం చేయడానికి మీ ఆధార్-లింక్ చేయబడిన మొబైల్ నంబర్‌కు పంపిన OTPని నమోదు చేయండి.' },
     otp_label: { en: 'Enter 6-digit OTP', regional: '6-అంకెల OTPని నమోదు చేయండి' },
     esign_button: { en: 'Verify & e-Sign', regional: 'ధృవీకరించి ఇ-సైన్ చేయండి' },
-  }
+  },
+  e_mandate: {
+    title: { en: 'e-Mandate for Repayments', regional: 'తిరిగి చెల్లింపుల కోసం ఇ-మాండేట్' },
+    description: { en: 'To automate your monthly EMI payments, please set up an e-mandate. This is a secure process handled by your bank.', regional: 'మీ నెలవారీ EMI చెల్లింపులను ఆటోమేట్ చేయడానికి, దయచేసి ఒక ఇ-మాండేట్‌ను సెటప్ చేయండి. ఇది మీ బ్యాంక్ ద్వారా నిర్వహించబడే ఒక సురక్షిత ప్రక్రియ.' },
+    mandate_details_title: { en: 'Mandate Details', regional: 'మాండేట్ వివరాలు' },
+    account_label: { en: 'Account', regional: 'ఖాతా' },
+    emi_amount_label: { en: 'EMI Amount', regional: 'EMI మొత్తం' },
+    frequency_label: { en: 'Frequency', regional: 'ఫ్రీక్వెన్సీ' },
+    start_date_label: { en: 'First Debit', regional: 'మొదటి డెబిట్' },
+    setup_button: { en: 'Set up Auto Debit', regional: 'ఆటో డెబిట్‌ను సెటప్ చేయండి' },
+    setup_button_pending: { en: 'Redirecting to bank...', regional: 'బ్యాంక్‌కు మళ్లిస్తోంది...' },
+    unable_button: { en: 'I am unable to set up auto debit', regional: 'నేను ఆటో డెబిట్‌ను సెటప్ చేయలేకపోతున్నాను' },
+    success_title: { en: 'e-Mandate Registered', regional: 'ఇ-మాండేట్ నమోదు చేయబడింది' },
+    success_description: { en: 'Auto-debit has been set up for your EMIs.', regional: 'మీ EMIల కోసం ఆటో-డెబిట్ సెటప్ చేయబడింది.' },
+    unable_title: { en: 'Assisted Journey Required', regional: 'సహాయక ప్రయాణం అవసరం' },
+    unable_description: { en: 'Your loan has been sanctioned, but auto debit could not be set up digitally. Our relationship manager will contact you to assist with the next steps.', regional: 'మీ లోన్ మంజూరు చేయబడింది, కానీ ఆటో డెబిట్ డిజిటల్‌గా సెటప్ చేయబడలేదు. మా రిలేషన్‌షిప్ మేనేజర్ తదుపరి దశలతో సహాయం చేయడానికి మిమ్మల్ని సంప్రదిస్తారు.' },
+    app_id: { en: 'Application ID', regional: 'అప్లికేషన్ ఐడి' },
+    sanctioned_amount: { en: 'Sanctioned Amount', regional: 'మంజూరు చేయబడిన మొత్తం' },
+    support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'మీరు మమ్మల్ని support@loanswift.com వద్ద కూడా సంప్రదించవచ్చు' },
+  },
 };
 
 const kn: Dictionary = {
@@ -469,7 +564,7 @@ const kn: Dictionary = {
     title: { en: 'Consent Hub', regional: 'ಸಮ್ಮತಿ ಕೇಂದ್ರ' },
     description: { en: 'As per RBI guidelines, we need your explicit consent for the following data processing activities.', regional: 'RBI ಮಾರ್ಗಸೂಚಿಗಳ ಪ್ರಕಾರ, ಈ ಕೆಳಗಿನ ಡೇಟಾ ಸಂಸ್ಕರಣಾ ಚಟುವಟಿಕೆಗಳಿಗೆ ನಮಗೆ ನಿಮ್ಮ ಸ್ಪಷ್ಟ ಸಮ್ಮತಿ ಬೇಕು.' },
     items: {
-        PAN_VERIFICATION: { en: 'I consent to verification of my PAN from issuing authority/NSDL.', regional: 'ನನ್ನ ಪ್ಯಾನ್ ಅನ್ನು ನೀಡುವ ಪ್ರಾಧಿಕಾರ/NSDL ನಿಂದ ಪರಿಶೀಲಿಸಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
+        PAN_VERIFICATION: { en: 'I consent to verification of my PAN from issuing authority/NSDL.', regional: 'ನನ್ನ ಪ್ಯಾన్ ಅನ್ನು ನೀಡುವ ಪ್ರಾಧಿಕಾರ/NSDL ನಿಂದ ಪರಿಶೀಲಿಸಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
         AADHAAR_AUTH: { en: 'I consent to Aadhaar OTP-based offline verification / e-KYC through authorized partners.', regional: 'ಅಧಿಕೃತ ಪಾಲುದಾರರ ಮೂಲಕ ಆಧಾರ್ ಒಟಿಪಿ-ಆಧಾರಿತ ಆಫ್‌ಲೈನ್ ಪರಿಶೀಲನೆ / ಇ-ಕೆವೈಸಿಗೆ ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
         DIGILOCKER_KYC: { en: 'I consent to fetch KYC documents from DigiLocker using my DigiLocker account.', regional: 'ನನ್ನ ಡಿಜಿಲಾಕರ್ ಖಾತೆಯನ್ನು ಬಳಸಿಕೊಂಡು ಡಿಜಿಲಾಕರ್‌ನಿಂದ ಕೆವೈಸಿ ದಾಖಲೆಗಳನ್ನು ಪಡೆಯಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
         BUREAU_PULL: { en: 'I consent to pull my credit report from credit bureaus for the purpose of this loan.', regional: 'ಈ ಸಾಲದ ಉದ್ದೇಶಕ್ಕಾಗಿ ಕ್ರೆಡಿಟ್ ಬ್ಯೂರೋಗಳಿಂದ ನನ್ನ ಕ್ರೆಡಿಟ್ ವರದಿಯನ್ನು ಎಳೆಯಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
@@ -549,10 +644,29 @@ const kn: Dictionary = {
     decline_description: { en: 'Your application ID is <ID>. Our relationship manager will contact you shortly to assist you further or clarify any questions.', regional: 'ನಿಮ್ಮ ಅರ್ಜಿ ಐಡಿ <ID> ಆಗಿದೆ. ನಮ್ಮ ಸಂಬಂಧ ವ್ಯವಸ್ಥಾಪಕರು ನಿಮಗೆ ಮತ್ತಷ್ಟು ಸಹಾಯ ಮಾಡಲು ಅಥವಾ ಯಾವುದೇ ಪ್ರಶ್ನೆಗಳನ್ನು ಸ್ಪಷ್ಟಪಡಿಸಲು ಶೀಘ್ರದಲ್ಲೇ ನಿಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸುತ್ತಾರೆ.' },
     support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'ನೀವು ನಮ್ಮನ್ನು support@loanswift.com ನಲ್ಲಿಯೂ ಸಂಪರ್ಕಿಸಬಹುದು' },
     esign_title: { en: 'e-Sign Sanction Letter', regional: 'ಮಂಜೂರಾತಿ ಪತ್ರವನ್ನು ಇ-ಸಹಿ ಮಾಡಿ' },
-    esign_description: { en: 'Enter the OTP sent to your Aadhaar-linked mobile number to sign.', regional: 'ಸಹಿ ಮಾಡಲು ನಿಮ್ಮ ಆಧಾರ್-ಸಂಯೋಜಿತ ಮೊಬೈల్ ಸಂಖ್ಯೆಗೆ ಕಳುಹಿಸಿದ OTPಯನ್ನು ನಮೂದಿಸಿ.' },
-    otp_label: { en: 'Enter 6-digit OTP', regional: '6-അക്ക OTP ನಮೂದಿಸಿ' },
+    esign_description: { en: 'Enter the OTP sent to your Aadhaar-linked mobile number to sign.', regional: 'ಸಹಿ ಮಾಡಲು ನಿಮ್ಮ ಆಧಾರ್-ಸಂಯೋಜಿತ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಗೆ ಕಳುಹಿಸಿದ OTPಯನ್ನು ನಮೂದಿಸಿ.' },
+    otp_label: { en: 'Enter 6-digit OTP', regional: '6-ಅಂಕಿಯ OTP ನಮೂದಿಸಿ' },
     esign_button: { en: 'Verify & e-Sign', regional: 'ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಇ-ಸಹಿ ಮಾಡಿ' },
-  }
+  },
+  e_mandate: {
+    title: { en: 'e-Mandate for Repayments', regional: 'ಮರುಪಾವತಿಗಾಗಿ ಇ-ಮ್ಯಾಂಡೇಟ್' },
+    description: { en: 'To automate your monthly EMI payments, please set up an e-mandate. This is a secure process handled by your bank.', regional: 'ನಿಮ್ಮ ಮಾಸಿಕ ಇಎಂಐ ಪಾವತಿಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತಗೊಳಿಸಲು, ದಯವಿಟ್ಟು ಇ-ಮ್ಯಾಂಡೇಟ್ ಅನ್ನು ಸ್ಥಾಪಿಸಿ. ಇದು ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ನಿರ್ವಹಿಸುವ ಸುರಕ್ಷಿತ ಪ್ರಕ್ರಿಯೆಯಾಗಿದೆ.' },
+    mandate_details_title: { en: 'Mandate Details', regional: 'ಮ್ಯಾಂಡೇಟ್ ವಿವರಗಳು' },
+    account_label: { en: 'Account', regional: 'ಖಾತೆ' },
+    emi_amount_label: { en: 'EMI Amount', regional: 'ಇಎಂಐ ಮೊತ್ತ' },
+    frequency_label: { en: 'Frequency', regional: 'ಆವರ್ತನ' },
+    start_date_label: { en: 'First Debit', regional: 'ಮೊದಲ ಡೆಬಿಟ್' },
+    setup_button: { en: 'Set up Auto Debit', regional: 'ಆಟೋ ಡೆಬಿಟ್ ಸ್ಥಾಪಿಸಿ' },
+    setup_button_pending: { en: 'Redirecting to bank...', regional: 'ಬ್ಯಾಂಕ್‌ಗೆ ಮರುನಿರ್ದೇಶಿಸಲಾಗುತ್ತಿದೆ...' },
+    unable_button: { en: 'I am unable to set up auto debit', regional: 'ನಾನು ಆಟೋ ಡೆಬಿಟ್ ಸ್ಥಾಪಿಸಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ' },
+    success_title: { en: 'e-Mandate Registered', regional: 'ಇ-ಮ್ಯಾಂಡೇಟ್ ನೋಂದಾಯಿಸಲಾಗಿದೆ' },
+    success_description: { en: 'Auto-debit has been set up for your EMIs.', regional: 'ನಿಮ್ಮ ಇಎಂಐಗಳಿಗಾಗಿ ಆಟೋ-ಡೆಬಿಟ್ ಅನ್ನು ಸ್ಥಾಪಿಸಲಾಗಿದೆ.' },
+    unable_title: { en: 'Assisted Journey Required', regional: 'ಸಹಾಯದ ಪ್ರಯಾಣ ಅಗತ್ಯವಿದೆ' },
+    unable_description: { en: 'Your loan has been sanctioned, but auto debit could not be set up digitally. Our relationship manager will contact you to assist with the next steps.', regional: 'ನಿಮ್ಮ ಸಾಲವನ್ನು ಮಂಜೂರು ಮಾಡಲಾಗಿದೆ, ಆದರೆ ಆಟೋ ಡೆಬಿಟ್ ಅನ್ನು ಡಿಜಿಟಲ್ ಆಗಿ ಸ್ಥಾಪಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ನಮ್ಮ ಸಂಬಂಧ ವ್ಯವಸ್ಥಾಪಕರು ಮುಂದಿನ ಹಂತಗಳಿಗೆ ಸಹಾಯ ಮಾಡಲು ನಿಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸುತ್ತಾರೆ.' },
+    app_id: { en: 'Application ID', regional: 'ಅರ್ಜಿ ಐಡಿ' },
+    sanctioned_amount: { en: 'Sanctioned Amount', regional: 'ಮಂಜೂರಾದ ಮೊತ್ತ' },
+    support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'ನೀವು ನಮ್ಮನ್ನು support@loanswift.com ನಲ್ಲಿಯೂ ಸಂಪರ್ಕಿಸಬಹುದು' },
+  },
 };
 
 export const dictionaries = {
