@@ -269,7 +269,9 @@ export function KycStep({ onCompleted }: StepProps) {
   const [isVerifying, startTransition] = useTransition();
   const { toast } = useToast();
   
-  const [panValue, setPanValue] = useState(application.personalDetails?.pan || "");
+  const panValue = application.personalDetails?.pan || "";
+  const fullName = application.personalDetails?.fullName || "";
+  const birthDate = application.personalDetails?.birthDate;
 
 
   function onPanSubmit() {
@@ -349,7 +351,7 @@ export function KycStep({ onCompleted }: StepProps) {
       <Card>
         <CardHeader>
           <CardTitle>1. PAN Verification</CardTitle>
-          <CardDescription>Enter your PAN to verify your identity. This is a simulated backend check.</CardDescription>
+          <CardDescription>Confirm your details below to verify your PAN. This is a simulated backend check.</CardDescription>
         </CardHeader>
         <CardContent>
           {isPanVerified ? (
@@ -362,8 +364,20 @@ export function KycStep({ onCompleted }: StepProps) {
             </Alert>
           ) : (
              <div className="space-y-4">
-                <Label htmlFor="pan">PAN</Label>
-                <Input id="pan" value={panValue} onChange={(e) => setPanValue(e.target.value.toUpperCase())} />
+                <div className="space-y-2 p-4 border rounded-md bg-muted/50">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Full Name</Label>
+                      <p className="font-medium">{fullName}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Date of Birth</Label>
+                      <p className="font-medium">{birthDate ? format(birthDate, 'dd MMMM, yyyy') : 'N/A'}</p>
+                    </div>
+                     <div>
+                      <Label className="text-xs text-muted-foreground">PAN</Label>
+                      <p className="font-medium">{panValue}</p>
+                    </div>
+                </div>
                 <Button onClick={onPanSubmit} disabled={isVerifying}>
                   {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Verify PAN
@@ -1378,8 +1392,8 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                               ? "border-primary bg-primary/10 shadow-lg" 
                               : "border-border hover:border-primary/50"
                       )}>
-                          <p className="font-bold text-lg">{tenure}</p>
-                          <p className="text-sm text-muted-foreground">Months</p>
+                          <div className="font-bold text-lg">{tenure}</div>
+                          <div className="text-sm text-muted-foreground">Months</div>
                       </Label>
                     </div>
                   ))}
@@ -1393,8 +1407,8 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                         <CardTitle className="text-center text-lg">Your Selected Plan</CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 pt-0 text-center">
-                        <p className="text-3xl font-bold font-headline">₹{calculatedEmi.toLocaleString('en-IN')} <span className="text-base font-normal text-muted-foreground">/ month</span></p>
-                        <p className="text-sm text-muted-foreground">for {selectedTenure} months at {ANNUAL_INTEREST_RATE}% p.a.</p>
+                        <div className="text-3xl font-bold font-headline">₹{calculatedEmi.toLocaleString('en-IN')} <span className="text-base font-normal text-muted-foreground">/ month</span></div>
+                        <div className="text-sm text-muted-foreground">for {selectedTenure} months at {ANNUAL_INTEREST_RATE}% p.a.</div>
                     </CardContent>
                 </Card>
             ) : null}
@@ -2271,3 +2285,6 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
 
     
 
+
+
+    
