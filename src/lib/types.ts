@@ -16,6 +16,7 @@ export type UploadableDocument = {
   category: 'Identity' | 'Financial' | 'Other';
   optional?: boolean;
   file?: File;
+  source?: 'device' | 'dropbox';
 };
 
 

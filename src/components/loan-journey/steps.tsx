@@ -19,8 +19,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState, useTransition, useEffect, useMemo } from "react";
-import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet, FileText, BadgeCheck, AlertCircle, UploadCloud, Info, XCircle } from "lucide-react";
+import { useState, useTransition, useEffect, useMemo, useRef } from "react";
+import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet, FileText, BadgeCheck, AlertCircle, UploadCloud, Info, XCircle, ChevronDown, FolderUp, Cloud } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -42,6 +42,7 @@ import { addMonths, format, startOfMonth } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useLanguage } from "../language-provider";
 import { Slider } from "@/components/ui/slider";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 
 interface StepProps {
   onCompleted: () => void;
@@ -518,6 +519,7 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
     const { toast } = useToast();
     const { dict, language } = useLanguage();
     const d = dict.doc_verification;
+    const fileInputRefs = useRef<{[key: string]: HTMLInputElement | null}>({});
 
     // DigiLocker Logic
     const handleDigiLockerFetch = (selectedDocIds: string[]) => {
@@ -549,13 +551,13 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
     };
 
     // Manual Upload Logic
-    const handleFileUpload = (docId: string, file: File) => {
+    const handleFileUpload = (docId: string, file: File, source: 'device' | 'dropbox') => {
         startUploading(() => {
             setTimeout(() => {
                 setUploadedDocs(prev => prev.map(doc =>
-                    doc.id === docId ? { ...doc, status: 'UPLOADED', file } : doc
+                    doc.id === docId ? { ...doc, status: 'UPLOADED', file, source } : doc
                 ));
-                toast({ title: `${file.name} uploaded.` });
+                toast({ title: `${file.name} uploaded${source === 'dropbox' ? ' from Dropbox' : ''}.` });
 
                 setTimeout(() => {
                     setUploadedDocs(prev => prev.map(doc =>
@@ -568,6 +570,17 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
                     toast({ title: `${d.verified_toast.en} ${file.name}` });
                 }, 1500);
             }, 1000);
+        });
+    };
+    
+    // Mock Dropbox upload
+    const handleDropboxUpload = (docId: string) => {
+        toast({ title: "Opening Dropbox..." });
+        startUploading(() => {
+            setTimeout(() => {
+                const mockFile = new File(["mock content"], "document_from_dropbox.pdf", { type: "application/pdf" });
+                handleFileUpload(docId, mockFile, 'dropbox');
+            }, 2000);
         });
     };
 
@@ -686,13 +699,22 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
       });
     };
 
-    const getVerificationStatus = (docStatus: UploadableDocument['status']) => {
-        switch(docStatus) {
-            case 'VERIFIED_DIGITALLY': return <Badge variant="default" className="bg-green-600">{d.upload_verified_digital_badge.en}</Badge>;
-            case 'VERIFIED_OCR': return <Badge variant="secondary" className="bg-blue-500 text-white">{d.upload_verified_ocr_badge.en}</Badge>;
-            case 'UPLOADED': return <Badge variant="outline">{d.upload_uploaded_badge.en}</Badge>;
-            default: return <Badge variant="outline">{d.upload_pending_badge.en}</Badge>;
+    const getVerificationStatus = (doc: UploadableDocument) => {
+        let text: React.ReactNode;
+        switch(doc.status) {
+            case 'VERIFIED_DIGITALLY': text = d.upload_verified_digital_badge.en; break;
+            case 'VERIFIED_OCR': text = doc.source === 'dropbox' ? 'Verified (from Dropbox)' : d.upload_verified_ocr_badge.en; break;
+            case 'UPLOADED': text = d.upload_uploaded_badge.en; break;
+            default: text = d.upload_pending_badge.en; break;
         }
+
+        return <Badge variant={doc.status === 'VERIFIED_DIGITALLY' ? 'default' : doc.status === 'VERIFIED_OCR' ? 'secondary' : 'outline'}
+                className={cn({
+                    'bg-green-600': doc.status === 'VERIFIED_DIGITALLY',
+                    'bg-blue-500 text-white': doc.status === 'VERIFIED_OCR'
+                })}>
+                    {text}
+               </Badge>;
     };
     
     if (isProcessing) {
@@ -836,24 +858,35 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
                         <div key={doc.id} className="p-4 border rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
                                 <p className="font-semibold">{doc.name} {doc.optional && <span className="text-xs font-normal text-muted-foreground">(Optional)</span>}</p>
-                                <div className="mt-1">{getVerificationStatus(doc.status)}</div>
+                                <div className="mt-1">{getVerificationStatus(doc)}</div>
                             </div>
                             {doc.status === 'PENDING' && (
-                                 <div className="relative">
-                                    <Button variant="outline" asChild className="cursor-pointer">
-                                        <div>
-                                            <UploadCloud className="mr-2 h-4 w-4" />
+                                 <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline">
                                             {d.upload_button.en}
                                             {language !== 'en' && ` / ${d.upload_button.regional}`}
-                                        </div>
-                                    </Button>
+                                            <ChevronDown className="ml-2 h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                        <DropdownMenuItem onSelect={() => fileInputRefs.current[doc.id]?.click()}>
+                                            <FolderUp className="mr-2 h-4 w-4" />
+                                            <span>Upload from device</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => handleDropboxUpload(doc.id)}>
+                                            <Cloud className="mr-2 h-4 w-4" />
+                                            <span>Upload from Dropbox</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
                                     <input 
                                         type="file" 
-                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        ref={(el) => fileInputRefs.current[doc.id] = el}
+                                        className="hidden"
                                         accept="image/*,application/pdf"
-                                        onChange={(e) => e.target.files?.[0] && handleFileUpload(doc.id, e.target.files[0])}
+                                        onChange={(e) => e.target.files?.[0] && handleFileUpload(doc.id, e.target.files[0], 'device')}
                                     />
-                                </div>
+                                </DropdownMenu>
                             )}
                         </div>
                     ))}
@@ -1448,10 +1481,10 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                               </div>
                           </div>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-2">
+                      <div className="text-sm text-muted-foreground mt-2">
                         {d.cibil_score_label.en} - Decision: {application.bureauReport?.decision_summary}
                         {language !== 'en' && <span className="block text-xs font-normal mt-1">{d.cibil_score_label.regional} - Decision: {application.bureauReport?.decision_summary}</span>}
-                        </p>
+                        </div>
                   </div>
                     <div className="grid grid-cols-3 gap-2 text-center">
                         <div className="p-2 bg-background rounded-md">
@@ -1521,19 +1554,19 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                 </Card>
             ) : (
                 <div className="text-center">
-                    <p className="text-muted-foreground">
+                    <div className="text-muted-foreground">
                         {d.lower_amount_requested.en.replace('{amount}', `₹${requestedAmount.toLocaleString('en-IN')}`)}
                         {language !== 'en' && <span className="block text-sm mt-1">{d.lower_amount_requested.regional.replace('{amount}', `₹${requestedAmount.toLocaleString('en-IN')}`)}</span>}
-                    </p>
-                    <p className="text-muted-foreground font-semibold mt-2">
+                    </div>
+                    <div className="text-muted-foreground font-semibold mt-2">
                         {d.lower_amount_approved.en}
                         {language !== 'en' && <span className="block text-sm mt-1">{d.lower_amount_approved.regional}</span>}
-                    </p>
+                    </div>
                     <h3 className="font-headline text-4xl font-bold text-primary">₹{finalLoanAmount.toLocaleString('en-IN')}</h3>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <div className="text-xs text-muted-foreground mt-1">
                         {d.lower_amount_reason.en}
                         {language !== 'en' && <span className="block text-xs mt-1">{d.lower_amount_reason.regional}</span>}
-                    </p>
+                    </div>
                     <div className="flex gap-4 justify-center mt-6">
                         <Button variant="outline" onClick={() => setView('assisted_closure')}>
                             {d.lower_amount_decline_button.en}
@@ -2512,3 +2545,4 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
