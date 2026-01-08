@@ -101,16 +101,16 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
   const form = useForm<z.infer<typeof personalDetailsSchema>>({
     resolver: zodResolver(personalDetailsSchema),
     defaultValues: {
-      fullName: "",
-      pan: "",
-      birthDate: undefined,
-      loanAmount: undefined,
-      employmentType: "",
-      monthlyIncome: undefined,
-      addressLine1: "",
-      city: "",
-      pincode: "",
-      consent: false
+      fullName: "Rohan Sharma",
+      pan: "GKYPK1234A",
+      birthDate: new Date("1990-05-15"),
+      loanAmount: 50000,
+      employmentType: "Salaried",
+      monthlyIncome: 60000,
+      addressLine1: "123, Rose Villa",
+      city: "Mumbai",
+      pincode: "400050",
+      consent: true
     },
   });
 
@@ -313,7 +313,7 @@ export function KycStep({ onCompleted }: StepProps) {
         
         // Update personal details in state if they were changed
         const personalDetailsUpdate = { ...application.personalDetails, ...values };
-        setApplication(prev => ({ ...prev, kyc: kycUpdate, personalDetails: personalDetailsUpdate }));
+        setApplication(prev => ({ ...prev, kyc: kycUpdate, personalDetails: personalDetailsUpdate as any }));
         
         const kycRef = doc(firestore, 'borrowers', user.uid, 'kyc_records', application.loanApplicationId);
         const kycData = { borrowerId: user.uid, panStatus: 'VERIFIED', kycCompleted: false, applicationId: application.loanApplicationId };
@@ -805,18 +805,18 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
                     <div className="border rounded-lg p-3 space-y-2 text-sm">
                         <div className="flex items-center gap-2">
                              <CheckCircle className="h-4 w-4 text-green-600" />
-                             <span>Details verified against trusted sources (Aadhaar, PAN).</span>
+                             <span>Details verified against trusted and creditable sources such as Aadhaar or PAN</span>
                         </div>
                          <div className="flex items-center gap-2">
                              <XCircle className="h-4 w-4 text-destructive" />
-                             <span>Details do not match official records.</span>
+                             <span>Details do not match or could not be verified against official records</span>
                         </div>
                     </div>
                 
                     <div className="flex items-start gap-4 p-4 border rounded-lg">
                         <div className="relative h-24 w-20 rounded-md overflow-hidden bg-muted flex-shrink-0">
                            <Image 
-                                src="https://placehold.co/200x300/e2e8f0/e2e8f0"
+                                src="https://placehold.co/200x300/e2e8f0/e2e8f0?text=Aadhaar"
                                 alt="Aadhaar Photo"
                                 layout="fill"
                                 objectFit="cover"
@@ -1578,7 +1578,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                     <CardContent className="space-y-4">
                         <div>
                           <div className="flex justify-between items-center mb-2">
-                             <div className="font-semibold"><BilingualText en={d.select_amount_label.en} regional={d.select_amount_label.regional}/></div>
+                             <div><BilingualText en={d.select_amount_label.en} regional={d.select_amount_label.regional}/></div>
                             <div>
                                 <Badge variant="default" className="bg-green-600">
                                 {d.recommended_badge.en}
@@ -1641,7 +1641,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
             {eligibleAmount >= requestedAmount && (
                 <>
                     <div>
-                        <div className="font-semibold"><BilingualText en={d.tenure_label.en} regional={d.tenure_label.regional}/></div>
+                        <div><BilingualText en={d.tenure_label.en} regional={d.tenure_label.regional}/></div>
                         <p className="text-sm text-muted-foreground mb-4">
                             {d.tenure_description.en}
                             {language !== 'en' && <span className="block text-xs mt-1">{d.tenure_description.regional}</span>}
