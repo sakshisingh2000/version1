@@ -19,6 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection } from 'firebase/firestore';
+import { useLanguage } from '@/components/language-provider';
 
 const otpSchema = z.object({
   otp: z.string().min(6, 'Please enter the 6-digit OTP.').max(6),
@@ -30,6 +31,8 @@ function OTPVerifyComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mobileNumber = searchParams.get('mobile');
+  const { dict, language } = useLanguage();
+  const d = dict.otp_verify;
 
   const firebaseApp = useFirebaseApp();
   const firestore = useFirestore();
@@ -52,10 +55,7 @@ function OTPVerifyComponent() {
     // OTP verification
     if (values.otp === '123456') {
       try {
-        // In a real app, you'd get a custom token from your backend after verifying the OTP.
-        // For this prototype, we will sign in the user anonymously to get a UID for our rules.
-        
-        await auth.signOut(); // Ensure no prior user is logged in
+        await auth.signOut();
         const userCredential = await signInAnonymously(auth);
         const user = userCredential.user;
 
@@ -71,7 +71,6 @@ function OTPVerifyComponent() {
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         };
-        // This is a simplified user creation for the demo.
         await setDoc(borrowerRef, borrowerData);
         
         const auditLogData = {
@@ -82,14 +81,11 @@ function OTPVerifyComponent() {
             timestamp: serverTimestamp(),
             borrowerId: user.uid,
         };
-        // This write will now succeed because the user is authenticated (anonymously)
-        // and the security rule allows creating an audit log for one's own user document.
         addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditLogData);
 
-
         toast({
-          title: 'Verification Successful',
-          description: 'You have been successfully verified.',
+          title: d.success_title.en,
+          description: d.success_description.en,
         });
         
         router.push('/consent');
@@ -98,8 +94,8 @@ function OTPVerifyComponent() {
         console.error("OTP/Firestore error:", error);
         toast({
           variant: 'destructive',
-          title: 'Verification Failed',
-          description: error.message || 'An unexpected error occurred.',
+          title: d.failure_title.en,
+          description: error.message || d.failure_description.en,
         });
         setLoading(false);
       }
@@ -107,8 +103,8 @@ function OTPVerifyComponent() {
       setTimeout(() => {
         toast({
           variant: 'destructive',
-          title: 'Invalid OTP',
-          description: 'The OTP you entered is incorrect. Please try again.',
+          title: d.invalid_otp_title.en,
+          description: d.invalid_otp_description.en,
         });
         setLoading(false);
       }, 1000);
@@ -121,9 +117,13 @@ function OTPVerifyComponent() {
       <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle>Enter OTP</CardTitle>
+            <CardTitle>
+                {d.title.en}
+                {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.title.regional}</span>}
+            </CardTitle>
             <CardDescription>
-              An OTP has been sent to +91 {mobileNumber ? `******${mobileNumber.slice(-4)}` : 'your mobile'}.
+              {d.description.en.replace('<mobile>', mobileNumber ? `******${mobileNumber.slice(-4)}` : 'your mobile')}
+              {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.description.regional.replace('<mobile>', mobileNumber ? `******${mobileNumber.slice(-4)}` : 'आपके मोबाइल पर')}</span>}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -134,9 +134,12 @@ function OTPVerifyComponent() {
                   name="otp"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>6-Digit OTP</FormLabel>
+                      <FormLabel>
+                        {d.otp_label.en}
+                        {language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.otp_label.regional}</span>}
+                      </FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="123456" maxLength={6} />
+                        <Input {...field} placeholder={language === 'en' ? d.otp_placeholder.en : `${d.otp_placeholder.en} / ${d.otp_placeholder.regional}`} maxLength={6} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -144,11 +147,13 @@ function OTPVerifyComponent() {
                 />
                 <Button type="submit" disabled={loading} className="w-full">
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Verify OTP
+                  {d.button_text.en}
+                  {language !== 'en' && ` / ${d.button_text.regional}`}
                 </Button>
                  <div className="text-center text-sm">
-                    <Button variant="link" type="button" onClick={() => toast({ title: 'OTP Resent' })}>
-                        Resend OTP
+                    <Button variant="link" type="button" onClick={() => toast({ title: d.resent_toast.en })}>
+                        {d.resend_button.en}
+                        {language !== 'en' && ` / ${d.resend_button.regional}`}
                     </Button>
                 </div>
               </form>
@@ -160,7 +165,6 @@ function OTPVerifyComponent() {
     </div>
   );
 }
-
 
 export default function OTPVerifyPage() {
     return (

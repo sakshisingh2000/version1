@@ -8,6 +8,30 @@ type BilingualText = {
 };
 
 export interface Dictionary {
+  login: {
+    title: BilingualText;
+    description: BilingualText;
+    mobile_label: BilingualText;
+    mobile_placeholder: BilingualText;
+    button_text: BilingualText;
+    otp_sent_title: BilingualText;
+    otp_sent_description: BilingualText;
+  },
+  otp_verify: {
+    title: BilingualText;
+    description: BilingualText;
+    otp_label: BilingualText;
+    otp_placeholder: BilingualText;
+    button_text: BilingualText;
+    resend_button: BilingualText;
+    resent_toast: BilingualText;
+    success_title: BilingualText;
+    success_description: BilingualText;
+    failure_title: BilingualText;
+    failure_description: BilingualText;
+    invalid_otp_title: BilingualText;
+    invalid_otp_description: BilingualText;
+  },
   consent: {
     title: BilingualText;
     description: BilingualText;
@@ -46,6 +70,85 @@ export interface Dictionary {
     consent_description: BilingualText;
     save_button: BilingualText;
   };
+  kyc: {
+    pan_title: BilingualText;
+    pan_description: BilingualText;
+    pan_verified_title: BilingualText;
+    pan_verified_description: BilingualText;
+    pan_button: BilingualText;
+    aadhaar_title: BilingualText;
+    aadhaar_description: BilingualText;
+    aadhaar_verified_title: BilingualText;
+    aadhaar_verified_description: BilingualText;
+    aadhaar_label: BilingualText;
+    aadhaar_placeholder: BilingualText;
+    send_otp_button: BilingualText;
+    otp_label: BilingualText;
+    otp_placeholder: BilingualText;
+    verify_otp_button: BilingualText;
+    continue_button: BilingualText;
+  },
+  doc_verification: {
+      digilocker_title: BilingualText;
+      digilocker_description: BilingualText;
+      digilocker_button: BilingualText;
+      manual_title: BilingualText;
+      manual_description: BilingualText;
+      upload_button: BilingualText;
+      verifying_toast: BilingualText;
+      verified_toast: BilingualText;
+      upload_pending_badge: BilingualText;
+      upload_uploaded_badge: BilingualText;
+      upload_verified_ocr_badge: BilingualText;
+      upload_verified_digital_badge: BilingualText;
+      continue_button: BilingualText;
+      digilocker_modal_title: BilingualText;
+      digilocker_modal_description: BilingualText;
+      digilocker_modal_share_button: BilingualText;
+      processing_title: BilingualText;
+      processing_description: BilingualText;
+      summary_title: BilingualText;
+      summary_description: BilingualText;
+      summary_name_label: BilingualText;
+      summary_dob_label: BilingualText;
+      summary_address_label: BilingualText;
+      summary_pan_label: BilingualText;
+      summary_match_badge: BilingualText;
+      summary_mismatch_badge: BilingualText;
+      summary_partial_match_badge: BilingualText;
+  },
+   eligibility: {
+    rejected_title: BilingualText;
+    rejected_description: BilingualText;
+    back_home_button: BilingualText;
+    finalizing_title: BilingualText;
+    finalizing_description: BilingualText;
+    report_summary_title: BilingualText;
+    score_band_excellent: BilingualText;
+    score_band_good: BilingualText;
+    score_band_fair: BilingualText;
+    score_band_poor: BilingualText;
+    cibil_score_label: BilingualText;
+    active_loans_label: BilingualText;
+    overdue_label: BilingualText;
+    enquiries_label: BilingualText;
+    upsell_title: BilingualText;
+    upsell_description: BilingualText;
+    select_amount_label: BilingualText;
+    recommended_badge: BilingualText;
+    approved_amount_label: BilingualText;
+    approved_amount_description: BilingualText;
+    tenure_label: BilingualText;
+    tenure_description: BilingualText;
+    plan_title: BilingualText;
+    per_month_label: BilingualText;
+    for_months_label: BilingualText;
+    at_interest_label: BilingualText;
+    schedule_preview_title: BilingualText;
+    confirm_consent_label: BilingualText;
+    confirm_button: BilingualText;
+    validation_message: BilingualText;
+  },
   kfs: {
     title: BilingualText;
     description: BilingualText;
@@ -115,10 +218,65 @@ export interface Dictionary {
     sanctioned_amount: BilingualText;
     support_contact: BilingualText;
   };
+   agreement: {
+    title: BilingualText;
+    description: BilingualText;
+    agreement_title: BilingualText;
+    agreement_content_line1: BilingualText;
+    agreement_content_line2: BilingualText;
+    agreement_content_line3: BilingualText;
+    agreement_content_line4: BilingualText;
+    sign_button: BilingualText;
+    otp_label: BilingualText;
+    otp_placeholder: BilingualText;
+    verify_button: BilingualText;
+  };
+  disbursement: {
+    success_title: BilingualText;
+    success_description: BilingualText;
+    details_title: BilingualText;
+    amount_label: BilingualText;
+    account_label: BilingualText;
+    ref_label: BilingualText;
+    credited_soon_message: BilingualText;
+    download_agreement_button: BilingualText;
+    back_to_dashboard_button: BilingualText;
+    ready_title: BilingualText;
+    ready_description: BilingualText;
+    final_disbursement_title: BilingualText;
+    net_amount_label: BilingualText;
+    to_account_label: BilingualText;
+    initiate_button: BilingualText;
+    processing_button: BilingualText;
+  };
 }
 
 
 const en: Dictionary = {
+  login: {
+    title: { en: 'Verify Your Mobile', regional: 'Verify Your Mobile' },
+    description: { en: "We'll send a one-time password (OTP) to your mobile number to get started.", regional: "We'll send a one-time password (OTP) to your mobile number to get started." },
+    mobile_label: { en: 'Mobile Number', regional: 'Mobile Number' },
+    mobile_placeholder: { en: 'Enter 10-digit mobile number', regional: 'Enter 10-digit mobile number' },
+    button_text: { en: 'Get OTP', regional: 'Get OTP' },
+    otp_sent_title: { en: 'OTP Sent', regional: 'OTP Sent' },
+    otp_sent_description: { en: 'An OTP has been sent to', regional: 'An OTP has been sent to' },
+  },
+  otp_verify: {
+    title: { en: 'Enter OTP', regional: 'Enter OTP' },
+    description: { en: 'An OTP has been sent to +91 <mobile>.', regional: 'An OTP has been sent to +91 <mobile>.' },
+    otp_label: { en: '6-Digit OTP', regional: '6-Digit OTP' },
+    otp_placeholder: { en: '123456', regional: '123456' },
+    button_text: { en: 'Verify OTP', regional: 'Verify OTP' },
+    resend_button: { en: 'Resend OTP', regional: 'Resend OTP' },
+    resent_toast: { en: 'OTP Resent', regional: 'OTP Resent' },
+    success_title: { en: 'Verification Successful', regional: 'Verification Successful' },
+    success_description: { en: 'You have been successfully verified.', regional: 'You have been successfully verified.' },
+    failure_title: { en: 'Verification Failed', regional: 'Verification Failed' },
+    failure_description: { en: 'An unexpected error occurred.', regional: 'An unexpected error occurred.' },
+    invalid_otp_title: { en: 'Invalid OTP', regional: 'Invalid OTP' },
+    invalid_otp_description: { en: 'The OTP you entered is incorrect. Please try again.', regional: 'The OTP you entered is incorrect. Please try again.' },
+  },
   consent: {
     title: { en: 'Consent Hub', regional: 'Consent Hub' },
     description: { en: 'As per RBI guidelines, we need your explicit consent for the following data processing activities.', regional: 'As per RBI guidelines, we need your explicit consent for the following data processing activities.' },
@@ -156,6 +314,85 @@ const en: Dictionary = {
     consent_label: { en: 'Explicit Consent', regional: 'Explicit Consent' },
     consent_description: { en: 'I hereby consent to LoanSwift fetching my credit information and other details for the purpose of this loan application.', regional: 'I hereby consent to LoanSwift fetching my credit information and other details for the purpose of this loan application.' },
     save_button: { en: 'Save and Continue', regional: 'Save and Continue' },
+  },
+  kyc: {
+    pan_title: { en: 'PAN Verification', regional: 'PAN Verification' },
+    pan_description: { en: 'Pre-filled based on earlier details. Please review and edit if required.', regional: 'Pre-filled based on earlier details. Please review and edit if required.' },
+    pan_verified_title: { en: 'PAN Verified', regional: 'PAN Verified' },
+    pan_verified_description: { en: 'Your PAN has been successfully verified.', regional: 'Your PAN has been successfully verified.' },
+    pan_button: { en: 'Verify PAN', regional: 'Verify PAN' },
+    aadhaar_title: { en: 'Aadhaar e-KYC', regional: 'Aadhaar e-KYC' },
+    aadhaar_description: { en: 'Enter your Aadhaar to perform e-KYC via OTP.', regional: 'Enter your Aadhaar to perform e-KYC via OTP.' },
+    aadhaar_verified_title: { en: 'Aadhaar Verified', regional: 'Aadhaar Verified' },
+    aadhaar_verified_description: { en: 'Your Aadhaar e-KYC is complete.', regional: 'Your Aadhaar e-KYC is complete.' },
+    aadhaar_label: { en: 'Aadhaar Number', regional: 'Aadhaar Number' },
+    aadhaar_placeholder: { en: '1234 5678 9012', regional: '1234 5678 9012' },
+    send_otp_button: { en: 'Send OTP', regional: 'Send OTP' },
+    otp_label: { en: 'Enter OTP', regional: 'Enter OTP' },
+    otp_placeholder: { en: 'Enter 6-digit OTP (123456)', regional: 'Enter 6-digit OTP (123456)' },
+    verify_otp_button: { en: 'Verify OTP', regional: 'Verify OTP' },
+    continue_button: { en: 'Continue to Document Verification', regional: 'Continue to Document Verification' },
+  },
+   doc_verification: {
+    digilocker_title: { en: 'Option 1: Use DigiLocker', regional: 'Option 1: Use DigiLocker' },
+    digilocker_description: { en: 'Fetch your Aadhaar and PAN instantly for faster processing.', regional: 'Fetch your Aadhaar and PAN instantly for faster processing.' },
+    digilocker_button: { en: 'Connect to DigiLocker', regional: 'Connect to DigiLocker' },
+    manual_title: { en: 'Option 2: Manual Upload', regional: 'Option 2: Manual Upload' },
+    manual_description: { en: "Upload your documents manually. We'll use OCR to verify them.", regional: "Upload your documents manually. We'll use OCR to verify them." },
+    upload_button: { en: 'Upload', regional: 'Upload' },
+    verifying_toast: { en: 'uploading and verifying...', regional: 'uploading and verifying...' },
+    verified_toast: { en: 'Verified', regional: 'Verified' },
+    upload_pending_badge: { en: 'Pending', regional: 'Pending' },
+    upload_uploaded_badge: { en: 'Uploaded, Verifying...', regional: 'Uploaded, Verifying...' },
+    upload_verified_ocr_badge: { en: 'Verified via OCR', regional: 'Verified via OCR' },
+    upload_verified_digital_badge: { en: 'Digitally Verified', regional: 'Digitally Verified' },
+    continue_button: { en: 'Continue to Eligibility', regional: 'Continue to Eligibility' },
+    digilocker_modal_title: { en: 'Share Documents from DigiLocker', regional: 'Share Documents from DigiLocker' },
+    digilocker_modal_description: { en: 'Select the documents you want to share for KYC verification.', regional: 'Select the documents you want to share for KYC verification.' },
+    digilocker_modal_share_button: { en: 'Share Selected Documents', regional: 'Share Selected Documents' },
+    processing_title: { en: 'Verifying Documents & Checking Credit...', regional: 'Verifying Documents & Checking Credit...' },
+    processing_description: { en: 'Please wait while we securely process your information.', regional: 'Please wait while we securely process your information.' },
+    summary_title: { en: 'KYC Matching Summary', regional: 'KYC Matching Summary' },
+    summary_description: { en: "We've matched your provided details against your verified documents. Aadhaar is the primary source of truth.", regional: "We've matched your provided details against your verified documents. Aadhaar is the primary source of truth." },
+    summary_name_label: { en: 'Full Name', regional: 'Full Name' },
+    summary_dob_label: { en: 'Date of Birth', regional: 'Date of Birth' },
+    summary_address_label: { en: 'Address', regional: 'Address' },
+    summary_pan_label: { en: 'PAN', regional: 'PAN' },
+    summary_match_badge: { en: 'Matches Aadhaar', regional: 'Matches Aadhaar' },
+    summary_mismatch_badge: { en: 'Does Not Match', regional: 'Does Not Match' },
+    summary_partial_match_badge: { en: 'Partial Match', regional: 'Partial Match' },
+  },
+  eligibility: {
+    rejected_title: { en: 'Application Not Approved', regional: 'Application Not Approved' },
+    rejected_description: { en: 'We are unable to proceed with your loan application at this time based on our current lending policies.', regional: 'We are unable to proceed with your loan application at this time based on our current lending policies.' },
+    back_home_button: { en: 'Back to Home', regional: 'Back to Home' },
+    finalizing_title: { en: 'Finalizing Eligibility...', regional: 'Finalizing Eligibility...' },
+    finalizing_description: { en: 'This should only take a moment.', regional: 'This should only take a moment.' },
+    report_summary_title: { en: 'Your Credit Report Summary', regional: 'Your Credit Report Summary' },
+    score_band_excellent: { en: 'Excellent', regional: 'Excellent' },
+    score_band_good: { en: 'Good', regional: 'Good' },
+    score_band_fair: { en: 'Fair', regional: 'Fair' },
+    score_band_poor: { en: 'Poor', regional: 'Poor' },
+    cibil_score_label: { en: 'CIBIL Score', regional: 'CIBIL Score' },
+    active_loans_label: { en: 'Active Loans', regional: 'Active Loans' },
+    overdue_label: { en: 'Overdue', regional: 'Overdue' },
+    enquiries_label: { en: 'Recent Enquiries', regional: 'Recent Enquiries' },
+    upsell_title: { en: 'Great News!', regional: 'Great News!' },
+    upsell_description: { en: "You applied for ₹<requested>, but you're eligible for up to ₹<eligible>.", regional: "You applied for ₹<requested>, but you're eligible for up to ₹<eligible>." },
+    select_amount_label: { en: 'Select Your Loan Amount', regional: 'Select Your Loan Amount' },
+    recommended_badge: { en: 'Recommended', regional: 'Recommended' },
+    approved_amount_label: { en: 'Based on your profile, your approved loan amount is', regional: 'Based on your profile, your approved loan amount is' },
+    approved_amount_description: { en: 'This approved amount is based on your credit profile and repayment capacity.', regional: 'This approved amount is based on your credit profile and repayment capacity.' },
+    tenure_label: { en: 'Choose your tenure', regional: 'Choose your tenure' },
+    tenure_description: { en: 'Select a plan to see your monthly payment.', regional: 'Select a plan to see your monthly payment.' },
+    plan_title: { en: 'Your Selected Plan', regional: 'Your Selected Plan' },
+    per_month_label: { en: '/ month', regional: '/ month' },
+    for_months_label: { en: 'months', regional: 'months' },
+    at_interest_label: { en: '% p.a.', regional: '% p.a.' },
+    schedule_preview_title: { en: 'Payment Schedule Preview', regional: 'Payment Schedule Preview' },
+    confirm_consent_label: { en: 'I confirm that I have reviewed and chosen this loan tenure and EMI.', regional: 'I confirm that I have reviewed and chosen this loan tenure and EMI.' },
+    confirm_button: { en: 'Confirm Loan Amount & Continue', regional: 'Confirm Loan Amount & Continue' },
+    validation_message: { en: 'Please select a tenure and confirm your choice to proceed.', regional: 'Please select a tenure and confirm your choice to proceed.' },
   },
   kfs: {
     title: { en: 'Your Loan Offer Summary', regional: 'Your Loan Offer Summary' },
@@ -226,9 +463,64 @@ const en: Dictionary = {
     sanctioned_amount: { en: 'Sanctioned Amount', regional: 'Sanctioned Amount' },
     support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'You can also reach us at support@loanswift.com' },
   },
+  agreement: {
+    title: { en: 'Digital Loan Agreement (e-Sign)', regional: 'Digital Loan Agreement (e-Sign)' },
+    description: { en: 'Review the terms and sign the agreement using an Aadhaar-based OTP.', regional: 'Review the terms and sign the agreement using an Aadhaar-based OTP.' },
+    agreement_title: { en: 'Loan Agreement', regional: 'Loan Agreement' },
+    agreement_content_line1: { en: 'This is a legally binding agreement between you (the Borrower) and FairFinance NBFC (the Lender)...', regional: 'This is a legally binding agreement between you (the Borrower) and FairFinance NBFC (the Lender)...' },
+    agreement_content_line2: { en: '1. Loan Amount: ₹<amount>', regional: '1. Loan Amount: ₹<amount>' },
+    agreement_content_line3: { en: '2. Tenure: <tenure> months', regional: '2. Tenure: <tenure> months' },
+    agreement_content_line4: { en: '3. Repayment: You agree to repay the loan via monthly EMIs of ₹<emi> as per the e-mandate.', regional: '3. Repayment: You agree to repay the loan via monthly EMIs of ₹<emi> as per the e-mandate.' },
+    sign_button: { en: 'Sign via Aadhaar OTP', regional: 'Sign via Aadhaar OTP' },
+    otp_label: { en: 'Enter OTP sent to your Aadhaar-linked mobile', regional: 'Enter OTP sent to your Aadhaar-linked mobile' },
+    otp_placeholder: { en: 'Enter 6-digit OTP', regional: 'Enter 6-digit OTP' },
+    verify_button: { en: 'Verify & e-Sign', regional: 'Verify & e-Sign' },
+  },
+  disbursement: {
+    success_title: { en: 'Congratulations!', regional: 'Congratulations!' },
+    success_description: { en: 'Your loan has been disbursed.', regional: 'Your loan has been disbursed.' },
+    details_title: { en: 'Disbursement Details', regional: 'Disbursement Details' },
+    amount_label: { en: 'Amount:', regional: 'Amount:' },
+    account_label: { en: 'Bank Account:', regional: 'Bank Account:' },
+    ref_label: { en: 'Transaction Ref:', regional: 'Transaction Ref:' },
+    credited_soon_message: { en: 'The amount will be credited to your account shortly. Your first EMI is due next month.', regional: 'The amount will be credited to your account shortly. Your first EMI is due next month.' },
+    download_agreement_button: { en: 'Download Agreement', regional: 'Download Agreement' },
+    back_to_dashboard_button: { en: 'Back to Dashboard', regional: 'Back to Dashboard' },
+    ready_title: { en: 'Ready for Disbursement', regional: 'Ready for Disbursement' },
+    ready_description: { en: 'All formalities are complete. The net loan amount will be transferred to your verified bank account.', regional: 'All formalities are complete. The net loan amount will be transferred to your verified bank account.' },
+    final_disbursement_title: { en: 'Final Disbursement', regional: 'Final Disbursement' },
+    net_amount_label: { en: 'Net Amount:', regional: 'Net Amount:' },
+    to_account_label: { en: 'To Account:', regional: 'To Account:' },
+    initiate_button: { en: 'Initiate Disbursement', regional: 'Initiate Disbursement' },
+    processing_button: { en: 'Processing...', regional: 'Processing...' },
+  },
 };
 
 const hi: Dictionary = {
+  login: {
+    title: { en: 'Verify Your Mobile', regional: 'अपना मोबाइल सत्यापित करें' },
+    description: { en: "We'll send a one-time password (OTP) to your mobile number to get started.", regional: 'शुरू करने के लिए हम आपके मोबाइल नंबर पर एक बार का पासवर्ड (OTP) भेजेंगे।' },
+    mobile_label: { en: 'Mobile Number', regional: 'मोबाइल नंबर' },
+    mobile_placeholder: { en: 'Enter 10-digit mobile number', regional: '10 अंकों का मोबाइल नंबर दर्ज करें' },
+    button_text: { en: 'Get OTP', regional: 'OTP प्राप्त करें' },
+    otp_sent_title: { en: 'OTP Sent', regional: 'OTP भेजा गया' },
+    otp_sent_description: { en: 'An OTP has been sent to', regional: 'एक OTP भेजा गया है' },
+  },
+  otp_verify: {
+    title: { en: 'Enter OTP', regional: 'OTP दर्ज करें' },
+    description: { en: 'An OTP has been sent to +91 <mobile>.', regional: '+91 <mobile> पर एक OTP भेजा गया है।' },
+    otp_label: { en: '6-Digit OTP', regional: '6-अंकीय OTP' },
+    otp_placeholder: { en: '123456', regional: '१२३४५६' },
+    button_text: { en: 'Verify OTP', regional: 'OTP सत्यापित करें' },
+    resend_button: { en: 'Resend OTP', regional: 'पुनः OTP भेजें' },
+    resent_toast: { en: 'OTP Resent', regional: 'OTP पुनः भेजा गया' },
+    success_title: { en: 'Verification Successful', regional: 'सत्यापन सफल' },
+    success_description: { en: 'You have been successfully verified.', regional: 'आपका सफलतापूर्वक सत्यापन हो गया है।' },
+    failure_title: { en: 'Verification Failed', regional: 'सत्यापन विफल' },
+    failure_description: { en: 'An unexpected error occurred.', regional: 'एक अप्रत्याशित त्रुटि हुई।' },
+    invalid_otp_title: { en: 'Invalid OTP', regional: 'अमान्य OTP' },
+    invalid_otp_description: { en: 'The OTP you entered is incorrect. Please try again.', regional: 'आपके द्वारा दर्ज किया गया OTP गलत है। कृपया पुनः प्रयास करें।' },
+  },
   consent: {
     title: { en: 'Consent Hub', regional: 'सहमति हब' },
     description: { en: 'As per RBI guidelines, we need your explicit consent for the following data processing activities.', regional: 'RBI दिशानिर्देशों के अनुसार, हमें निम्नलिखित डेटा प्रसंस्करण गतिविधियों के लिए आपकी स्पष्ट सहमति की आवश्यकता है।' },
@@ -266,6 +558,85 @@ const hi: Dictionary = {
     consent_label: { en: 'Explicit Consent', regional: 'स्पष्ट सहमति' },
     consent_description: { en: 'I hereby consent to LoanSwift fetching my credit information and other details for the purpose of this loan application.', regional: 'मैं इस ऋण आवेदन के प्रयोजन के लिए लोनस्विफ्ट द्वारा मेरी क्रेडिट जानकारी और अन्य विवरण प्राप्त करने के लिए अपनी सहमति देता/देती हूं।' },
     save_button: { en: 'Save and Continue', regional: 'सहेजें और जारी रखें' },
+  },
+   kyc: {
+    pan_title: { en: 'PAN Verification', regional: 'पैन सत्यापन' },
+    pan_description: { en: 'Pre-filled based on earlier details. Please review and edit if required.', regional: 'पहले के विवरण के आधार पर पहले से भरा हुआ। कृपया समीक्षा करें और यदि आवश्यक हो तो संपादित करें।' },
+    pan_verified_title: { en: 'PAN Verified', regional: 'पैन सत्यापित' },
+    pan_verified_description: { en: 'Your PAN has been successfully verified.', regional: 'आपका पैन सफलतापूर्वक सत्यापित हो गया है।' },
+    pan_button: { en: 'Verify PAN', regional: 'पैन सत्यापित करें' },
+    aadhaar_title: { en: 'Aadhaar e-KYC', regional: 'आधार ई-केवाईसी' },
+    aadhaar_description: { en: 'Enter your Aadhaar to perform e-KYC via OTP.', regional: 'OTP के माध्यम से ई-केवाईसी करने के लिए अपना आधार दर्ज करें।' },
+    aadhaar_verified_title: { en: 'Aadhaar Verified', regional: 'आधार सत्यापित' },
+    aadhaar_verified_description: { en: 'Your Aadhaar e-KYC is complete.', regional: 'आपका आधार ई-केवाईसी पूरा हो गया है।' },
+    aadhaar_label: { en: 'Aadhaar Number', regional: 'आधार संख्या' },
+    aadhaar_placeholder: { en: '1234 5678 9012', regional: '१२३४ ५६७८ ९०१२' },
+    send_otp_button: { en: 'Send OTP', regional: 'OTP भेजें' },
+    otp_label: { en: 'Enter OTP', regional: 'OTP दर्ज करें' },
+    otp_placeholder: { en: 'Enter 6-digit OTP (123456)', regional: '6-अंकीय OTP दर्ज करें (१२३४५६)' },
+    verify_otp_button: { en: 'Verify OTP', regional: 'OTP सत्यापित करें' },
+    continue_button: { en: 'Continue to Document Verification', regional: 'दस्तावेज़ सत्यापन के लिए जारी रखें' },
+  },
+  doc_verification: {
+    digilocker_title: { en: 'Option 1: Use DigiLocker', regional: 'विकल्प 1: डिजिलॉकर का उपयोग करें' },
+    digilocker_description: { en: 'Fetch your Aadhaar and PAN instantly for faster processing.', regional: 'तेजी से प्रसंस्करण के लिए तुरंत अपना आधार और पैन प्राप्त करें।' },
+    digilocker_button: { en: 'Connect to DigiLocker', regional: 'डिजिलॉकर से कनेक्ट करें' },
+    manual_title: { en: 'Option 2: Manual Upload', regional: 'विकल्प 2: मैनुअल अपलोड' },
+    manual_description: { en: "Upload your documents manually. We'll use OCR to verify them.", regional: 'अपने दस्तावेज़ मैन्युअल रूप से अपलोड करें। हम उन्हें सत्यापित करने के लिए ओसीआर का उपयोग करेंगे।' },
+    upload_button: { en: 'Upload', regional: 'अपलोड' },
+    verifying_toast: { en: 'uploading and verifying...', regional: 'अपलोड और सत्यापन हो रहा है...' },
+    verified_toast: { en: 'Verified', regional: 'सत्यापित' },
+    upload_pending_badge: { en: 'Pending', regional: 'लंबित' },
+    upload_uploaded_badge: { en: 'Uploaded, Verifying...', regional: 'अपलोड किया गया, सत्यापन हो रहा है...' },
+    upload_verified_ocr_badge: { en: 'Verified via OCR', regional: 'ओसीआर के माध्यम से सत्यापित' },
+    upload_verified_digital_badge: { en: 'Digitally Verified', regional: 'डिजिटल रूप से सत्यापित' },
+    continue_button: { en: 'Continue to Eligibility', regional: 'पात्रता के लिए जारी रखें' },
+    digilocker_modal_title: { en: 'Share Documents from DigiLocker', regional: 'डिजिलॉकर से दस्तावेज़ साझा करें' },
+    digilocker_modal_description: { en: 'Select the documents you want to share for KYC verification.', regional: 'केवाईसी सत्यापन के लिए आप जो दस्तावेज़ साझा करना चाहते हैं उन्हें चुनें।' },
+    digilocker_modal_share_button: { en: 'Share Selected Documents', regional: 'चयनित दस्तावेज़ साझा करें' },
+    processing_title: { en: 'Verifying Documents & Checking Credit...', regional: 'दस्तावेज़ों का सत्यापन और क्रेडिट की जाँच हो रही है...' },
+    processing_description: { en: 'Please wait while we securely process your information.', regional: 'कृपया प्रतीक्षा करें जब तक हम आपकी जानकारी को सुरक्षित रूप से संसाधित करते हैं।' },
+    summary_title: { en: 'KYC Matching Summary', regional: 'केवाईसी मिलान सारांश' },
+    summary_description: { en: "We've matched your provided details against your verified documents. Aadhaar is the primary source of truth.", regional: 'हमने आपके द्वारा प्रदान किए गए विवरणों को आपके सत्यापित दस्तावेज़ों के विरुद्ध मिलाया है। आधार सत्य का प्राथमिक स्रोत है।' },
+    summary_name_label: { en: 'Full Name', regional: 'पूरा नाम' },
+    summary_dob_label: { en: 'Date of Birth', regional: 'जन्म तिथि' },
+    summary_address_label: { en: 'Address', regional: 'पता' },
+    summary_pan_label: { en: 'PAN', regional: 'पैन' },
+    summary_match_badge: { en: 'Matches Aadhaar', regional: 'आधार से मेल खाता है' },
+    summary_mismatch_badge: { en: 'Does Not Match', regional: 'मेल नहीं खाता' },
+    summary_partial_match_badge: { en: 'Partial Match', regional: 'आंशिक मेल' },
+  },
+  eligibility: {
+    rejected_title: { en: 'Application Not Approved', regional: 'आवेदन स्वीकृत नहीं' },
+    rejected_description: { en: 'We are unable to proceed with your loan application at this time based on our current lending policies.', regional: 'हमारी वर्तमान ऋण नीतियों के आधार पर हम इस समय आपके ऋण आवेदन के साथ आगे बढ़ने में असमर्थ हैं।' },
+    back_home_button: { en: 'Back to Home', regional: 'होम पर वापस जाएं' },
+    finalizing_title: { en: 'Finalizing Eligibility...', regional: 'पात्रता को अंतिम रूप दिया जा रहा है...' },
+    finalizing_description: { en: 'This should only take a moment.', regional: 'इसमें केवल एक क्षण लगना चाहिए।' },
+    report_summary_title: { en: 'Your Credit Report Summary', regional: 'आपकी क्रेडिट रिपोर्ट का सारांश' },
+    score_band_excellent: { en: 'Excellent', regional: 'उत्कृष्ट' },
+    score_band_good: { en: 'Good', regional: 'अच्छा' },
+    score_band_fair: { en: 'Fair', regional: 'ठीक' },
+    score_band_poor: { en: 'Poor', regional: 'खराब' },
+    cibil_score_label: { en: 'CIBIL Score', regional: 'सिबिल स्कोर' },
+    active_loans_label: { en: 'Active Loans', regional: 'सक्रिय ऋण' },
+    overdue_label: { en: 'Overdue', regional: 'अतिदेय' },
+    enquiries_label: { en: 'Recent Enquiries', regional: 'हाल की पूछताछ' },
+    upsell_title: { en: 'Great News!', regional: 'खुशखबरी!' },
+    upsell_description: { en: "You applied for ₹<requested>, but you're eligible for up to ₹<eligible>.", regional: 'आपने ₹<requested> के लिए आवेदन किया था, लेकिन आप ₹<eligible> तक के लिए पात्र हैं।' },
+    select_amount_label: { en: 'Select Your Loan Amount', regional: 'अपनी ऋण राशि चुनें' },
+    recommended_badge: { en: 'Recommended', regional: 'अनुशंसित' },
+    approved_amount_label: { en: 'Based on your profile, your approved loan amount is', regional: 'आपकी प्रोफ़ाइल के आधार पर, आपकी स्वीकृत ऋण राशि है' },
+    approved_amount_description: { en: 'This approved amount is based on your credit profile and repayment capacity.', regional: 'यह स्वीकृत राशि आपकी क्रेडिट प्रोफ़ाइल और चुकौती क्षमता पर आधारित है।' },
+    tenure_label: { en: 'Choose your tenure', regional: 'अपनी अवधि चुनें' },
+    tenure_description: { en: 'Select a plan to see your monthly payment.', regional: 'अपना मासिक भुगतान देखने के लिए एक योजना चुनें।' },
+    plan_title: { en: 'Your Selected Plan', regional: 'आपकी चयनित योजना' },
+    per_month_label: { en: '/ month', regional: '/ माह' },
+    for_months_label: { en: 'months', regional: 'महीने' },
+    at_interest_label: { en: '% p.a.', regional: '% प्रति वर्ष' },
+    schedule_preview_title: { en: 'Payment Schedule Preview', regional: 'भुगतान अनुसूची पूर्वावलोकन' },
+    confirm_consent_label: { en: 'I confirm that I have reviewed and chosen this loan tenure and EMI.', regional: 'मैं पुष्टि करता/करती हूं कि मैंने इस ऋण अवधि और ईएमआई की समीक्षा की है और चुना है।' },
+    confirm_button: { en: 'Confirm Loan Amount & Continue', regional: 'ऋण राशि की पुष्टि करें और जारी रखें' },
+    validation_message: { en: 'Please select a tenure and confirm your choice to proceed.', regional: 'आगे बढ़ने के लिए कृपया एक अवधि चुनें और अपनी पसंद की पुष्टि करें।' },
   },
   kfs: {
     title: { en: 'Your Loan Offer Summary', regional: 'आपके ऋण प्रस्ताव का सारांश' },
@@ -336,10 +707,65 @@ const hi: Dictionary = {
     sanctioned_amount: { en: 'Sanctioned Amount', regional: 'स्वीकृत राशि' },
     support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'आप हमें support@loanswift.com पर भी संपर्क कर सकते हैं' },
   },
+  agreement: {
+    title: { en: 'Digital Loan Agreement (e-Sign)', regional: 'डिजिटल ऋण समझौता (ई-साइन)' },
+    description: { en: 'Review the terms and sign the agreement using an Aadhaar-based OTP.', regional: 'शर्तों की समीक्षा करें और आधार-आधारित ओटीपी का उपयोग करके समझौते पर हस्ताक्षर करें।' },
+    agreement_title: { en: 'Loan Agreement', regional: 'ऋण समझौता' },
+    agreement_content_line1: { en: 'This is a legally binding agreement between you (the Borrower) and FairFinance NBFC (the Lender)...', regional: 'यह आपके (उधारकर्ता) और फेयरफाइनेंस एनबीएफसी (ऋणदाता) के बीच एक कानूनी रूप से बाध्यकारी समझौता है...' },
+    agreement_content_line2: { en: '1. Loan Amount: ₹<amount>', regional: '१. ऋण राशि: ₹<amount>' },
+    agreement_content_line3: { en: '2. Tenure: <tenure> months', regional: '२. अवधि: <tenure> महीने' },
+    agreement_content_line4: { en: '3. Repayment: You agree to repay the loan via monthly EMIs of ₹<emi> as per the e-mandate.', regional: '३. चुकौती: आप ई-जनादेश के अनुसार ₹<emi> की मासिक ईएमआई के माध्यम से ऋण चुकाने के लिए सहमत हैं।' },
+    sign_button: { en: 'Sign via Aadhaar OTP', regional: 'आधार ओटीपी के माध्यम से हस्ताक्षर करें' },
+    otp_label: { en: 'Enter OTP sent to your Aadhaar-linked mobile', regional: 'अपने आधार-लिंक्ड मोबाइल पर भेजा गया ओटीपी दर्ज करें' },
+    otp_placeholder: { en: 'Enter 6-digit OTP', regional: '6-अंकीय ओटीपी दर्ज करें' },
+    verify_button: { en: 'Verify & e-Sign', regional: 'सत्यापित करें और ई-साइन करें' },
+  },
+  disbursement: {
+    success_title: { en: 'Congratulations!', regional: 'बधाई हो!' },
+    success_description: { en: 'Your loan has been disbursed.', regional: 'आपका ऋण वितरित कर दिया गया है।' },
+    details_title: { en: 'Disbursement Details', regional: 'संवितरण विवरण' },
+    amount_label: { en: 'Amount:', regional: 'राशि:' },
+    account_label: { en: 'Bank Account:', regional: 'बैंक खाता:' },
+    ref_label: { en: 'Transaction Ref:', regional: 'लेन-देन संदर्भ:' },
+    credited_soon_message: { en: 'The amount will be credited to your account shortly. Your first EMI is due next month.', regional: 'राशि जल्द ही आपके खाते में जमा कर दी जाएगी। आपकी पहली ईएमआई अगले महीने देय है।' },
+    download_agreement_button: { en: 'Download Agreement', regional: 'समझौता डाउनलोड करें' },
+    back_to_dashboard_button: { en: 'Back to Dashboard', regional: 'डैशबोर्ड पर वापस जाएं' },
+    ready_title: { en: 'Ready for Disbursement', regional: 'संवितरण के लिए तैयार' },
+    ready_description: { en: 'All formalities are complete. The net loan amount will be transferred to your verified bank account.', regional: 'सभी औपचारिकताएं पूरी हो चुकी हैं। शुद्ध ऋण राशि आपके सत्यापित बैंक खाते में स्थानांतरित कर दी जाएगी।' },
+    final_disbursement_title: { en: 'Final Disbursement', regional: 'अंतिम संवितरण' },
+    net_amount_label: { en: 'Net Amount:', regional: 'शुद्ध राशि:' },
+    to_account_label: { en: 'To Account:', regional: 'खाते में:' },
+    initiate_button: { en: 'Initiate Disbursement', regional: 'संवितरण आरंभ करें' },
+    processing_button: { en: 'Processing...', regional: 'प्रसंस्करण हो रहा है...' },
+  },
 };
 
 
 const mr: Dictionary = {
+  login: {
+    title: { en: 'Verify Your Mobile', regional: 'तुमचा मोबाईल सत्यापित करा' },
+    description: { en: "We'll send a one-time password (OTP) to your mobile number to get started.", regional: 'सुरुवात करण्यासाठी आम्ही तुमच्या मोबाइल नंबरवर एक-वेळचा पासवर्ड (OTP) पाठवू.' },
+    mobile_label: { en: 'Mobile Number', regional: 'मोबाइल नंबर' },
+    mobile_placeholder: { en: 'Enter 10-digit mobile number', regional: '१०-अंकी मोबाइल नंबर प्रविष्ट करा' },
+    button_text: { en: 'Get OTP', regional: 'OTP मिळवा' },
+    otp_sent_title: { en: 'OTP Sent', regional: 'OTP पाठवला' },
+    otp_sent_description: { en: 'An OTP has been sent to', regional: 'एक OTP पाठवण्यात आला आहे' },
+  },
+  otp_verify: {
+    title: { en: 'Enter OTP', regional: 'OTP प्रविष्ट करा' },
+    description: { en: 'An OTP has been sent to +91 <mobile>.', regional: '+९१ <mobile> वर एक OTP पाठवण्यात आला आहे.' },
+    otp_label: { en: '6-Digit OTP', regional: '६-अंकी OTP' },
+    otp_placeholder: { en: '123456', regional: '१२३४५६' },
+    button_text: { en: 'Verify OTP', regional: 'OTP सत्यापित करा' },
+    resend_button: { en: 'Resend OTP', regional: 'पुन्हा OTP पाठवा' },
+    resent_toast: { en: 'OTP Resent', regional: 'OTP पुन्हा पाठवला' },
+    success_title: { en: 'Verification Successful', regional: 'सत्यापन यशस्वी' },
+    success_description: { en: 'You have been successfully verified.', regional: 'तुम्ही यशस्वीरित्या सत्यापित झाला आहात.' },
+    failure_title: { en: 'Verification Failed', regional: 'सत्यापन अयशस्वी' },
+    failure_description: { en: 'An unexpected error occurred.', regional: 'एक अनपेक्षित त्रुटी आली.' },
+    invalid_otp_title: { en: 'Invalid OTP', regional: 'अवैध OTP' },
+    invalid_otp_description: { en: 'The OTP you entered is incorrect. Please try again.', regional: 'तुम्ही प्रविष्ट केलेला OTP चुकीचा आहे. कृपया पुन्हा प्रयत्न करा.' },
+  },
   consent: {
     title: { en: 'Consent Hub', regional: 'संमती केंद्र' },
     description: { en: 'As per RBI guidelines, we need your explicit consent for the following data processing activities.', regional: 'RBI मार्गदर्शक तत्त्वांनुसार, आम्हाला खालील डेटा प्रक्रिया क्रियाकलापांसाठी तुमची स्पष्ट संमती आवश्यक आहे.' },
@@ -377,6 +803,85 @@ const mr: Dictionary = {
     consent_label: { en: 'Explicit Consent', regional: 'स्पष्ट संमती' },
     consent_description: { en: 'I hereby consent to LoanSwift fetching my credit information and other details for the purpose of this loan application.', regional: 'मी या कर्ज अर्जाच्या उद्देशाने लोनस्विफ्टला माझी क्रेडिट माहिती आणि इतर तपशील मिळवण्यासाठी याद्वारे संमती देतो.' },
     save_button: { en: 'Save and Continue', regional: 'जतन करा आणि सुरू ठेवा' },
+  },
+  kyc: {
+    pan_title: { en: 'PAN Verification', regional: 'पॅन पडताळणी' },
+    pan_description: { en: 'Pre-filled based on earlier details. Please review and edit if required.', regional: 'पूर्वीच्या तपशिलांवर आधारित पूर्व-भरलेले. कृपया पुनरावलोकन करा आणि आवश्यक असल्यास संपादित करा.' },
+    pan_verified_title: { en: 'PAN Verified', regional: 'पॅन सत्यापित' },
+    pan_verified_description: { en: 'Your PAN has been successfully verified.', regional: 'तुमचा पॅन यशस्वीरित्या सत्यापित झाला आहे.' },
+    pan_button: { en: 'Verify PAN', regional: 'पॅन सत्यापित करा' },
+    aadhaar_title: { en: 'Aadhaar e-KYC', regional: 'आधार ई-केवायसी' },
+    aadhaar_description: { en: 'Enter your Aadhaar to perform e-KYC via OTP.', regional: 'OTP द्वारे ई-केवायसी करण्यासाठी तुमचा आधार प्रविष्ट करा.' },
+    aadhaar_verified_title: { en: 'Aadhaar Verified', regional: 'आधार सत्यापित' },
+    aadhaar_verified_description: { en: 'Your Aadhaar e-KYC is complete.', regional: 'तुमचे आधार ई-केवायसी पूर्ण झाले आहे.' },
+    aadhaar_label: { en: 'Aadhaar Number', regional: 'आधार क्रमांक' },
+    aadhaar_placeholder: { en: '1234 5678 9012', regional: '१२३४ ५६७८ ९०१२' },
+    send_otp_button: { en: 'Send OTP', regional: 'OTP पाठवा' },
+    otp_label: { en: 'Enter OTP', regional: 'OTP प्रविष्ट करा' },
+    otp_placeholder: { en: 'Enter 6-digit OTP (123456)', regional: '६-अंकी OTP प्रविष्ट करा (१२३४५६)' },
+    verify_otp_button: { en: 'Verify OTP', regional: 'OTP सत्यापित करा' },
+    continue_button: { en: 'Continue to Document Verification', regional: 'दस्तऐवज पडताळणीसाठी सुरू ठेवा' },
+  },
+  doc_verification: {
+    digilocker_title: { en: 'Option 1: Use DigiLocker', regional: 'पर्याय १: डिजिलॉकर वापरा' },
+    digilocker_description: { en: 'Fetch your Aadhaar and PAN instantly for faster processing.', regional: 'जलद प्रक्रियेसाठी तुमचा आधार आणि पॅन त्वरित मिळवा.' },
+    digilocker_button: { en: 'Connect to DigiLocker', regional: 'डिजिलॉकरशी कनेक्ट करा' },
+    manual_title: { en: 'Option 2: Manual Upload', regional: 'पर्याय २: मॅन्युअल अपलोड' },
+    manual_description: { en: "Upload your documents manually. We'll use OCR to verify them.", regional: 'तुमचे दस्तऐवज मॅन्युअली अपलोड करा. आम्ही त्यांना सत्यापित करण्यासाठी ओसीआर वापरू.' },
+    upload_button: { en: 'Upload', regional: 'अपलोड करा' },
+    verifying_toast: { en: 'uploading and verifying...', regional: 'अपलोड आणि सत्यापित करत आहे...' },
+    verified_toast: { en: 'Verified', regional: 'सत्यापित' },
+    upload_pending_badge: { en: 'Pending', regional: 'प्रलंबित' },
+    upload_uploaded_badge: { en: 'Uploaded, Verifying...', regional: 'अपलोड केले, सत्यापित करत आहे...' },
+    upload_verified_ocr_badge: { en: 'Verified via OCR', regional: 'ओसीआरद्वारे सत्यापित' },
+    upload_verified_digital_badge: { en: 'Digitally Verified', regional: 'डिजिटल सत्यापित' },
+    continue_button: { en: 'Continue to Eligibility', regional: 'पात्रतेसाठी पुढे जा' },
+    digilocker_modal_title: { en: 'Share Documents from DigiLocker', regional: 'डिजिलॉकरमधून दस्तऐवज सामायिक करा' },
+    digilocker_modal_description: { en: 'Select the documents you want to share for KYC verification.', regional: 'केवायसी पडताळणीसाठी तुम्ही शेअर करू इच्छित असलेले दस्तऐवज निवडा.' },
+    digilocker_modal_share_button: { en: 'Share Selected Documents', regional: ' निवडलेले दस्तऐवज सामायिक करा' },
+    processing_title: { en: 'Verifying Documents & Checking Credit...', regional: 'दस्तऐवज पडताळणी आणि क्रेडिट तपासणी करत आहे...' },
+    processing_description: { en: 'Please wait while we securely process your information.', regional: 'आम्ही तुमची माहिती सुरक्षितपणे प्रक्रिया करत असताना कृपया प्रतीक्षा करा.' },
+    summary_title: { en: 'KYC Matching Summary', regional: 'केवायसी जुळणी सारांश' },
+    summary_description: { en: "We've matched your provided details against your verified documents. Aadhaar is the primary source of truth.", regional: 'आम्ही तुमच्या प्रदान केलेल्या तपशिलांना तुमच्या सत्यापित दस्तऐवजांशी जुळवले आहे. आधार हे सत्याचे प्राथमिक स्त्रोत आहे.' },
+    summary_name_label: { en: 'Full Name', regional: 'पूर्ण नाव' },
+    summary_dob_label: { en: 'Date of Birth', regional: 'जन्म तारीख' },
+    summary_address_label: { en: 'Address', regional: 'पत्ता' },
+    summary_pan_label: { en: 'PAN', regional: 'पॅन' },
+    summary_match_badge: { en: 'Matches Aadhaar', regional: 'आधारशी जुळते' },
+    summary_mismatch_badge: { en: 'Does Not Match', regional: 'जुळत नाही' },
+    summary_partial_match_badge: { en: 'Partial Match', regional: 'आंशिक जुळणी' },
+  },
+   eligibility: {
+    rejected_title: { en: 'Application Not Approved', regional: 'अर्ज मंजूर नाही' },
+    rejected_description: { en: 'We are unable to proceed with your loan application at this time based on our current lending policies.', regional: 'आमच्या सध्याच्या कर्ज धोरणांवर आधारित आम्ही यावेळी तुमच्या कर्ज अर्जासोबत पुढे जाऊ शकत नाही.' },
+    back_home_button: { en: 'Back to Home', regional: 'घरी परत जा' },
+    finalizing_title: { en: 'Finalizing Eligibility...', regional: 'पात्रता अंतिम करत आहे...' },
+    finalizing_description: { en: 'This should only take a moment.', regional: 'याला फक्त एक क्षण लागेल.' },
+    report_summary_title: { en: 'Your Credit Report Summary', regional: 'तुमचा क्रेडिट रिपोर्ट सारांश' },
+    score_band_excellent: { en: 'Excellent', regional: 'उत्कृष्ट' },
+    score_band_good: { en: 'Good', regional: 'चांगले' },
+    score_band_fair: { en: 'Fair', regional: 'ठीक' },
+    score_band_poor: { en: 'Poor', regional: 'खराब' },
+    cibil_score_label: { en: 'CIBIL Score', regional: 'सिबिल स्कोर' },
+    active_loans_label: { en: 'Active Loans', regional: 'सक्रिय कर्ज' },
+    overdue_label: { en: 'Overdue', regional: 'थकबाकी' },
+    enquiries_label: { en: 'Recent Enquiries', regional: 'अलीकडील चौकशी' },
+    upsell_title: { en: 'Great News!', regional: 'उत्तम बातमी!' },
+    upsell_description: { en: "You applied for ₹<requested>, but you're eligible for up to ₹<eligible>.", regional: 'तुम्ही ₹<requested> साठी अर्ज केला होता, परंतु तुम्ही ₹<eligible> पर्यंत पात्र आहात.' },
+    select_amount_label: { en: 'Select Your Loan Amount', regional: 'तुमची कर्ज रक्कम निवडा' },
+    recommended_badge: { en: 'Recommended', regional: 'शिफारस केलेले' },
+    approved_amount_label: { en: 'Based on your profile, your approved loan amount is', regional: 'तुमच्या प्रोफाइलवर आधारित, तुमची मंजूर कर्ज रक्कम आहे' },
+    approved_amount_description: { en: 'This approved amount is based on your credit profile and repayment capacity.', regional: 'ही मंजूर रक्कम तुमच्या क्रेडिट प्रोफाइल आणि परतफेड क्षमतेवर आधारित आहे.' },
+    tenure_label: { en: 'Choose your tenure', regional: 'तुमचा कालावधी निवडा' },
+    tenure_description: { en: 'Select a plan to see your monthly payment.', regional: 'तुमचे मासिक पेमेंट पाहण्यासाठी एक योजना निवडा.' },
+    plan_title: { en: 'Your Selected Plan', regional: 'तुमची निवडलेली योजना' },
+    per_month_label: { en: '/ month', regional: '/ महिना' },
+    for_months_label: { en: 'months', regional: 'महिने' },
+    at_interest_label: { en: '% p.a.', regional: '% प्रतिवर्ष' },
+    schedule_preview_title: { en: 'Payment Schedule Preview', regional: 'पेमेंट शेड्यूल पूर्वावलोकन' },
+    confirm_consent_label: { en: 'I confirm that I have reviewed and chosen this loan tenure and EMI.', regional: 'मी पुष्टी करतो/करते की मी या कर्जाचा कालावधी आणि ईएमआयचे पुनरावलोकन केले आहे आणि निवडले आहे.' },
+    confirm_button: { en: 'Confirm Loan Amount & Continue', regional: 'कर्ज रक्कम निश्चित करा आणि पुढे जा' },
+    validation_message: { en: 'Please select a tenure and confirm your choice to proceed.', regional: 'कृपया एक कालावधी निवडा आणि पुढे जाण्यासाठी तुमच्या निवडीची पुष्टी करा.' },
   },
   kfs: {
     title: { en: 'Your Loan Offer Summary', regional: 'तुमच्या कर्ज प्रस्तावाचा सारांश' },
@@ -447,9 +952,64 @@ const mr: Dictionary = {
     sanctioned_amount: { en: 'Sanctioned Amount', regional: 'मंजूर रक्कम' },
     support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'तुम्ही आम्हाला support@loanswift.com वर देखील संपर्क साधू शकता' },
   },
+    agreement: {
+    title: { en: 'Digital Loan Agreement (e-Sign)', regional: 'डिजिटल कर्ज करार (ई-सही)' },
+    description: { en: 'Review the terms and sign the agreement using an Aadhaar-based OTP.', regional: 'अटींचे पुनरावलोकन करा आणि आधार-आधारित ओटीपी वापरून करारावर सही करा.' },
+    agreement_title: { en: 'Loan Agreement', regional: 'कर्ज करार' },
+    agreement_content_line1: { en: 'This is a legally binding agreement between you (the Borrower) and FairFinance NBFC (the Lender)...', regional: 'हा तुमच्या (कर्जदार) आणि फेअर फायनान्स एनबीएफसी (कर्जदाता) यांच्यातील कायदेशीर बंधनकारक करार आहे...' },
+    agreement_content_line2: { en: '1. Loan Amount: ₹<amount>', regional: '१. कर्जाची रक्कम: ₹<amount>' },
+    agreement_content_line3: { en: '2. Tenure: <tenure> months', regional: '२. कालावधी: <tenure> महिने' },
+    agreement_content_line4: { en: '3. Repayment: You agree to repay the loan via monthly EMIs of ₹<emi> as per the e-mandate.', regional: '३. परतफेड: तुम्ही ई-मँडेटनुसार ₹<emi> च्या मासिक ईएमआयद्वारे कर्ज परतफेड करण्यास सहमत आहात.' },
+    sign_button: { en: 'Sign via Aadhaar OTP', regional: 'आधार ओटीपीद्वारे सही करा' },
+    otp_label: { en: 'Enter OTP sent to your Aadhaar-linked mobile', regional: 'तुमच्या आधार-लिंक्ड मोबाइलवर पाठवलेला ओटीपी प्रविष्ट करा' },
+    otp_placeholder: { en: 'Enter 6-digit OTP', regional: '६-अंकी ओटीपी प्रविष्ट करा' },
+    verify_button: { en: 'Verify & e-Sign', regional: 'सत्यापित करा आणि ई-सही करा' },
+  },
+  disbursement: {
+    success_title: { en: 'Congratulations!', regional: 'अभिनंदन!' },
+    success_description: { en: 'Your loan has been disbursed.', regional: 'तुमचे कर्ज वितरित केले गेले आहे.' },
+    details_title: { en: 'Disbursement Details', regional: 'वितरण तपशील' },
+    amount_label: { en: 'Amount:', regional: 'रक्कम:' },
+    account_label: { en: 'Bank Account:', regional: 'बँक खाते:' },
+    ref_label: { en: 'Transaction Ref:', regional: 'व्यवहार संदर्भ:' },
+    credited_soon_message: { en: 'The amount will be credited to your account shortly. Your first EMI is due next month.', regional: 'रक्कम लवकरच तुमच्या खात्यात जमा होईल. तुमचा पहिला ईएमआय पुढील महिन्यात देय आहे.' },
+    download_agreement_button: { en: 'Download Agreement', regional: 'करार डाउनलोड करा' },
+    back_to_dashboard_button: { en: 'Back to Dashboard', regional: 'डॅशबोर्डवर परत जा' },
+    ready_title: { en: 'Ready for Disbursement', regional: 'वितरणासाठी सज्ज' },
+    ready_description: { en: 'All formalities are complete. The net loan amount will be transferred to your verified bank account.', regional: 'सर्व औपचारिकता पूर्ण झाल्या आहेत. निव्वळ कर्ज रक्कम तुमच्या सत्यापित बँक खात्यात हस्तांतरित केली जाईल.' },
+    final_disbursement_title: { en: 'Final Disbursement', regional: 'अंतिम वितरण' },
+    net_amount_label: { en: 'Net Amount:', regional: 'निव्वळ रक्कम:' },
+    to_account_label: { en: 'To Account:', regional: 'खात्यात:' },
+    initiate_button: { en: 'Initiate Disbursement', regional: 'वितरण सुरू करा' },
+    processing_button: { en: 'Processing...', regional: 'प्रक्रिया करत आहे...' },
+  },
 };
 
 const te: Dictionary = {
+  login: {
+    title: { en: 'Verify Your Mobile', regional: 'మీ మొబైల్‌ను ధృవీకరించండి' },
+    description: { en: "We'll send a one-time password (OTP) to your mobile number to get started.", regional: 'ప్రారంభించడానికి మేము మీ మొబైల్ నంబర్‌కు ఒక-సారి పాస్‌వర్డ్ (OTP) పంపుతాము.' },
+    mobile_label: { en: 'Mobile Number', regional: 'మొబైల్ నంబర్' },
+    mobile_placeholder: { en: 'Enter 10-digit mobile number', regional: '10-అంకెల మొబైల్ నంబర్‌ను నమోదు చేయండి' },
+    button_text: { en: 'Get OTP', regional: 'OTPని పొందండి' },
+    otp_sent_title: { en: 'OTP Sent', regional: 'OTP పంపబడింది' },
+    otp_sent_description: { en: 'An OTP has been sent to', regional: 'ఒక OTP పంపబడింది' },
+  },
+  otp_verify: {
+    title: { en: 'Enter OTP', regional: 'OTPని నమోదు చేయండి' },
+    description: { en: 'An OTP has been sent to +91 <mobile>.', regional: '+91 <mobile>కు ఒక OTP పంపబడింది.' },
+    otp_label: { en: '6-Digit OTP', regional: '6-అంకెల OTP' },
+    otp_placeholder: { en: '123456', regional: '౧౨౩౪౫౬' },
+    button_text: { en: 'Verify OTP', regional: 'OTPని ధృవీకరించండి' },
+    resend_button: { en: 'Resend OTP', regional: 'OTPని మళ్ళీ పంపండి' },
+    resent_toast: { en: 'OTP Resent', regional: 'OTP మళ్ళీ పంపబడింది' },
+    success_title: { en: 'Verification Successful', regional: 'ధృవీకరణ విజయవంతం' },
+    success_description: { en: 'You have been successfully verified.', regional: 'మీరు విజయవంతంగా ధృవీకరించబడ్డారు.' },
+    failure_title: { en: 'Verification Failed', regional: 'ధృవీకరణ విఫలమైంది' },
+    failure_description: { en: 'An unexpected error occurred.', regional: 'ఒక ఊహించని లోపం సంభవించింది.' },
+    invalid_otp_title: { en: 'Invalid OTP', regional: 'చెల్లని OTP' },
+    invalid_otp_description: { en: 'The OTP you entered is incorrect. Please try again.', regional: 'మీరు నమోదు చేసిన OTP తప్పు. దయచేసి మళ్ళీ ప్రయత్నించండి.' },
+  },
   consent: {
     title: { en: 'Consent Hub', regional: 'సమ్మతి కేంద్రం' },
     description: { en: 'As per RBI guidelines, we need your explicit consent for the following data processing activities.', regional: 'RBI మార్గదర్శకాల ప్రకారం, కింది డేటా ప్రాసెసింగ్ కార్యకలాపాలకు మాకు మీ స్పష్టమైన సమ్మతి అవసరం.' },
@@ -487,6 +1047,85 @@ const te: Dictionary = {
     consent_label: { en: 'Explicit Consent', regional: 'స్పష్టమైన సమ్మతి' },
     consent_description: { en: 'I hereby consent to LoanSwift fetching my credit information and other details for the purpose of this loan application.', regional: 'ఈ లోన్ దరఖాస్తు ప్రయోజనం కోసం నా క్రెడిట్ సమాచారం మరియు ఇతర వివరాలను పొందడానికి నేను లోన్‌స్విఫ్ట్‌కు సమ్మతిస్తున్నాను.' },
     save_button: { en: 'Save and Continue', regional: 'సేవ్ చేసి కొనసాగించండి' },
+  },
+  kyc: {
+    pan_title: { en: 'PAN Verification', regional: 'పాన్ ధృవీకరణ' },
+    pan_description: { en: 'Pre-filled based on earlier details. Please review and edit if required.', regional: 'మునుపటి వివరాల ఆధారంగా ముందుగా నింపబడింది. దయచేసి సమీక్షించి, అవసరమైతే సవరించండి.' },
+    pan_verified_title: { en: 'PAN Verified', regional: 'పాన్ ధృవీకరించబడింది' },
+    pan_verified_description: { en: 'Your PAN has been successfully verified.', regional: 'మీ పాన్ విజయవంతంగా ధృవీకరించబడింది.' },
+    pan_button: { en: 'Verify PAN', regional: 'పాన్‌ను ధృవీకరించండి' },
+    aadhaar_title: { en: 'Aadhaar e-KYC', regional: 'ఆధార్ ఇ-కెవైసి' },
+    aadhaar_description: { en: 'Enter your Aadhaar to perform e-KYC via OTP.', regional: 'OTP ద్వారా ఇ-కెవైసి చేయడానికి మీ ఆధార్‌ను నమోదు చేయండి.' },
+    aadhaar_verified_title: { en: 'Aadhaar Verified', regional: 'ఆధార్ ధృవీకరించబడింది' },
+    aadhaar_verified_description: { en: 'Your Aadhaar e-KYC is complete.', regional: 'మీ ఆధార్ ఇ-కెవైసి పూర్తయింది.' },
+    aadhaar_label: { en: 'Aadhaar Number', regional: 'ఆధార్ నంబర్' },
+    aadhaar_placeholder: { en: '1234 5678 9012', regional: '౧౨౩౪ ౫౬౭౮ ౯౦౧౨' },
+    send_otp_button: { en: 'Send OTP', regional: 'OTP పంపండి' },
+    otp_label: { en: 'Enter OTP', regional: 'OTP నమోదు చేయండి' },
+    otp_placeholder: { en: 'Enter 6-digit OTP (123456)', regional: '6-అంకెల OTPని నమోదు చేయండి (౧౨౩౪౫౬)' },
+    verify_otp_button: { en: 'Verify OTP', regional: 'OTPని ధృవీకరించండి' },
+    continue_button: { en: 'Continue to Document Verification', regional: 'పత్రాల ధృవీకరణకు కొనసాగండి' },
+  },
+  doc_verification: {
+    digilocker_title: { en: 'Option 1: Use DigiLocker', regional: 'ఎంపిక 1: డిజిలాకర్‌ను ఉపయోగించండి' },
+    digilocker_description: { en: 'Fetch your Aadhaar and PAN instantly for faster processing.', regional: 'వేగవంతమైన ప్రాసెసింగ్ కోసం మీ ఆధార్ మరియు పాన్‌ను తక్షణమే పొందండి.' },
+    digilocker_button: { en: 'Connect to DigiLocker', regional: 'డిజిలాకర్‌కు కనెక్ట్ అవ్వండి' },
+    manual_title: { en: 'Option 2: Manual Upload', regional: 'ఎంపిక 2: మాన్యువల్ అప్‌లోడ్' },
+    manual_description: { en: "Upload your documents manually. We'll use OCR to verify them.", regional: 'మీ పత్రాలను మాన్యువల్‌గా అప్‌లోడ్ చేయండి. మేము వాటిని ధృవీకరించడానికి OCRను ఉపయోగిస్తాము.' },
+    upload_button: { en: 'Upload', regional: 'అప్‌లోడ్' },
+    verifying_toast: { en: 'uploading and verifying...', regional: 'అప్‌లోడ్ మరియు ధృవీకరిస్తోంది...' },
+    verified_toast: { en: 'Verified', regional: 'ధృవీకరించబడింది' },
+    upload_pending_badge: { en: 'Pending', regional: 'పెండింగ్‌లో ఉంది' },
+    upload_uploaded_badge: { en: 'Uploaded, Verifying...', regional: 'అప్‌లోడ్ చేయబడింది, ధృవీకరిస్తోంది...' },
+    upload_verified_ocr_badge: { en: 'Verified via OCR', regional: 'OCR ద్వారా ధృవీకరించబడింది' },
+    upload_verified_digital_badge: { en: 'Digitally Verified', regional: 'డిజిటల్‌గా ధృవీకరించబడింది' },
+    continue_button: { en: 'Continue to Eligibility', regional: 'అర్హతకు కొనసాగండి' },
+    digilocker_modal_title: { en: 'Share Documents from DigiLocker', regional: 'డిజిలాకర్ నుండి పత్రాలను పంచుకోండి' },
+    digilocker_modal_description: { en: 'Select the documents you want to share for KYC verification.', regional: 'కెవైసి ధృవీకరణ కోసం మీరు పంచుకోవాలనుకుంటున్న పత్రాలను ఎంచుకోండి.' },
+    digilocker_modal_share_button: { en: 'Share Selected Documents', regional: 'ఎంచుకున్న పత్రాలను పంచుకోండి' },
+    processing_title: { en: 'Verifying Documents & Checking Credit...', regional: 'పత్రాలను ధృవీకరించడం & క్రెడిట్ తనిఖీ చేస్తోంది...' },
+    processing_description: { en: 'Please wait while we securely process your information.', regional: 'మేము మీ సమాచారాన్ని సురక్షితంగా ప్రాసెస్ చేస్తున్నప్పుడు దయచేసి వేచి ఉండండి.' },
+    summary_title: { en: 'KYC Matching Summary', regional: 'కెవైసి సరిపోలిక సారాంశం' },
+    summary_description: { en: "We've matched your provided details against your verified documents. Aadhaar is the primary source of truth.", regional: 'మేము మీ అందించిన వివరాలను మీ ధృవీకరించబడిన పత్రాలతో సరిపోల్చాము. ఆధార్ నిజం యొక్క ప్రాథమిక మూలం.' },
+    summary_name_label: { en: 'Full Name', regional: 'పూర్తి పేరు' },
+    summary_dob_label: { en: 'Date of Birth', regional: 'పుట్టిన తేది' },
+    summary_address_label: { en: 'Address', regional: 'చిరునామా' },
+    summary_pan_label: { en: 'PAN', regional: 'పాన్' },
+    summary_match_badge: { en: 'Matches Aadhaar', regional: 'ఆధార్‌తో సరిపోలుతుంది' },
+    summary_mismatch_badge: { en: 'Does Not Match', regional: 'సరిపోలడం లేదు' },
+    summary_partial_match_badge: { en: 'Partial Match', regional: 'పాక్షిక సరిపోలిక' },
+  },
+  eligibility: {
+    rejected_title: { en: 'Application Not Approved', regional: 'అప్లికేషన్ ఆమోదించబడలేదు' },
+    rejected_description: { en: 'We are unable to proceed with your loan application at this time based on our current lending policies.', regional: 'మా ప్రస్తుత రుణ విధానాల ఆధారంగా మేము ఈ సమయంలో మీ రుణ దరఖాస్తుతో ముందుకు సాగలేకపోతున్నాము.' },
+    back_home_button: { en: 'Back to Home', regional: 'హోమ్‌కు తిరిగి వెళ్ళు' },
+    finalizing_title: { en: 'Finalizing Eligibility...', regional: 'అర్హతను ఖరారు చేస్తోంది...' },
+    finalizing_description: { en: 'This should only take a moment.', regional: 'దీనికి ఒక్క క్షణం మాత్రమే పట్టాలి.' },
+    report_summary_title: { en: 'Your Credit Report Summary', regional: 'మీ క్రెడిట్ నివేదిక సారాంశం' },
+    score_band_excellent: { en: 'Excellent', regional: 'అద్భుతమైన' },
+    score_band_good: { en: 'Good', regional: 'మంచి' },
+    score_band_fair: { en: 'Fair', regional: 'ఫర్వాలేదు' },
+    score_band_poor: { en: 'Poor', regional: 'పేలవమైన' },
+    cibil_score_label: { en: 'CIBIL Score', regional: 'సిబిల్ స్కోర్' },
+    active_loans_label: { en: 'Active Loans', regional: 'క్రియాశీల రుణాలు' },
+    overdue_label: { en: 'Overdue', regional: 'గడువు ముగిసింది' },
+    enquiries_label: { en: 'Recent Enquiries', regional: 'ఇటీవలి విచారణలు' },
+    upsell_title: { en: 'Great News!', regional: 'శుభవార్త!' },
+    upsell_description: { en: "You applied for ₹<requested>, but you're eligible for up to ₹<eligible>.", regional: 'మీరు ₹<requested> కోసం దరఖాస్తు చేసారు, కానీ మీరు ₹<eligible> వరకు అర్హులు.' },
+    select_amount_label: { en: 'Select Your Loan Amount', regional: 'మీ రుణ మొత్తాన్ని ఎంచుకోండి' },
+    recommended_badge: { en: 'Recommended', regional: 'సిఫార్సు చేయబడింది' },
+    approved_amount_label: { en: 'Based on your profile, your approved loan amount is', regional: 'మీ ప్రొఫైల్ ఆధారంగా, మీ ఆమోదించబడిన రుణ మొత్తం' },
+    approved_amount_description: { en: 'This approved amount is based on your credit profile and repayment capacity.', regional: 'ఈ ఆమోదించబడిన మొత్తం మీ క్రెడిట్ ప్రొఫైల్ మరియు తిరిగి చెల్లించే సామర్థ్యంపై ఆధారపడి ఉంటుంది.' },
+    tenure_label: { en: 'Choose your tenure', regional: 'మీ కాలపరిమితిని ఎంచుకోండి' },
+    tenure_description: { en: 'Select a plan to see your monthly payment.', regional: 'మీ నెలవారీ చెల్లింపును చూడటానికి ఒక ప్రణాళికను ఎంచుకోండి.' },
+    plan_title: { en: 'Your Selected Plan', regional: 'మీరు ఎంచుకున్న ప్రణాళిక' },
+    per_month_label: { en: '/ month', regional: '/ నెలకు' },
+    for_months_label: { en: 'months', regional: 'నెలలు' },
+    at_interest_label: { en: '% p.a.', regional: '% సంవత్సరానికి' },
+    schedule_preview_title: { en: 'Payment Schedule Preview', regional: 'చెల్లింపు షెడ్యూల్ ప్రివ్యూ' },
+    confirm_consent_label: { en: 'I confirm that I have reviewed and chosen this loan tenure and EMI.', regional: 'నేను ఈ రుణ కాలపరిమితి మరియు EMIని సమీక్షించి, ఎంచుకున్నానని నేను నిర్ధారిస్తున్నాను.' },
+    confirm_button: { en: 'Confirm Loan Amount & Continue', regional: 'రుణ మొత్తాన్ని నిర్ధారించి కొనసాగించండి' },
+    validation_message: { en: 'Please select a tenure and confirm your choice to proceed.', regional: 'ముందుకు సాగడానికి దయచేసి ఒక కాలపరిమితిని ఎంచుకుని, మీ ఎంపికను నిర్ధారించండి.' },
   },
   kfs: {
     title: { en: 'Your Loan Offer Summary', regional: 'మీ లోన్ ఆఫర్ సారాంశం' },
@@ -557,14 +1196,69 @@ const te: Dictionary = {
     sanctioned_amount: { en: 'Sanctioned Amount', regional: 'మంజూరు చేయబడిన మొత్తం' },
     support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'మీరు మమ్మల్ని support@loanswift.com వద్ద కూడా సంప్రదించవచ్చు' },
   },
+  agreement: {
+    title: { en: 'Digital Loan Agreement (e-Sign)', regional: 'డిజిటల్ లోన్ ఒప్పందం (ఇ-సైన్)' },
+    description: { en: 'Review the terms and sign the agreement using an Aadhaar-based OTP.', regional: 'నిబంధనలను సమీక్షించి, ఆధార్-ఆధారిత OTPని ఉపయోగించి ఒప్పందంపై సంతకం చేయండి.' },
+    agreement_title: { en: 'Loan Agreement', regional: 'లోన్ ఒప్పందం' },
+    agreement_content_line1: { en: 'This is a legally binding agreement between you (the Borrower) and FairFinance NBFC (the Lender)...', regional: 'ఇది మీకు (రుణగ్రహీత) మరియు ఫెయిర్‌ఫైనాన్స్ NBFC (రుణదాత) మధ్య చట్టబద్ధంగా కట్టుబడి ఉండే ఒప్పందం...' },
+    agreement_content_line2: { en: '1. Loan Amount: ₹<amount>', regional: '౧. లోన్ మొత్తం: ₹<amount>' },
+    agreement_content_line3: { en: '2. Tenure: <tenure> months', regional: '౨. కాలపరిమితి: <tenure> నెలలు' },
+    agreement_content_line4: { en: '3. Repayment: You agree to repay the loan via monthly EMIs of ₹<emi> as per the e-mandate.', regional: '౩. తిరిగి చెల్లింపు: మీరు ఇ-మాండేట్ ప్రకారం ₹<emi> నెలవారీ EMIల ద్వారా లోన్‌ను తిరిగి చెల్లించడానికి అంగీకరిస్తున్నారు.' },
+    sign_button: { en: 'Sign via Aadhaar OTP', regional: 'ఆధార్ OTP ద్వారా సైన్ చేయండి' },
+    otp_label: { en: 'Enter OTP sent to your Aadhaar-linked mobile', regional: 'మీ ఆధార్-లింక్ చేయబడిన మొబైల్‌కు పంపిన OTPని నమోదు చేయండి' },
+    otp_placeholder: { en: 'Enter 6-digit OTP', regional: '6-అంకెల OTPని నమోదు చేయండి' },
+    verify_button: { en: 'Verify & e-Sign', regional: 'ధృవీకరించి ఇ-సైన్ చేయండి' },
+  },
+  disbursement: {
+    success_title: { en: 'Congratulations!', regional: 'అభినందనలు!' },
+    success_description: { en: 'Your loan has been disbursed.', regional: 'మీ లోన్ పంపిణీ చేయబడింది.' },
+    details_title: { en: 'Disbursement Details', regional: 'పంపిణీ వివరాలు' },
+    amount_label: { en: 'Amount:', regional: 'మొత్తం:' },
+    account_label: { en: 'Bank Account:', regional: 'బ్యాంక్ ఖాతా:' },
+    ref_label: { en: 'Transaction Ref:', regional: 'లావాదేవీ రిఫరెన్స్:' },
+    credited_soon_message: { en: 'The amount will be credited to your account shortly. Your first EMI is due next month.', regional: 'మొత్తం త్వరలో మీ ఖాతాలో జమ చేయబడుతుంది. మీ మొదటి EMI వచ్చే నెలలో చెల్లించాలి.' },
+    download_agreement_button: { en: 'Download Agreement', regional: 'ఒప్పందాన్ని డౌన్‌లోడ్ చేయండి' },
+    back_to_dashboard_button: { en: 'Back to Dashboard', regional: 'డాష్‌బోర్డ్‌కు తిరిగి వెళ్ళు' },
+    ready_title: { en: 'Ready for Disbursement', regional: 'పంపిణీకి సిద్ధంగా ఉంది' },
+    ready_description: { en: 'All formalities are complete. The net loan amount will be transferred to your verified bank account.', regional: 'అన్ని లాంఛనాలు పూర్తయ్యాయి. నికర రుణ మొత్తం మీ ధృవీకరించబడిన బ్యాంక్ ఖాతాకు బదిలీ చేయబడుతుంది.' },
+    final_disbursement_title: { en: 'Final Disbursement', regional: 'తుది పంపిణీ' },
+    net_amount_label: { en: 'Net Amount:', regional: 'నికర మొత్తం:' },
+    to_account_label: { en: 'To Account:', regional: 'ఖాతాకు:' },
+    initiate_button: { en: 'Initiate Disbursement', regional: 'పంపిణీని ప్రారంభించండి' },
+    processing_button: { en: 'Processing...', regional: 'ప్రాసెస్ చేస్తోంది...' },
+  },
 };
 
 const kn: Dictionary = {
+  login: {
+    title: { en: 'Verify Your Mobile', regional: 'ನಿಮ್ಮ ಮೊಬೈಲ್ ಪರಿಶೀಲಿಸಿ' },
+    description: { en: "We'll send a one-time password (OTP) to your mobile number to get started.", regional: 'ಪ್ರಾರಂಭಿಸಲು ನಾವು ನಿಮ್ಮ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಗೆ ಒಂದು-ಬಾರಿ ಪಾಸ್‌ವರ್ಡ್ (OTP) ಕಳುಹಿಸುತ್ತೇವೆ.' },
+    mobile_label: { en: 'Mobile Number', regional: 'ಮೊಬೈಲ್ ಸಂಖ್ಯೆ' },
+    mobile_placeholder: { en: 'Enter 10-digit mobile number', regional: '10-ಅಂಕಿಯ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ' },
+    button_text: { en: 'Get OTP', regional: 'OTP ಪಡೆಯಿರಿ' },
+    otp_sent_title: { en: 'OTP Sent', regional: 'OTP ಕಳುಹಿಸಲಾಗಿದೆ' },
+    otp_sent_description: { en: 'An OTP has been sent to', regional: 'ಒಂದು OTP ಕಳುಹಿಸಲಾಗಿದೆ' },
+  },
+  otp_verify: {
+    title: { en: 'Enter OTP', regional: 'OTP ನಮೂದಿಸಿ' },
+    description: { en: 'An OTP has been sent to +91 <mobile>.', regional: '+91 <mobile> ಗೆ ಒಂದು OTP ಕಳುಹಿಸಲಾಗಿದೆ.' },
+    otp_label: { en: '6-Digit OTP', regional: '6-ಅಂಕಿಯ OTP' },
+    otp_placeholder: { en: '123456', regional: '೧೨೩೪೫೬' },
+    button_text: { en: 'Verify OTP', regional: 'OTP ಪರಿಶೀಲಿಸಿ' },
+    resend_button: { en: 'Resend OTP', regional: 'OTP ಮರುಕಳುಹಿಸಿ' },
+    resent_toast: { en: 'OTP Resent', regional: 'OTP ಮರುಕಳುಹಿಸಲಾಗಿದೆ' },
+    success_title: { en: 'Verification Successful', regional: 'ಪರಿಶೀಲನೆ ಯಶಸ್ವಿಯಾಗಿದೆ' },
+    success_description: { en: 'You have been successfully verified.', regional: 'ನೀವು ಯಶಸ್ವಿಯಾಗಿ ಪರಿಶೀಲಿಸಲ್ಪಟ್ಟಿದ್ದೀರಿ.' },
+    failure_title: { en: 'Verification Failed', regional: 'ಪರಿಶೀಲನೆ ವಿಫಲವಾಗಿದೆ' },
+    failure_description: { en: 'An unexpected error occurred.', regional: 'ಒಂದು ಅನಿರೀಕ್ಷಿತ ದೋಷ ಸಂಭವಿಸಿದೆ.' },
+    invalid_otp_title: { en: 'Invalid OTP', regional: 'ಅಮಾನ್ಯ OTP' },
+    invalid_otp_description: { en: 'The OTP you entered is incorrect. Please try again.', regional: 'ನೀವು ನಮೂದಿಸಿದ OTP ತಪ್ಪಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.' },
+  },
   consent: {
     title: { en: 'Consent Hub', regional: 'ಸಮ್ಮತಿ ಕೇಂದ್ರ' },
     description: { en: 'As per RBI guidelines, we need your explicit consent for the following data processing activities.', regional: 'RBI ಮಾರ್ಗಸೂಚಿಗಳ ಪ್ರಕಾರ, ಈ ಕೆಳಗಿನ ಡೇಟಾ ಸಂಸ್ಕರಣಾ ಚಟುವಟಿಕೆಗಳಿಗೆ ನಮಗೆ ನಿಮ್ಮ ಸ್ಪಷ್ಟ ಸಮ್ಮತಿ ಬೇಕು.' },
     items: {
-        PAN_VERIFICATION: { en: 'I consent to verification of my PAN from issuing authority/NSDL.', regional: 'ನನ್ನ ಪ್ಯಾన్ ಅನ್ನು ನೀಡುವ ಪ್ರಾಧಿಕಾರ/NSDL ನಿಂದ ಪರಿಶೀಲಿಸಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
+        PAN_VERIFICATION: { en: 'I consent to verification of my PAN from issuing authority/NSDL.', regional: 'ನನ್ನ ಪ್ಯಾನ್ ಅನ್ನು ನೀಡುವ ಪ್ರಾಧಿಕಾರ/NSDL ನಿಂದ ಪರಿಶೀಲಿಸಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
         AADHAAR_AUTH: { en: 'I consent to Aadhaar OTP-based offline verification / e-KYC through authorized partners.', regional: 'ಅಧಿಕೃತ ಪಾಲುದಾರರ ಮೂಲಕ ಆಧಾರ್ ಒಟಿಪಿ-ಆಧಾರಿತ ಆಫ್‌ಲೈನ್ ಪರಿಶೀಲನೆ / ಇ-ಕೆವೈಸಿಗೆ ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
         DIGILOCKER_KYC: { en: 'I consent to fetch KYC documents from DigiLocker using my DigiLocker account.', regional: 'ನನ್ನ ಡಿಜಿಲಾಕರ್ ಖಾತೆಯನ್ನು ಬಳಸಿಕೊಂಡು ಡಿಜಿಲಾಕರ್‌ನಿಂದ ಕೆವೈಸಿ ದಾಖಲೆಗಳನ್ನು ಪಡೆಯಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
         BUREAU_PULL: { en: 'I consent to pull my credit report from credit bureaus for the purpose of this loan.', regional: 'ಈ ಸಾಲದ ಉದ್ದೇಶಕ್ಕಾಗಿ ಕ್ರೆಡಿಟ್ ಬ್ಯೂರೋಗಳಿಂದ ನನ್ನ ಕ್ರೆಡಿಟ್ ವರದಿಯನ್ನು ಎಳೆಯಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
@@ -597,6 +1291,85 @@ const kn: Dictionary = {
     consent_label: { en: 'Explicit Consent', regional: 'ಸ್ಪಷ್ಟ ಸಮ್ಮತಿ' },
     consent_description: { en: 'I hereby consent to LoanSwift fetching my credit information and other details for the purpose of this loan application.', regional: 'ಈ ಸಾಲದ ಅರ್ಜಿಯ ಉದ್ದೇಶಕ್ಕಾಗಿ ನನ್ನ ಕ್ರೆಡಿಟ್ ಮಾಹಿತಿ ಮತ್ತು ಇತರ ವಿವರಗಳನ್ನು ಪಡೆಯಲು ನಾನು ಲೋన్‌ಸ್ವಿಫ್ಟ್‌ಗೆ ಈ ಮೂಲಕ ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
     save_button: { en: 'Save and Continue', regional: 'ಉಳಿಸಿ ಮತ್ತು ಮುಂದುವರಿಸಿ' },
+  },
+  kyc: {
+    pan_title: { en: 'PAN Verification', regional: 'ಪ್ಯಾನ್ ಪರಿಶೀಲನೆ' },
+    pan_description: { en: 'Pre-filled based on earlier details. Please review and edit if required.', regional: 'ಹಿಂದಿನ ವಿವರಗಳ ಆಧಾರದ ಮೇಲೆ ಪೂರ್ವ-ಭರ್ತಿ ಮಾಡಲಾಗಿದೆ. ದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಅಗತ್ಯವಿದ್ದರೆ ಸಂಪಾದಿಸಿ.' },
+    pan_verified_title: { en: 'PAN Verified', regional: 'ಪ್ಯಾನ್ ಪರಿಶೀಲಿಸಲಾಗಿದೆ' },
+    pan_verified_description: { en: 'Your PAN has been successfully verified.', regional: 'ನಿಮ್ಮ ಪ್ಯಾನ್ ಯಶಸ್ವಿಯಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ.' },
+    pan_button: { en: 'Verify PAN', regional: 'ಪ್ಯಾನ್ ಪರಿಶೀಲಿಸಿ' },
+    aadhaar_title: { en: 'Aadhaar e-KYC', regional: 'ಆಧಾರ್ ಇ-ಕೆವೈಸಿ' },
+    aadhaar_description: { en: 'Enter your Aadhaar to perform e-KYC via OTP.', regional: 'ಒಟಿಪಿ ಮೂಲಕ ಇ-ಕೆವೈಸಿ ಮಾಡಲು ನಿಮ್ಮ ಆಧಾರ್ ಅನ್ನು ನಮೂದಿಸಿ.' },
+    aadhaar_verified_title: { en: 'Aadhaar Verified', regional: 'ಆಧಾರ್ ಪರಿಶೀಲಿಸಲಾಗಿದೆ' },
+    aadhaar_verified_description: { en: 'Your Aadhaar e-KYC is complete.', regional: 'ನಿಮ್ಮ ಆಧಾರ್ ಇ-ಕೆವೈಸಿ ಪೂರ್ಣಗೊಂಡಿದೆ.' },
+    aadhaar_label: { en: 'Aadhaar Number', regional: 'ಆಧಾರ್ ಸಂಖ್ಯೆ' },
+    aadhaar_placeholder: { en: '1234 5678 9012', regional: '೧೨೩೪ ೫೬೭೮ ೯೦೧೨' },
+    send_otp_button: { en: 'Send OTP', regional: 'ಒಟಿಪಿ ಕಳುಹಿಸಿ' },
+    otp_label: { en: 'Enter OTP', regional: 'ಒಟಿಪಿ ನಮೂದಿಸಿ' },
+    otp_placeholder: { en: 'Enter 6-digit OTP (123456)', regional: '6-ಅಂಕಿಯ ಒಟಿಪಿ ನಮೂದಿಸಿ (೧೨೩೪೫೬)' },
+    verify_otp_button: { en: 'Verify OTP', regional: 'ಒಟಿಪಿ ಪರಿಶೀಲಿಸಿ' },
+    continue_button: { en: 'Continue to Document Verification', regional: 'ದಾಖಲೆ ಪರಿಶೀಲನೆಗೆ ಮುಂದುವರಿಸಿ' },
+  },
+  doc_verification: {
+    digilocker_title: { en: 'Option 1: Use DigiLocker', regional: 'ಆಯ್ಕೆ 1: ಡಿಜಿಲಾಕರ್ ಬಳಸಿ' },
+    digilocker_description: { en: 'Fetch your Aadhaar and PAN instantly for faster processing.', regional: 'ವೇಗದ ಪ್ರಕ್ರಿಯೆಗಾಗಿ ನಿಮ್ಮ ಆಧಾರ್ ಮತ್ತು ಪ್ಯಾನ್ ಅನ್ನು ತಕ್ಷಣವೇ ಪಡೆಯಿರಿ.' },
+    digilocker_button: { en: 'Connect to DigiLocker', regional: 'ಡಿಜಿಲಾಕರ್‌ಗೆ ಸಂಪರ್ಕಿಸಿ' },
+    manual_title: { en: 'Option 2: Manual Upload', regional: 'ಆಯ್ಕೆ 2: ಹಸ್ತಚಾಲಿತ ಅಪ್‌ಲೋಡ್' },
+    manual_description: { en: "Upload your documents manually. We'll use OCR to verify them.", regional: 'ನಿಮ್ಮ ದಾಖಲೆಗಳನ್ನು ಹಸ್ತಚಾಲಿತವಾಗಿ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ. ನಾವು ಅವುಗಳನ್ನು ಪರಿಶೀಲಿಸಲು ಓಸಿಆರ್ ಬಳಸುತ್ತೇವೆ.' },
+    upload_button: { en: 'Upload', regional: 'ಅಪ್‌ಲೋಡ್' },
+    verifying_toast: { en: 'uploading and verifying...', regional: 'ಅಪ್‌ಲೋಡ್ ಮತ್ತು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...' },
+    verified_toast: { en: 'Verified', regional: 'ಪರಿಶೀಲಿಸಲಾಗಿದೆ' },
+    upload_pending_badge: { en: 'Pending', regional: 'ಬಾಕಿ ಉಳಿದಿದೆ' },
+    upload_uploaded_badge: { en: 'Uploaded, Verifying...', regional: 'ಅಪ್‌ಲೋಡ್ ಮಾಡಲಾಗಿದೆ, ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...' },
+    upload_verified_ocr_badge: { en: 'Verified via OCR', regional: 'ಓಸಿಆರ್ ಮೂಲಕ ಪರಿಶೀಲಿಸಲಾಗಿದೆ' },
+    upload_verified_digital_badge: { en: 'Digitally Verified', regional: 'ಡಿಜಿಟಲ್ ಆಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ' },
+    continue_button: { en: 'Continue to Eligibility', regional: 'ಅರ್ಹತೆಗೆ ಮುಂದುವರಿಸಿ' },
+    digilocker_modal_title: { en: 'Share Documents from DigiLocker', regional: 'ಡಿಜಿಲಾಕರ್‌ನಿಂದ ದಾಖಲೆಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಿ' },
+    digilocker_modal_description: { en: 'Select the documents you want to share for KYC verification.', regional: 'ಕೆವೈಸಿ ಪರಿಶೀಲನೆಗಾಗಿ ನೀವು ಹಂಚಿಕೊಳ್ಳಲು ಬಯಸುವ ದಾಖಲೆಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ.' },
+    digilocker_modal_share_button: { en: 'Share Selected Documents', regional: 'ಆಯ್ದ ದಾಖಲೆಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಿ' },
+    processing_title: { en: 'Verifying Documents & Checking Credit...', regional: 'ದಾಖಲೆಗಳನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ ಮತ್ತು ಕ್ರೆಡಿಟ್ ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...' },
+    processing_description: { en: 'Please wait while we securely process your information.', regional: 'ನಾವು ನಿಮ್ಮ ಮಾಹಿತಿಯನ್ನು ಸುರಕ್ಷಿತವಾಗಿ ಪ್ರಕ್ರಿಯೆಗೊಳಿಸುವಾಗ ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ.' },
+    summary_title: { en: 'KYC Matching Summary', regional: 'ಕೆವೈಸಿ ಹೊಂದಾಣಿಕೆ ಸಾರಾಂಶ' },
+    summary_description: { en: "We've matched your provided details against your verified documents. Aadhaar is the primary source of truth.", regional: 'ನಾವು ನಿಮ್ಮ ಒದಗಿಸಿದ ವಿವರಗಳನ್ನು ನಿಮ್ಮ ಪರಿಶೀಲಿಸಿದ ದಾಖಲೆಗಳೊಂದಿಗೆ ಹೊಂದಿಸಿದ್ದೇವೆ. ಆಧಾರ್ ಸತ್ಯದ ಪ್ರಾಥಮಿಕ ಮೂಲವಾಗಿದೆ.' },
+    summary_name_label: { en: 'Full Name', regional: 'ಪೂರ್ಣ ಹೆಸರು' },
+    summary_dob_label: { en: 'Date of Birth', regional: 'ಹುಟ್ಟಿದ ದಿನಾಂಕ' },
+    summary_address_label: { en: 'Address', regional: 'ವಿಳಾಸ' },
+    summary_pan_label: { en: 'PAN', regional: 'ಪ್ಯಾನ್' },
+    summary_match_badge: { en: 'Matches Aadhaar', regional: 'ಆಧಾರ್‌ಗೆ ಹೊಂದುತ್ತದೆ' },
+    summary_mismatch_badge: { en: 'Does Not Match', regional: 'ಹೊಂದುವುದಿಲ್ಲ' },
+    summary_partial_match_badge: { en: 'Partial Match', regional: 'ಭಾಗಶಃ ಹೊಂದಾಣಿಕೆ' },
+  },
+  eligibility: {
+    rejected_title: { en: 'Application Not Approved', regional: 'ಅರ್ಜಿ ಅಂಗೀಕರಿಸಲಾಗಿಲ್ಲ' },
+    rejected_description: { en: 'We are unable to proceed with your loan application at this time based on our current lending policies.', regional: 'ನಮ್ಮ ಪ್ರಸ್ತುತ ಸಾಲ ನೀತಿಗಳ ಆಧಾರದ ಮೇಲೆ ಈ ಸಮಯದಲ್ಲಿ ನಿಮ್ಮ ಸಾಲದ ಅರ್ಜಿಯೊಂದಿಗೆ ಮುಂದುವರಿಯಲು ನಮಗೆ ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ.' },
+    back_home_button: { en: 'Back to Home', regional: 'ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ' },
+    finalizing_title: { en: 'Finalizing Eligibility...', regional: 'ಅರ್ಹತೆಯನ್ನು ಅಂತಿಮಗೊಳಿಸಲಾಗುತ್ತಿದೆ...' },
+    finalizing_description: { en: 'This should only take a moment.', regional: 'ಇದಕ್ಕೆ ಕೇವಲ ಒಂದು ಕ್ಷಣ ಬೇಕು.' },
+    report_summary_title: { en: 'Your Credit Report Summary', regional: 'ನಿಮ್ಮ ಕ್ರೆಡಿಟ್ ವರದಿ ಸಾರಾಂಶ' },
+    score_band_excellent: { en: 'Excellent', regional: 'ಅತ್ಯುತ್ತಮ' },
+    score_band_good: { en: 'Good', regional: 'ಒಳ್ಳೆಯದು' },
+    score_band_fair: { en: 'Fair', regional: 'ಸಾಧಾರಣ' },
+    score_band_poor: { en: 'Poor', regional: 'ಕಳಪೆ' },
+    cibil_score_label: { en: 'CIBIL Score', regional: 'ಸಿಬಿಲ್ ಸ್ಕೋರ್' },
+    active_loans_label: { en: 'Active Loans', regional: 'ಸಕ್ರಿಯ ಸಾಲಗಳು' },
+    overdue_label: { en: 'Overdue', regional: 'ಬಾಕಿ' },
+    enquiries_label: { en: 'Recent Enquiries', regional: 'ಇತ್ತೀಚಿನ ವಿಚಾರಣೆಗಳು' },
+    upsell_title: { en: 'Great News!', regional: 'ಒಳ್ಳೆಯ ಸುದ್ದಿ!' },
+    upsell_description: { en: "You applied for ₹<requested>, but you're eligible for up to ₹<eligible>.", regional: 'ನೀವು ₹<requested> ಗೆ ಅರ್ಜಿ ಸಲ್ಲಿಸಿದ್ದೀರಿ, ಆದರೆ ನೀವು ₹<eligible> ವರೆಗೆ ಅರ್ಹರಾಗಿದ್ದೀರಿ.' },
+    select_amount_label: { en: 'Select Your Loan Amount', regional: 'ನಿಮ್ಮ ಸಾಲದ ಮೊತ್ತವನ್ನು ಆಯ್ಕೆಮಾಡಿ' },
+    recommended_badge: { en: 'Recommended', regional: 'ಶಿಫಾರಸು ಮಾಡಲಾಗಿದೆ' },
+    approved_amount_label: { en: 'Based on your profile, your approved loan amount is', regional: 'ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಆಧರಿಸಿ, ನಿಮ್ಮ ಅನುಮೋದಿತ ಸಾಲದ ಮೊತ್ತ' },
+    approved_amount_description: { en: 'This approved amount is based on your credit profile and repayment capacity.', regional: 'ಈ ಅನುಮೋದಿತ ಮೊತ್ತವು ನಿಮ್ಮ ಕ್ರೆಡಿಟ್ ಪ್ರೊಫೈಲ್ ಮತ್ತು ಮರುಪಾವತಿ ಸಾಮರ್ಥ್ಯವನ್ನು ಆಧರಿಸಿದೆ.' },
+    tenure_label: { en: 'Choose your tenure', regional: 'ನಿಮ್ಮ ಅವಧಿಯನ್ನು ಆರಿಸಿ' },
+    tenure_description: { en: 'Select a plan to see your monthly payment.', regional: 'ನಿಮ್ಮ ಮಾಸಿಕ ಪಾವತಿಯನ್ನು ನೋಡಲು ಒಂದು ಯೋಜನೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.' },
+    plan_title: { en: 'Your Selected Plan', regional: 'ನಿಮ್ಮ ಆಯ್ಕೆ ಮಾಡಿದ ಯೋಜನೆ' },
+    per_month_label: { en: '/ month', regional: '/ ತಿಂಗಳು' },
+    for_months_label: { en: 'months', regional: 'ತಿಂಗಳುಗಳು' },
+    at_interest_label: { en: '% p.a.', regional: '% ವಾರ್ಷಿಕ' },
+    schedule_preview_title: { en: 'Payment Schedule Preview', regional: 'ಪಾವತಿ ವೇಳಾಪಟ್ಟಿ ಪೂರ್ವವೀಕ್ಷಣೆ' },
+    confirm_consent_label: { en: 'I confirm that I have reviewed and chosen this loan tenure and EMI.', regional: 'ನಾನು ಈ ಸಾಲದ ಅವಧಿ ಮತ್ತು ಇಎಂಐ ಅನ್ನು ಪರಿಶೀಲಿಸಿದ್ದೇನೆ ಮತ್ತು ಆಯ್ಕೆ ಮಾಡಿದ್ದೇನೆ ಎಂದು ನಾನು ಖಚಿತಪಡಿಸುತ್ತೇನೆ.' },
+    confirm_button: { en: 'Confirm Loan Amount & Continue', regional: 'ಸಾಲದ ಮೊತ್ತವನ್ನು ಖಚಿತಪಡಿಸಿ ಮತ್ತು ಮುಂದುವರಿಸಿ' },
+    validation_message: { en: 'Please select a tenure and confirm your choice to proceed.', regional: 'ಮುಂದುವರಿಯಲು ದಯವಿಟ್ಟು ಅವಧಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ ಮತ್ತು ನಿಮ್ಮ ಆಯ್ಕೆಯನ್ನು ಖಚಿತಪಡಿಸಿ.' },
   },
   kfs: {
     title: { en: 'Your Loan Offer Summary', regional: 'ನಿಮ್ಮ ಸಾಲದ ಕೊಡುಗೆಯ ಸಾರಾಂಶ' },
@@ -666,6 +1439,37 @@ const kn: Dictionary = {
     app_id: { en: 'Application ID', regional: 'ಅರ್ಜಿ ಐಡಿ' },
     sanctioned_amount: { en: 'Sanctioned Amount', regional: 'ಮಂಜೂರಾದ ಮೊತ್ತ' },
     support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'ನೀವು ನಮ್ಮನ್ನು support@loanswift.com ನಲ್ಲಿಯೂ ಸಂಪರ್ಕಿಸಬಹುದು' },
+  },
+  agreement: {
+    title: { en: 'Digital Loan Agreement (e-Sign)', regional: 'ಡಿಜಿಟಲ್ ಸಾಲ ಒಪ್ಪಂದ (ಇ-ಸಹಿ)' },
+    description: { en: 'Review the terms and sign the agreement using an Aadhaar-based OTP.', regional: 'ನಿಯಮಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಆಧಾರ್-ಆಧಾರಿತ ಒಟಿಪಿ ಬಳಸಿ ಒಪ್ಪಂದಕ್ಕೆ ಸಹಿ ಮಾಡಿ.' },
+    agreement_title: { en: 'Loan Agreement', regional: 'ಸಾಲ ಒಪ್ಪಂದ' },
+    agreement_content_line1: { en: 'This is a legally binding agreement between you (the Borrower) and FairFinance NBFC (the Lender)...', regional: 'ಇದು ನಿಮ್ಮ (ಸಾಲಗಾರ) ಮತ್ತು ಫೇರ್‌ಫೈನಾನ್ಸ್ ಎನ್‌ಬಿಎಫ್‌ಸಿ (ಸಾಲದಾತ) ನಡುವಿನ ಕಾನೂನುಬದ್ಧ ಒಪ್ಪಂದವಾಗಿದೆ...' },
+    agreement_content_line2: { en: '1. Loan Amount: ₹<amount>', regional: '೧. ಸಾಲದ ಮೊತ್ತ: ₹<amount>' },
+    agreement_content_line3: { en: '2. Tenure: <tenure> months', regional: '೨. ಅವಧಿ: <tenure> ತಿಂಗಳುಗಳು' },
+    agreement_content_line4: { en: '3. Repayment: You agree to repay the loan via monthly EMIs of ₹<emi> as per the e-mandate.', regional: '೩. ಮರುಪಾವತಿ: ನೀವು ಇ-ಮ್ಯಾಂಡೇಟ್ ಪ್ರಕಾರ ₹<emi> ಮಾಸಿಕ ಇಎಂಐಗಳ ಮೂಲಕ ಸಾಲವನ್ನು ಮರುಪಾವತಿಸಲು ಒಪ್ಪುತ್ತೀರಿ.' },
+    sign_button: { en: 'Sign via Aadhaar OTP', regional: 'ಆಧಾರ್ ಒಟಿಪಿ ಮೂಲಕ ಸಹಿ ಮಾಡಿ' },
+    otp_label: { en: 'Enter OTP sent to your Aadhaar-linked mobile', regional: 'ನಿಮ್ಮ ಆಧಾರ್-ಸಂಯೋಜಿತ ಮೊಬೈಲ್‌ಗೆ ಕಳುಹಿಸಿದ ಒಟಿಪಿ ನಮೂದಿಸಿ' },
+    otp_placeholder: { en: 'Enter 6-digit OTP', regional: '6-ಅಂಕಿಯ ಒಟಿಪಿ ನಮೂದಿಸಿ' },
+    verify_button: { en: 'Verify & e-Sign', regional: 'ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಇ-ಸಹಿ ಮಾಡಿ' },
+  },
+  disbursement: {
+    success_title: { en: 'Congratulations!', regional: 'ಅಭಿನಂದನೆಗಳು!' },
+    success_description: { en: 'Your loan has been disbursed.', regional: 'ನಿಮ್ಮ ಸಾಲವನ್ನು ವಿತರಿಸಲಾಗಿದೆ.' },
+    details_title: { en: 'Disbursement Details', regional: 'ವಿತರಣಾ ವಿವರಗಳು' },
+    amount_label: { en: 'Amount:', regional: 'ಮೊತ್ತ:' },
+    account_label: { en: 'Bank Account:', regional: 'ಬ್ಯಾಂಕ್ ಖಾತೆ:' },
+    ref_label: { en: 'Transaction Ref:', regional: 'ವಹಿವಾಟು ಉಲ್ಲೇಖ:' },
+    credited_soon_message: { en: 'The amount will be credited to your account shortly. Your first EMI is due next month.', regional: 'ಮೊತ್ತವು ಶೀಘ್ರದಲ್ಲೇ ನಿಮ್ಮ ಖಾತೆಗೆ ಜಮಾ ಆಗಲಿದೆ. ನಿಮ್ಮ ಮೊದಲ ಇಎಂಐ ಮುಂದಿನ ತಿಂಗಳು ಪಾವತಿಸಬೇಕಾಗಿದೆ.' },
+    download_agreement_button: { en: 'Download Agreement', regional: 'ಒಪ್ಪಂದವನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ' },
+    back_to_dashboard_button: { en: 'Back to Dashboard', regional: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ' },
+    ready_title: { en: 'Ready for Disbursement', regional: 'ವಿತರಣೆಗೆ ಸಿದ್ಧವಾಗಿದೆ' },
+    ready_description: { en: 'All formalities are complete. The net loan amount will be transferred to your verified bank account.', regional: 'ಎಲ್ಲಾ ಔಪಚಾರಿಕತೆಗಳು ಪೂರ್ಣಗೊಂಡಿವೆ. ನಿವ್ವಳ ಸಾಲದ ಮೊತ್ತವನ್ನು ನಿಮ್ಮ ಪರಿಶೀಲಿಸಿದ ಬ್ಯಾಂಕ್ ಖಾತೆಗೆ ವರ್ಗಾಯಿಸಲಾಗುತ್ತದೆ.' },
+    final_disbursement_title: { en: 'Final Disbursement', regional: 'ಅಂತಿమ ವಿತರಣೆ' },
+    net_amount_label: { en: 'Net Amount:', regional: 'ನಿವ್ವಳ ಮೊತ್ತ:' },
+    to_account_label: { en: 'To Account:', regional: 'ಖಾತೆಗೆ:' },
+    initiate_button: { en: 'Initiate Disbursement', regional: 'ವಿತರಣೆಯನ್ನು ಪ್ರಾರಂಭಿಸಿ' },
+    processing_button: { en: 'Processing...', regional: 'ಸಂಸ್ಕರಿಸಲಾಗುತ್ತಿದೆ...' },
   },
 };
 
