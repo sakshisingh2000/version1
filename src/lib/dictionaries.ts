@@ -136,8 +136,15 @@ export interface Dictionary {
     upsell_description: BilingualText;
     select_amount_label: BilingualText;
     recommended_badge: BilingualText;
-    approved_amount_label: BilingualText;
-    approved_amount_description: BilingualText;
+    lower_amount_requested: BilingualText;
+    lower_amount_approved: BilingualText;
+    lower_amount_reason: BilingualText;
+    lower_amount_accept_button: BilingualText;
+    lower_amount_decline_button: BilingualText;
+    assisted_journey_title: BilingualText;
+    assisted_journey_description: BilingualText;
+    app_id_label: BilingualText;
+    thank_you_message: BilingualText;
     tenure_label: BilingualText;
     tenure_description: BilingualText;
     plan_title: BilingualText;
@@ -315,7 +322,7 @@ const en: Dictionary = {
     consent_description: { en: 'I hereby consent to LoanSwift fetching my credit information and other details for the purpose of this loan application.', regional: 'I hereby consent to LoanSwift fetching my credit information and other details for the purpose of this loan application.' },
     save_button: { en: 'Save and Continue', regional: 'Save and Continue' },
   },
-  kyc: {
+   kyc: {
     pan_title: { en: 'PAN Verification', regional: 'PAN Verification' },
     pan_description: { en: 'Pre-filled based on earlier details. Please review and edit if required.', regional: 'Pre-filled based on earlier details. Please review and edit if required.' },
     pan_verified_title: { en: 'PAN Verified', regional: 'PAN Verified' },
@@ -333,7 +340,7 @@ const en: Dictionary = {
     verify_otp_button: { en: 'Verify OTP', regional: 'Verify OTP' },
     continue_button: { en: 'Continue to Document Verification', regional: 'Continue to Document Verification' },
   },
-   doc_verification: {
+  doc_verification: {
     digilocker_title: { en: 'Option 1: Use DigiLocker', regional: 'Option 1: Use DigiLocker' },
     digilocker_description: { en: 'Fetch your Aadhaar and PAN instantly for faster processing.', regional: 'Fetch your Aadhaar and PAN instantly for faster processing.' },
     digilocker_button: { en: 'Connect to DigiLocker', regional: 'Connect to DigiLocker' },
@@ -378,11 +385,18 @@ const en: Dictionary = {
     overdue_label: { en: 'Overdue', regional: 'Overdue' },
     enquiries_label: { en: 'Recent Enquiries', regional: 'Recent Enquiries' },
     upsell_title: { en: 'Great News!', regional: 'Great News!' },
-    upsell_description: { en: "You applied for ₹<requested>, but you're eligible for up to ₹<eligible>.", regional: "You applied for ₹<requested>, but you're eligible for up to ₹<eligible>." },
+    upsell_description: { en: "You applied for <requested>, but you're eligible for up to <eligible>.", regional: "You applied for <requested>, but you're eligible for up to <eligible>." },
     select_amount_label: { en: 'Select Your Loan Amount', regional: 'Select Your Loan Amount' },
     recommended_badge: { en: 'Recommended', regional: 'Recommended' },
-    approved_amount_label: { en: 'Based on your profile, your approved loan amount is', regional: 'Based on your profile, your approved loan amount is' },
-    approved_amount_description: { en: 'This approved amount is based on your credit profile and repayment capacity.', regional: 'This approved amount is based on your credit profile and repayment capacity.' },
+    lower_amount_requested: { en: "You applied for: {amount}", regional: "You applied for: {amount}" },
+    lower_amount_approved: { en: "Based on your profile, the approved loan amount is:", regional: "Based on your profile, the approved loan amount is:" },
+    lower_amount_reason: { en: "This amount is approved based on your credit profile and repayment capacity.", regional: "This amount is approved based on your credit profile and repayment capacity." },
+    lower_amount_accept_button: { en: "Continue with {amount}", regional: "Continue with {amount}" },
+    lower_amount_decline_button: { en: "I do not wish to continue", regional: "I do not wish to continue" },
+    assisted_journey_title: { en: "Assisted Journey", regional: "Assisted Journey" },
+    assisted_journey_description: { en: "Your loan has been sanctioned, but the amount is lower than you requested. Our relationship manager will contact you to assist with the next steps.", regional: "Your loan has been sanctioned, but the amount is lower than you requested. Our relationship manager will contact you to assist with the next steps." },
+    app_id_label: { en: 'Application ID', regional: 'Application ID' },
+    thank_you_message: { en: 'Thank you for considering LoanSwift.', regional: 'Thank you for considering LoanSwift.' },
     tenure_label: { en: 'Choose your tenure', regional: 'Choose your tenure' },
     tenure_description: { en: 'Select a plan to see your monthly payment.', regional: 'Select a plan to see your monthly payment.' },
     plan_title: { en: 'Your Selected Plan', regional: 'Your Selected Plan' },
@@ -463,7 +477,7 @@ const en: Dictionary = {
     sanctioned_amount: { en: 'Sanctioned Amount', regional: 'Sanctioned Amount' },
     support_contact: { en: 'You can also reach us at support@loanswift.com', regional: 'You can also reach us at support@loanswift.com' },
   },
-  agreement: {
+   agreement: {
     title: { en: 'Digital Loan Agreement (e-Sign)', regional: 'Digital Loan Agreement (e-Sign)' },
     description: { en: 'Review the terms and sign the agreement using an Aadhaar-based OTP.', regional: 'Review the terms and sign the agreement using an Aadhaar-based OTP.' },
     agreement_title: { en: 'Loan Agreement', regional: 'Loan Agreement' },
@@ -622,11 +636,18 @@ const hi: Dictionary = {
     overdue_label: { en: 'Overdue', regional: 'अतिदेय' },
     enquiries_label: { en: 'Recent Enquiries', regional: 'हाल की पूछताछ' },
     upsell_title: { en: 'Great News!', regional: 'खुशखबरी!' },
-    upsell_description: { en: "You applied for ₹<requested>, but you're eligible for up to ₹<eligible>.", regional: 'आपने ₹<requested> के लिए आवेदन किया था, लेकिन आप ₹<eligible> तक के लिए पात्र हैं।' },
+    upsell_description: { en: "You applied for <requested>, but you're eligible for up to <eligible>.", regional: 'आपने <requested> के लिए आवेदन किया था, लेकिन आप <eligible> तक के लिए पात्र हैं।' },
     select_amount_label: { en: 'Select Your Loan Amount', regional: 'अपनी ऋण राशि चुनें' },
     recommended_badge: { en: 'Recommended', regional: 'अनुशंसित' },
-    approved_amount_label: { en: 'Based on your profile, your approved loan amount is', regional: 'आपकी प्रोफ़ाइल के आधार पर, आपकी स्वीकृत ऋण राशि है' },
-    approved_amount_description: { en: 'This approved amount is based on your credit profile and repayment capacity.', regional: 'यह स्वीकृत राशि आपकी क्रेडिट प्रोफ़ाइल और चुकौती क्षमता पर आधारित है।' },
+    lower_amount_requested: { en: "You applied for: {amount}", regional: "आपने इसके लिए आवेदन किया: {amount}" },
+    lower_amount_approved: { en: "Based on your profile, the approved loan amount is:", regional: "आपकी प्रोफ़ाइल के आधार पर, स्वीकृत ऋण राशि है:" },
+    lower_amount_reason: { en: "This amount is approved based on your credit profile and repayment capacity.", regional: "यह राशि आपकी क्रेडिट प्रोफ़ाइल और चुकौती क्षमता के आधार पर स्वीकृत की गई है।" },
+    lower_amount_accept_button: { en: "Continue with {amount}", regional: "{amount} के साथ जारी रखें" },
+    lower_amount_decline_button: { en: "I do not wish to continue", regional: "मैं जारी नहीं रखना चाहता/चाहती" },
+    assisted_journey_title: { en: "Assisted Journey", regional: "सहायता प्राप्त यात्रा" },
+    assisted_journey_description: { en: "Your loan has been sanctioned, but the amount is lower than you requested. Our relationship manager will contact you to assist with the next steps.", regional: "आपका ऋण स्वीकृत हो गया है, लेकिन राशि आपके अनुरोध से कम है। हमारे संबंध प्रबंधक अगले चरणों में सहायता के लिए आपसे संपर्क करेंगे।" },
+    app_id_label: { en: 'Application ID', regional: 'आवेदन आईडी' },
+    thank_you_message: { en: 'Thank you for considering LoanSwift.', regional: 'लोनस्विफ्ट पर विचार करने के लिए धन्यवाद।' },
     tenure_label: { en: 'Choose your tenure', regional: 'अपनी अवधि चुनें' },
     tenure_description: { en: 'Select a plan to see your monthly payment.', regional: 'अपना मासिक भुगतान देखने के लिए एक योजना चुनें।' },
     plan_title: { en: 'Your Selected Plan', regional: 'आपकी चयनित योजना' },
@@ -867,11 +888,18 @@ const mr: Dictionary = {
     overdue_label: { en: 'Overdue', regional: 'थकबाकी' },
     enquiries_label: { en: 'Recent Enquiries', regional: 'अलीकडील चौकशी' },
     upsell_title: { en: 'Great News!', regional: 'उत्तम बातमी!' },
-    upsell_description: { en: "You applied for ₹<requested>, but you're eligible for up to ₹<eligible>.", regional: 'तुम्ही ₹<requested> साठी अर्ज केला होता, परंतु तुम्ही ₹<eligible> पर्यंत पात्र आहात.' },
+    upsell_description: { en: "You applied for <requested>, but you're eligible for up to <eligible>.", regional: 'तुम्ही <requested> साठी अर्ज केला होता, परंतु तुम्ही <eligible> पर्यंत पात्र आहात.' },
     select_amount_label: { en: 'Select Your Loan Amount', regional: 'तुमची कर्ज रक्कम निवडा' },
     recommended_badge: { en: 'Recommended', regional: 'शिफारस केलेले' },
-    approved_amount_label: { en: 'Based on your profile, your approved loan amount is', regional: 'तुमच्या प्रोफाइलवर आधारित, तुमची मंजूर कर्ज रक्कम आहे' },
-    approved_amount_description: { en: 'This approved amount is based on your credit profile and repayment capacity.', regional: 'ही मंजूर रक्कम तुमच्या क्रेडिट प्रोफाइल आणि परतफेड क्षमतेवर आधारित आहे.' },
+    lower_amount_requested: { en: "You applied for: {amount}", regional: "तुम्ही यासाठी अर्ज केला: {amount}" },
+    lower_amount_approved: { en: "Based on your profile, the approved loan amount is:", regional: "तुमच्या प्रोफाइलवर आधारित, मंजूर कर्ज रक्कम आहे:" },
+    lower_amount_reason: { en: "This amount is approved based on your credit profile and repayment capacity.", regional: "ही रक्कम तुमच्या क्रेडिट प्रोफाइल आणि परतफेड क्षमतेवर आधारित मंजूर केली आहे." },
+    lower_amount_accept_button: { en: "Continue with {amount}", regional: "{amount} सह सुरू ठेवा" },
+    lower_amount_decline_button: { en: "I do not wish to continue", regional: "मला सुरू ठेवायचे नाही" },
+    assisted_journey_title: { en: "Assisted Journey", regional: "सहाय्यक प्रवास" },
+    assisted_journey_description: { en: "Your loan has been sanctioned, but the amount is lower than you requested. Our relationship manager will contact you to assist with the next steps.", regional: "तुमचे कर्ज मंजूर झाले आहे, परंतु रक्कम तुमच्या विनंतीपेक्षा कमी आहे. आमचे रिलेशनशिप मॅनेजर पुढील चरणांमध्ये मदत करण्यासाठी तुमच्याशी संपर्क साधतील." },
+    app_id_label: { en: 'Application ID', regional: 'अर्ज आयडी' },
+    thank_you_message: { en: 'Thank you for considering LoanSwift.', regional: 'लोनस्विफ्टचा विचार केल्याबद्दल धन्यवाद.' },
     tenure_label: { en: 'Choose your tenure', regional: 'तुमचा कालावधी निवडा' },
     tenure_description: { en: 'Select a plan to see your monthly payment.', regional: 'तुमचे मासिक पेमेंट पाहण्यासाठी एक योजना निवडा.' },
     plan_title: { en: 'Your Selected Plan', regional: 'तुमची निवडलेली योजना' },
@@ -1111,11 +1139,18 @@ const te: Dictionary = {
     overdue_label: { en: 'Overdue', regional: 'గడువు ముగిసింది' },
     enquiries_label: { en: 'Recent Enquiries', regional: 'ఇటీవలి విచారణలు' },
     upsell_title: { en: 'Great News!', regional: 'శుభవార్త!' },
-    upsell_description: { en: "You applied for ₹<requested>, but you're eligible for up to ₹<eligible>.", regional: 'మీరు ₹<requested> కోసం దరఖాస్తు చేసారు, కానీ మీరు ₹<eligible> వరకు అర్హులు.' },
+    upsell_description: { en: "You applied for <requested>, but you're eligible for up to <eligible>.", regional: 'మీరు <requested> కోసం దరఖాస్తు చేసారు, కానీ మీరు <eligible> వరకు అర్హులు.' },
     select_amount_label: { en: 'Select Your Loan Amount', regional: 'మీ రుణ మొత్తాన్ని ఎంచుకోండి' },
     recommended_badge: { en: 'Recommended', regional: 'సిఫార్సు చేయబడింది' },
-    approved_amount_label: { en: 'Based on your profile, your approved loan amount is', regional: 'మీ ప్రొఫైల్ ఆధారంగా, మీ ఆమోదించబడిన రుణ మొత్తం' },
-    approved_amount_description: { en: 'This approved amount is based on your credit profile and repayment capacity.', regional: 'ఈ ఆమోదించబడిన మొత్తం మీ క్రెడిట్ ప్రొఫైల్ మరియు తిరిగి చెల్లించే సామర్థ్యంపై ఆధారపడి ఉంటుంది.' },
+    lower_amount_requested: { en: "You applied for: {amount}", regional: "మీరు దీని కోసం దరఖాస్తు చేసారు: {amount}" },
+    lower_amount_approved: { en: "Based on your profile, the approved loan amount is:", regional: "మీ ప్రొఫైల్ ఆధారంగా, ఆమోదించబడిన రుణ మొత్తం:" },
+    lower_amount_reason: { en: "This amount is approved based on your credit profile and repayment capacity.", regional: "ఈ మొత్తం మీ క్రెడిట్ ప్రొఫైల్ మరియు తిరిగి చెల్లించే సామర్థ్యం ఆధారంగా ఆమోదించబడింది." },
+    lower_amount_accept_button: { en: "Continue with {amount}", regional: "{amount}తో కొనసాగండి" },
+    lower_amount_decline_button: { en: "I do not wish to continue", regional: "నేను కొనసాగించాలనుకోవడం లేదు" },
+    assisted_journey_title: { en: "Assisted Journey", regional: "సహాయక ప్రయాణం" },
+    assisted_journey_description: { en: "Your loan has been sanctioned, but the amount is lower than you requested. Our relationship manager will contact you to assist with the next steps.", regional: "మీ లోన్ మంజూరు చేయబడింది, కానీ మొత్తం మీ అభ్యర్థన కంటే తక్కువగా ఉంది. మా రిలేషన్‌షిప్ మేనేజర్ తదుపరి దశలతో సహాయం చేయడానికి మిమ్మల్ని సంప్రదిస్తారు." },
+    app_id_label: { en: 'Application ID', regional: 'అప్లికేషన్ ఐడి' },
+    thank_you_message: { en: 'Thank you for considering LoanSwift.', regional: 'లోన్‌స్విఫ్ట్‌ను పరిగణనలోకి తీసుకున్నందుకు ధన్యవాదాలు.' },
     tenure_label: { en: 'Choose your tenure', regional: 'మీ కాలపరిమితిని ఎంచుకోండి' },
     tenure_description: { en: 'Select a plan to see your monthly payment.', regional: 'మీ నెలవారీ చెల్లింపును చూడటానికి ఒక ప్రణాళికను ఎంచుకోండి.' },
     plan_title: { en: 'Your Selected Plan', regional: 'మీరు ఎంచుకున్న ప్రణాళిక' },
@@ -1355,11 +1390,18 @@ const kn: Dictionary = {
     overdue_label: { en: 'Overdue', regional: 'ಬಾಕಿ' },
     enquiries_label: { en: 'Recent Enquiries', regional: 'ಇತ್ತೀಚಿನ ವಿಚಾರಣೆಗಳು' },
     upsell_title: { en: 'Great News!', regional: 'ಒಳ್ಳೆಯ ಸುದ್ದಿ!' },
-    upsell_description: { en: "You applied for ₹<requested>, but you're eligible for up to ₹<eligible>.", regional: 'ನೀವು ₹<requested> ಗೆ ಅರ್ಜಿ ಸಲ್ಲಿಸಿದ್ದೀರಿ, ಆದರೆ ನೀವು ₹<eligible> ವರೆಗೆ ಅರ್ಹರಾಗಿದ್ದೀರಿ.' },
+    upsell_description: { en: "You applied for <requested>, but you're eligible for up to <eligible>.", regional: 'ನೀವು <requested> ಗೆ ಅರ್ಜಿ ಸಲ್ಲಿಸಿದ್ದೀರಿ, ಆದರೆ ನೀವು <eligible> ವರೆಗೆ ಅರ್ಹರಾಗಿದ್ದೀರಿ.' },
     select_amount_label: { en: 'Select Your Loan Amount', regional: 'ನಿಮ್ಮ ಸಾಲದ ಮೊತ್ತವನ್ನು ಆಯ್ಕೆಮಾಡಿ' },
     recommended_badge: { en: 'Recommended', regional: 'ಶಿಫಾರಸು ಮಾಡಲಾಗಿದೆ' },
-    approved_amount_label: { en: 'Based on your profile, your approved loan amount is', regional: 'ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಆಧರಿಸಿ, ನಿಮ್ಮ ಅನುಮೋದಿತ ಸಾಲದ ಮೊತ್ತ' },
-    approved_amount_description: { en: 'This approved amount is based on your credit profile and repayment capacity.', regional: 'ಈ ಅನುಮೋದಿತ ಮೊತ್ತವು ನಿಮ್ಮ ಕ್ರೆಡಿಟ್ ಪ್ರೊಫೈಲ್ ಮತ್ತು ಮರುಪಾವತಿ ಸಾಮರ್ಥ್ಯವನ್ನು ಆಧರಿಸಿದೆ.' },
+    lower_amount_requested: { en: "You applied for: {amount}", regional: "ನೀವು ಇದಕ್ಕಾಗಿ ಅರ್ಜಿ ಸಲ್ಲಿಸಿದ್ದೀರಿ: {amount}" },
+    lower_amount_approved: { en: "Based on your profile, the approved loan amount is:", regional: "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಆಧರಿಸಿ, ಅನುಮೋದಿತ ಸಾಲದ ಮೊತ್ತ:" },
+    lower_amount_reason: { en: "This amount is approved based on your credit profile and repayment capacity.", regional: "ಈ ಮೊತ್ತವನ್ನು ನಿಮ್ಮ ಕ್ರೆಡಿಟ್ ಪ್ರೊಫೈಲ್ ಮತ್ತು ಮರುಪಾವತಿ ಸಾಮರ್ಥ್ಯದ ಆಧಾರದ ಮೇಲೆ ಅನುಮೋದಿಸಲಾಗಿದೆ." },
+    lower_amount_accept_button: { en: "Continue with {amount}", regional: "{amount} ನೊಂದಿಗೆ ಮುಂದುವರಿಸಿ" },
+    lower_amount_decline_button: { en: "I do not wish to continue", regional: "ನಾನು ಮುಂದುವರಿಯಲು ಇಷ್ಟಪಡುವುದಿಲ್ಲ" },
+    assisted_journey_title: { en: "Assisted Journey", regional: "ಸಹಾಯದ ಪ್ರಯಾಣ" },
+    assisted_journey_description: { en: "Your loan has been sanctioned, but the amount is lower than you requested. Our relationship manager will contact you to assist with the next steps.", regional: "ನಿಮ್ಮ ಸಾಲವನ್ನು ಮಂಜೂರು ಮಾಡಲಾಗಿದೆ, ಆದರೆ ಮೊತ್ತವು ನಿಮ್ಮ ವಿನಂತಿಗಿಂತ ಕಡಿಮೆಯಾಗಿದೆ. ನಮ್ಮ ಸಂಬಂಧ ವ್ಯವಸ್ಥಾಪಕರು ಮುಂದಿನ ಹಂತಗಳಿಗೆ ಸಹಾಯ ಮಾಡಲು ನಿಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸುತ್ತಾರೆ." },
+    app_id_label: { en: 'Application ID', regional: 'ಅರ್ಜಿ ಐಡಿ' },
+    thank_you_message: { en: 'Thank you for considering LoanSwift.', regional: 'ಲೋನ್‌ಸ್ವಿಫ್ಟ್ ಅನ್ನು ಪರಿಗಣಿಸಿದ್ದಕ್ಕಾಗಿ ಧನ್ಯವಾದಗಳು.' },
     tenure_label: { en: 'Choose your tenure', regional: 'ನಿಮ್ಮ ಅವಧಿಯನ್ನು ಆರಿಸಿ' },
     tenure_description: { en: 'Select a plan to see your monthly payment.', regional: 'ನಿಮ್ಮ ಮಾಸಿಕ ಪಾವತಿಯನ್ನು ನೋಡಲು ಒಂದು ಯೋಜನೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.' },
     plan_title: { en: 'Your Selected Plan', regional: 'ನಿಮ್ಮ ಆಯ್ಕೆ ಮಾಡಿದ ಯೋಜನೆ' },
