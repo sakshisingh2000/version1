@@ -73,7 +73,7 @@ export type LoanApplication = {
   requested_amount?: number;
   requested_tenure_months?: number;
   product_type?: 'PERSONAL_LOAN' | 'CONSUMER_DURABLE';
-  application_status?: 'DRAFT' | 'UNDERWRITING' | 'APPROVED' | 'REJECTED' | 'DISBURSED' | 'PENDING_REVIEW';
+  application_status?: 'DRAFT' | 'UNDERWRITING' | 'APPROVED' | 'REJECTED' | 'DISBURSED' | 'PENDING_REVIEW' | 'APPROVED_ASSISTED_COMPLETION_REQUIRED';
   internal_risk_score?: 'LOW_RISK' | 'MEDIUM_RISK' | 'HIGH_RISK';
   bureau_score?: number;
   kyc_completed?: boolean;

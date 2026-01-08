@@ -1357,7 +1357,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                     {d.assisted_journey_title.en}
                     {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.assisted_journey_title.regional}</span>}
                 </h3>
-                <p className="text-muted-foreground max-w-md">
+                <p className="text-muted-foreground max-w-md whitespace-pre-wrap">
                     {d.assisted_journey_description.en}
                     {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.assisted_journey_description.regional}</span>}
                 </p>
@@ -1371,10 +1371,6 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                         <span className="font-bold">₹{finalLoanAmount.toLocaleString('en-IN')}</span>
                     </div>
                 </div>
-                <p className="text-sm text-muted-foreground pt-2">
-                    {d.thank_you_message.en}
-                    {language !== 'en' && <span className="block text-xs text-muted-foreground mt-1">{d.thank_you_message.regional}</span>}
-                </p>
                 <Button asChild><Link href="/">{d.back_home_button.en}</Link></Button>
             </div>
         );
@@ -2221,7 +2217,11 @@ export function EMandateStep({ onCompleted }: StepProps) {
     
     const handleUnableToSetup = () => {
         setView('unable');
-        setApplication(prev => ({ ...prev, eMandate: { isRegistered: false, mandateStatus: 'FAILED' } }));
+        setApplication(prev => ({ 
+            ...prev, 
+            eMandate: { isRegistered: false, mandateStatus: 'FAILED' },
+            application_status: 'APPROVED_ASSISTED_COMPLETION_REQUIRED',
+        }));
     };
 
     if (view === 'unable') {
@@ -2232,13 +2232,19 @@ export function EMandateStep({ onCompleted }: StepProps) {
                     {d.unable_title.en}
                     {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.unable_title.regional}</span>}
                 </h3>
-                <p className="text-muted-foreground max-w-md">
-                    {d.unable_description.en.replace('<ID>', application.loanApplicationId)}
-                    {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.unable_description.regional.replace('<ID>', application.loanApplicationId)}</span>}
+                <p className="text-muted-foreground max-w-md whitespace-pre-wrap">
+                    {d.unable_description.en}
+                    {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.unable_description.regional}</span>}
                 </p>
-                <div className="space-y-2 text-left w-full max-w-sm rounded-lg border p-4">
-                    <div className="flex justify-between"><span>{d.app_id.en}:</span><span className="font-mono">{application.loanApplicationId}</span></div>
-                    <div className="flex justify-between"><span>{d.sanctioned_amount.en}:</span><span className="font-bold">₹{application.approved_amount?.toLocaleString('en-IN')}</span></div>
+                <div className="space-y-2 text-left w-full max-w-sm rounded-lg border p-4 bg-muted/50">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{d.app_id.en}:</span>
+                      <span className="font-mono">{application.loanApplicationId}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">{d.sanctioned_amount.en}:</span>
+                        <span className="font-bold">₹{application.approved_amount?.toLocaleString('en-IN')}</span>
+                    </div>
                 </div>
                  <p className="text-sm text-muted-foreground pt-4">
                     {d.support_contact.en}
