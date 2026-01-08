@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -24,10 +25,12 @@ interface HeaderProps {
 export function Header({ onBack }: HeaderProps) {
   const { language, setLanguage } = useLanguage();
   const router = useRouter();
+  const pathname = usePathname();
 
   // The presence of the onBack function determines if the back button should be shown.
   // This gives parent components control over its visibility.
   const showBackButton = typeof onBack === 'function';
+  const isHomePage = pathname === '/';
 
   const handleLanguageChange = (langCode: string) => {
     setLanguage(langCode as Language);
@@ -73,6 +76,12 @@ export function Header({ onBack }: HeaderProps) {
           ) : (
             // This div is a placeholder to keep the layout consistent when the back button is not shown.
             <div style={{ width: '40px' }} />
+          )}
+        </div>
+
+        <div className="flex flex-1 items-center justify-center">
+          {!isHomePage && (
+              <span className="font-headline font-semibold text-primary">LoanSwift</span>
           )}
         </div>
 

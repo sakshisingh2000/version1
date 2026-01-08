@@ -110,7 +110,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
       
       const borrowerRef = doc(firestore, 'borrowers', user.uid);
       const loanAppCollection = collection(firestore, 'borrowers', user.uid, 'loan_applications');
-      const loanAppRef = doc(loanAppCollection);
+      const loanAppRef = doc(loanAppCollection, application.loanApplicationId);
 
       const borrowerData = {
         fullName: values.fullName,
@@ -128,7 +128,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
       setDocumentNonBlocking(borrowerRef, borrowerData, { merge: true });
       
       const loanAppData = {
-        id: loanAppRef.id,
+        id: application.loanApplicationId,
         borrowerId: user.uid,
         requested_amount: values.loanAmount,
         requested_tenure_months: 12, // Defaulting tenure, can be changed
@@ -140,7 +140,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
       };
       setDocumentNonBlocking(loanAppRef, loanAppData, {});
       
-      setApplication(prev => ({ ...prev, loanApplicationId: loanAppRef.id }));
+      setApplication(prev => ({ ...prev, loanApplicationId: application.loanApplicationId }));
 
       toast({
         title: "Details Saved",
@@ -1373,7 +1373,9 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                         <div>
                           <div className="flex justify-between items-center mb-2">
                             <Label htmlFor="loan-amount-slider">Select Your Loan Amount</Label>
-                            <Badge variant="default" className="bg-green-600">Recommended</Badge>
+                            <div>
+                                <Badge variant="default" className="bg-green-600">Recommended</Badge>
+                            </div>
                           </div>
                           <div className="flex items-center gap-4">
                             <Slider
@@ -2059,7 +2061,7 @@ export function EMandateStep({ onCompleted }: StepProps) {
                 setApplication(prev => ({ ...prev, eMandate: { isRegistered: true, mandateStatus: 'ACTIVE' } }));
                 toast({
                     title: d.success_title.en,
-                    description: d.success_description.en,
+                    description: language === 'en' ? d.success_description.en : d.success_description.regional,
                 });
                 onCompleted();
             }, 2500);
@@ -2319,3 +2321,4 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
 
 
     
+

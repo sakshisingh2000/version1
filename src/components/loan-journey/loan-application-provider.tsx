@@ -11,6 +11,7 @@ import { useUser, useFirestore } from '@/firebase';
 import { collection, doc, serverTimestamp } from 'firebase/firestore';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { addDays, subYears } from 'date-fns';
+import { generateReadableId } from '@/lib/utils';
 
 type LoanApplicationContextType = {
   application: LoanApplication;
@@ -24,7 +25,7 @@ type LoanApplicationContextType = {
 const LoanApplicationContext = createContext<LoanApplicationContextType | null>(null);
 
 const initialApplicationState: LoanApplication = {
-  loanApplicationId: "", // Will be set after personal details are submitted
+  loanApplicationId: generateReadableId(), 
   personalDetails: undefined,
   requested_amount: 0,
   kyc: {
