@@ -43,6 +43,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useLanguage } from "../language-provider";
 import { Slider } from "@/components/ui/slider";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import Image from 'next/image';
 
 interface StepProps {
   onCompleted: () => void;
@@ -735,27 +736,30 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
     
     const VerificationSummary = () => {
         const { personalDetails } = application;
-        const aadhaarData = { 
-            name: personalDetails?.fullName.toUpperCase(), 
-            dob: personalDetails?.birthDate,
-            address: `${personalDetails?.addressLine1}, ${personalDetails?.city}, ${personalDetails?.pincode}`
+        if (!personalDetails) return null;
+
+        const { fullName, birthDate, addressLine1, city, pincode, pan } = personalDetails;
+
+        const aadhaarData = {
+            name: fullName.toUpperCase(),
+            dob: birthDate,
+            address: `${addressLine1}, ${city}, ${pincode}`
         };
-        const panData = { 
-            name: personalDetails?.fullName.toUpperCase(), 
-            dob: personalDetails?.birthDate,
-            pan: personalDetails?.pan
+        const panData = {
+            name: fullName.toUpperCase(),
+            dob: birthDate,
+            pan: pan
         };
 
-        const nameMatchAadhaar = personalDetails?.fullName.toLowerCase() === aadhaarData.name?.toLowerCase();
-        const dobMatchAadhaar = personalDetails?.birthDate.toDateString() === aadhaarData.dob?.toDateString();
-        const addressMatch = `${personalDetails?.addressLine1}, ${personalDetails?.city}, ${personalDetails?.pincode}`.toLowerCase() === aadhaarData.address?.toLowerCase();
-        const panMatch = personalDetails?.pan === panData.pan;
-
-
-        const MatchBadge = ({ isMatch, partial = false }: { isMatch: boolean, partial?: boolean }) => (
-            <Badge variant={isMatch ? 'default' : (partial ? 'secondary' : 'destructive')} className={cn(isMatch && 'bg-accent text-accent-foreground')}>
-                {isMatch ? d.summary_match_badge.en : (partial ? d.summary_partial_match_badge.en : d.summary_mismatch_badge.en)}
-            </Badge>
+        const nameMatch = fullName.toLowerCase() === aadhaarData.name.toLowerCase();
+        const dobMatch = birthDate.toDateString() === aadhaarData.dob.toDateString();
+        const addressMatch = `${addressLine1}, ${city}, ${pincode}`.toLowerCase() === aadhaarData.address.toLowerCase();
+        const panMatch = pan === panData.pan;
+        
+        const MatchIndicator = ({ isMatch }: { isMatch: boolean }) => (
+           isMatch 
+              ? <CheckCircle className="h-5 w-5 text-green-600" />
+              : <XCircle className="h-5 w-5 text-destructive" />
         );
 
         return (
@@ -770,36 +774,62 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
                         {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.summary_description.regional}</span>}
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                    <div className="flex justify-between items-center p-3 border rounded-md">
-                        <div>
-                            <p className="font-semibold">{d.summary_name_label.en}</p>
-                            <p className="text-sm text-muted-foreground">{personalDetails?.fullName}</p>
+                <CardContent className="space-y-4">
+                    <div className="border rounded-lg p-3 space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                             <CheckCircle className="h-4 w-4 text-green-600" />
+                             <span>Details verified against trusted sources (Aadhaar, PAN).</span>
                         </div>
-                        <MatchBadge isMatch={nameMatchAadhaar} />
+                         <div className="flex items-center gap-2">
+                             <XCircle className="h-4 w-4 text-destructive" />
+                             <span>Details do not match official records.</span>
+                        </div>
                     </div>
-                     <div className="flex justify-between items-center p-3 border rounded-md">
-                        <div>
-                            <p className="font-semibold">{d.summary_dob_label.en}</p>
-                            <p className="text-sm text-muted-foreground">{personalDetails?.birthDate.toLocaleDateString()}</p>
+                
+                    <div className="flex items-start gap-4 p-4 border rounded-lg">
+                        <div className="relative h-24 w-20 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                           <Image 
+                                src="https://picsum.photos/seed/loanswift-user/200/300"
+                                alt="Aadhaar Photo"
+                                layout="fill"
+                                objectFit="cover"
+                            />
                         </div>
-                        <MatchBadge isMatch={dobMatchAadhaar} />
+                        <div className="space-y-1 flex-grow">
+                             <div className="flex justify-between items-center">
+                                <div>
+                                    <p className="font-semibold">{d.summary_name_label.en}</p>
+                                    <p className="text-sm text-muted-foreground">{fullName}</p>
+                                </div>
+                                <MatchIndicator isMatch={nameMatch} />
+                            </div>
+                            <Separator />
+                             <div className="flex justify-between items-center pt-2">
+                                <div>
+                                    <p className="font-semibold">{d.summary_dob_label.en}</p>
+                                    <p className="text-sm text-muted-foreground">{birthDate.toLocaleDateString()}</p>
+                                </div>
+                                <MatchIndicator isMatch={dobMatch} />
+                            </div>
+                             <p className="text-xs text-muted-foreground pt-2">Photo fetched from Aadhaar (Mock)</p>
+                        </div>
                     </div>
-                     <div className="flex justify-between items-center p-3 border rounded-md">
-                        <div>
-                            <p className="font-semibold">{d.summary_address_label.en}</p>
-                            <p className="text-sm text-muted-foreground max-w-xs truncate">{`${personalDetails?.addressLine1}, ${personalDetails?.city}`}</p>
+                
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-center p-3 border rounded-md">
+                            <div>
+                                <p className="font-semibold">{d.summary_address_label.en}</p>
+                                <p className="text-sm text-muted-foreground max-w-xs truncate">{`${addressLine1}, ${city}`}</p>
+                            </div>
+                            <MatchIndicator isMatch={addressMatch} />
                         </div>
-                        <MatchBadge isMatch={addressMatch} />
-                    </div>
-                    <div className="flex justify-between items-center p-3 border rounded-md">
-                        <div>
-                            <p className="font-semibold">{d.summary_pan_label.en}</p>
-                            <p className="text-sm text-muted-foreground">{personalDetails?.pan}</p>
+                        <div className="flex justify-between items-center p-3 border rounded-md">
+                            <div>
+                                <p className="font-semibold">{d.summary_pan_label.en}</p>
+                                <p className="text-sm text-muted-foreground">{pan}</p>
+                            </div>
+                            <MatchIndicator isMatch={panMatch} />
                         </div>
-                        <Badge variant={panMatch ? 'default' : 'destructive'} className={cn(panMatch && 'bg-accent text-accent-foreground')}>
-                            {panMatch ? d.summary_match_badge.en : d.summary_mismatch_badge.en}
-                        </Badge>
                     </div>
                 </CardContent>
             </Card>
@@ -2545,4 +2575,5 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
 
