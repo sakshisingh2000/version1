@@ -802,10 +802,11 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
                     <div className="flex items-start gap-4 p-4 border rounded-lg">
                         <div className="relative h-24 w-20 rounded-md overflow-hidden bg-muted flex-shrink-0">
                            <Image 
-                                src="https://picsum.photos/seed/loanswift-user/200/300"
+                                src="https://placehold.co/200x300/e2e8f0/e2e8f0"
                                 alt="Aadhaar Photo"
                                 layout="fill"
                                 objectFit="cover"
+                                data-ai-hint="dummy aadhar card"
                             />
                         </div>
                         <div className="space-y-1 flex-grow">
