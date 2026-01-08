@@ -76,6 +76,19 @@ const BilingualLabel = ({ en, regional }: { en: string, regional: string }) => {
     )
 };
 
+const BilingualText = ({ en, regional, isMuted = false }: { en: string, regional: string, isMuted?: boolean }) => {
+  const { language } = useLanguage();
+  const mainClass = isMuted ? "text-muted-foreground" : "";
+  const regionalClass = "block text-sm font-normal text-muted-foreground mt-1";
+  
+  return (
+    <div className={mainClass}>
+        {en}
+        {language !== 'en' && <span className={regionalClass}>{regional}</span>}
+    </div>
+  )
+}
+
 export function PersonalDetailsStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
   const { user } = useUser();
@@ -1550,7 +1563,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                     <CardContent className="space-y-4">
                         <div>
                           <div className="flex justify-between items-center mb-2">
-                            <BilingualLabel en={d.select_amount_label.en} regional={d.select_amount_label.regional} />
+                             <div className="font-semibold"><BilingualText en={d.select_amount_label.en} regional={d.select_amount_label.regional}/></div>
                             <div>
                                 <Badge variant="default" className="bg-green-600">
                                 {d.recommended_badge.en}
@@ -1613,7 +1626,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
             {eligibleAmount >= requestedAmount && (
                 <>
                     <div>
-                        <BilingualLabel en={d.tenure_label.en} regional={d.tenure_label.regional} />
+                        <div className="font-semibold"><BilingualText en={d.tenure_label.en} regional={d.tenure_label.regional}/></div>
                         <p className="text-sm text-muted-foreground mb-4">
                             {d.tenure_description.en}
                             {language !== 'en' && <span className="block text-xs mt-1">{d.tenure_description.regional}</span>}
@@ -2577,3 +2590,6 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
 }
 
 
+
+
+    
