@@ -458,11 +458,25 @@ export function KycStep({ onCompleted }: StepProps) {
             <p className="text-sm text-muted-foreground">Please complete PAN verification first.</p>
           ) : isAadhaarVerified ? (
             <Alert variant="default" className="bg-green-50 border-green-200">
-                <UserCheck className="h-4 w-4 !text-green-600" />
-                <AlertTitle className="text-green-800">{d.aadhaar_verified_title.en}</AlertTitle>
-                <AlertDescription className="text-green-700">
-                    {d.aadhaar_verified_description.en}
-                </AlertDescription>
+                <div className="flex items-start gap-4">
+                  <UserCheck className="h-4 w-4 !text-green-600 flex-shrink-0" />
+                  <div className="flex-grow">
+                      <AlertTitle className="text-green-800">{d.aadhaar_verified_title.en}</AlertTitle>
+                      <AlertDescription className="text-green-700 mb-4">
+                          {d.aadhaar_verified_description.en}
+                      </AlertDescription>
+                      <div className="relative h-24 w-20 rounded-md overflow-hidden bg-muted">
+                          <Image
+                              src="https://picsum.photos/seed/loanswift/200/300"
+                              alt="Aadhaar Photo"
+                              layout="fill"
+                              objectFit="cover"
+                              data-ai-hint="person photo"
+                          />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Photo fetched from Aadhaar (Mock)</p>
+                  </div>
+                </div>
             </Alert>
           ) : (
             <Form {...aadhaarForm}>
