@@ -229,11 +229,28 @@ export interface Dictionary {
    agreement: {
     title: BilingualText;
     description: BilingualText;
-    agreement_title: BilingualText;
-    agreement_content_line1: BilingualText;
-    agreement_content_line2: BilingualText;
-    agreement_content_line3: BilingualText;
-    agreement_content_line4: BilingualText;
+    borrower_details: BilingualText;
+    borrower_name: BilingualText;
+    app_id: BilingualText;
+    pan: BilingualText;
+    loan_details: BilingualText;
+    sanctioned_amount: BilingualText;
+    tenure: BilingualText;
+    interest_rate: BilingualText;
+    fees_disbursal: BilingualText;
+    processing_fee: BilingualText;
+    gst: BilingualText;
+    net_disbursal: BilingualText;
+    repayment_terms: BilingualText;
+    emi_amount: BilingualText;
+    emi_start_date: BilingualText;
+    repayment_mode: BilingualText;
+    legal_disclosure: BilingualText;
+    lender_disclosure1: BilingualText;
+    lender_disclosure2: BilingualText;
+    lender_disclosure3: BilingualText;
+    declaration_title: BilingualText;
+    declaration_content: BilingualText;
     sign_button: BilingualText;
     otp_label: BilingualText;
     otp_placeholder: BilingualText;
@@ -241,21 +258,27 @@ export interface Dictionary {
   };
   disbursement: {
     success_title: BilingualText;
-    success_description: BilingualText;
+    processing_message: BilingualText;
+    credited_soon_message: BilingualText;
     details_title: BilingualText;
     amount_label: BilingualText;
     account_label: BilingualText;
     ref_label: BilingualText;
-    credited_soon_message: BilingualText;
-    download_agreement_button: BilingualText;
     back_to_dashboard_button: BilingualText;
     ready_title: BilingualText;
     ready_description: BilingualText;
     final_disbursement_title: BilingualText;
     net_amount_label: BilingualText;
     to_account_label: BilingualText;
+    timeline_label: BilingualText;
+    timeline_value: BilingualText;
+    confirm_disbursement_button: BilingualText;
+    not_ready_button: BilingualText;
     initiate_button: BilingualText;
     processing_button: BilingualText;
+    assisted_title: BilingualText;
+    assisted_description: BilingualText;
+    app_id_label: BilingualText;
   };
 }
 
@@ -479,38 +502,62 @@ const en: Dictionary = {
     sanctioned_amount: { en: 'Approved Loan Amount', regional: 'Approved Loan Amount' },
     support_contact: { en: 'Thank you for choosing LoanSwift.', regional: 'Thank you for choosing LoanSwift.' },
   },
-   agreement: {
+  agreement: {
     title: { en: 'Digital Loan Agreement (e-Sign)', regional: 'Digital Loan Agreement (e-Sign)' },
     description: { en: 'Review the terms and sign the agreement using an Aadhaar-based OTP.', regional: 'Review the terms and sign the agreement using an Aadhaar-based OTP.' },
-    agreement_title: { en: 'Loan Agreement', regional: 'Loan Agreement' },
-    agreement_content_line1: { en: 'This is a legally binding agreement between you (the Borrower) and FairFinance NBFC (the Lender)...', regional: 'This is a legally binding agreement between you (the Borrower) and FairFinance NBFC (the Lender)...' },
-    agreement_content_line2: { en: '1. Loan Amount: ₹<amount>', regional: '1. Loan Amount: ₹<amount>' },
-    agreement_content_line3: { en: '2. Tenure: <tenure> months', regional: '2. Tenure: <tenure> months' },
-    agreement_content_line4: { en: '3. Repayment: You agree to repay the loan via monthly EMIs of ₹<emi> as per the e-mandate.', regional: '3. Repayment: You agree to repay the loan via monthly EMIs of ₹<emi> as per the e-mandate.' },
+    borrower_details: { en: 'Borrower Details', regional: 'Borrower Details' },
+    borrower_name: { en: 'Borrower Name', regional: 'Borrower Name' },
+    app_id: { en: 'Application ID', regional: 'Application ID' },
+    pan: { en: 'PAN', regional: 'PAN' },
+    loan_details: { en: 'Loan Details', regional: 'Loan Details' },
+    sanctioned_amount: { en: 'Sanctioned Amount', regional: 'Sanctioned Amount' },
+    tenure: { en: 'Tenure', regional: 'Tenure' },
+    interest_rate: { en: 'Interest Rate', regional: 'Interest Rate' },
+    fees_disbursal: { en: 'Fees & Charges', regional: 'Fees & Charges' },
+    processing_fee: { en: 'Processing Fee (2%)', regional: 'Processing Fee (2%)' },
+    gst: { en: 'GST (18%) on Fee', regional: 'GST (18%) on Fee' },
+    net_disbursal: { en: 'Net Disbursal Amount', regional: 'Net Disbursal Amount' },
+    repayment_terms: { en: 'Repayment Terms', regional: 'Repayment Terms' },
+    emi_amount: { en: 'EMI Amount', regional: 'EMI Amount' },
+    emi_start_date: { en: 'EMI Start Date', regional: 'EMI Start Date' },
+    repayment_mode: { en: 'Repayment Mode', regional: 'Repayment Mode' },
+    legal_disclosure: { en: 'Legal & Regulatory Disclosures', regional: 'Legal & Regulatory Disclosures' },
+    lender_disclosure1: { en: 'Loan provided by FairFinance NBFC (Regulated Entity - RE).', regional: 'Loan provided by FairFinance NBFC (Regulated Entity - RE).' },
+    lender_disclosure2: { en: 'Loan facilitated by LoanSwift (Lending Service Provider - LSP).', regional: 'Loan facilitated by LoanSwift (Lending Service Provider - LSP).' },
+    lender_disclosure3: { en: 'Grievance Contact', regional: 'Grievance Contact' },
+    declaration_title: { en: 'Declaration & Consent', regional: 'Declaration & Consent' },
+    declaration_content: { en: 'I have read, understood, and agree to the terms and conditions of this loan agreement.', regional: 'I have read, understood, and agree to the terms and conditions of this loan agreement.' },
     sign_button: { en: 'Sign via Aadhaar OTP', regional: 'Sign via Aadhaar OTP' },
     otp_label: { en: 'Enter OTP sent to your Aadhaar-linked mobile', regional: 'Enter OTP sent to your Aadhaar-linked mobile' },
     otp_placeholder: { en: 'Enter 6-digit OTP', regional: 'Enter 6-digit OTP' },
     verify_button: { en: 'Verify & e-Sign', regional: 'Verify & e-Sign' },
   },
   disbursement: {
-    success_title: { en: 'Congratulations!', regional: 'Congratulations!' },
-    success_description: { en: 'Your loan has been disbursed.', regional: 'Your loan has been disbursed.' },
+    success_title: { en: 'Disbursement Initiated', regional: 'Disbursement Initiated' },
+    processing_message: { en: 'Your loan request has been successfully processed.', regional: 'Your loan request has been successfully processed.' },
+    credited_soon_message: { en: 'The approved amount will be credited to your bank account shortly (within 10-15 minutes).', regional: 'The approved amount will be credited to your bank account shortly (within 10-15 minutes).' },
     details_title: { en: 'Disbursement Details', regional: 'Disbursement Details' },
     amount_label: { en: 'Amount:', regional: 'Amount:' },
     account_label: { en: 'Bank Account:', regional: 'Bank Account:' },
     ref_label: { en: 'Transaction Ref:', regional: 'Transaction Ref:' },
-    credited_soon_message: { en: 'The amount will be credited to your account shortly. Your first EMI is due next month.', regional: 'The amount will be credited to your account shortly. Your first EMI is due next month.' },
-    download_agreement_button: { en: 'Download Agreement', regional: 'Download Agreement' },
     back_to_dashboard_button: { en: 'Back to Dashboard', regional: 'Back to Dashboard' },
     ready_title: { en: 'Ready for Disbursement', regional: 'Ready for Disbursement' },
-    ready_description: { en: 'All formalities are complete. The net loan amount will be transferred to your verified bank account.', regional: 'All formalities are complete. The net loan amount will be transferred to your verified bank account.' },
+    ready_description: { en: 'All formalities are complete. Please confirm to receive the net loan amount in your verified bank account.', regional: 'All formalities are complete. Please confirm to receive the net loan amount in your verified bank account.' },
     final_disbursement_title: { en: 'Final Disbursement', regional: 'Final Disbursement' },
-    net_amount_label: { en: 'Net Amount:', regional: 'Net Amount:' },
+    net_amount_label: { en: 'Net Amount to be Credited:', regional: 'Net Amount to be Credited:' },
     to_account_label: { en: 'To Account:', regional: 'To Account:' },
+    timeline_label: { en: 'Timeline:', regional: 'Timeline:' },
+    timeline_value: { en: '10-15 mins', regional: '10-15 mins' },
+    confirm_disbursement_button: { en: 'Confirm & Proceed', regional: 'Confirm & Proceed' },
+    not_ready_button: { en: 'I am not ready to proceed', regional: 'I am not ready to proceed' },
     initiate_button: { en: 'Initiate Disbursement', regional: 'Initiate Disbursement' },
-    processing_button: { en: 'Processing...', regional: 'Processing...' },
+    processing_button: { en: 'Processing Disbursement...', regional: 'Processing Disbursement...' },
+    assisted_title: { en: 'Application Paused', regional: 'Application Paused' },
+    assisted_description: { en: 'Your loan application is almost complete. If you need more time or assistance before disbursement, our relationship manager will contact you shortly to guide you further.', regional: 'Your loan application is almost complete. If you need more time or assistance before disbursement, our relationship manager will contact you shortly to guide you further.' },
+    app_id_label: { en: 'Application ID', regional: 'Application ID' },
   },
 };
+
 
 const hi: Dictionary = {
   login: {
@@ -732,35 +779,58 @@ const hi: Dictionary = {
     support_contact: { en: 'Thank you for choosing LoanSwift.', regional: 'लोनस्विफ्ट चुनने के लिए धन्यवाद।' },
   },
   agreement: {
-    title: { en: 'Digital Loan Agreement (e-Sign)', regional: 'डिजिटल ऋण समझौता (ई-साइन)' },
+    title: { en: 'Digital Loan Agreement (e-Sign)', regional: 'डिजिटल ऋण समझौता (ई-हस्ताक्षर)' },
     description: { en: 'Review the terms and sign the agreement using an Aadhaar-based OTP.', regional: 'शर्तों की समीक्षा करें और आधार-आधारित ओटीपी का उपयोग करके समझौते पर हस्ताक्षर करें।' },
-    agreement_title: { en: 'Loan Agreement', regional: 'ऋण समझौता' },
-    agreement_content_line1: { en: 'This is a legally binding agreement between you (the Borrower) and FairFinance NBFC (the Lender)...', regional: 'यह आपके (उधारकर्ता) और फेयरफाइनेंस एनबीएफसी (ऋणदाता) के बीच एक कानूनी रूप से बाध्यकारी समझौता है...' },
-    agreement_content_line2: { en: '1. Loan Amount: ₹<amount>', regional: '१. ऋण राशि: ₹<amount>' },
-    agreement_content_line3: { en: '2. Tenure: <tenure> months', regional: '२. अवधि: <tenure> महीने' },
-    agreement_content_line4: { en: '3. Repayment: You agree to repay the loan via monthly EMIs of ₹<emi> as per the e-mandate.', regional: '३. चुकौती: आप ई-जनादेश के अनुसार ₹<emi> की मासिक ईएमआई के माध्यम से ऋण चुकाने के लिए सहमत हैं।' },
+    borrower_details: { en: 'Borrower Details', regional: 'उधारकर्ता का विवरण' },
+    borrower_name: { en: 'Borrower Name', regional: 'उधारकर्ता का नाम' },
+    app_id: { en: 'Application ID', regional: 'आवेदन आईडी' },
+    pan: { en: 'PAN', regional: 'पैन' },
+    loan_details: { en: 'Loan Details', regional: 'ऋण विवरण' },
+    sanctioned_amount: { en: 'Sanctioned Amount', regional: 'स्वीकृत राशि' },
+    tenure: { en: 'Tenure', regional: 'अवधि' },
+    interest_rate: { en: 'Interest Rate', regional: 'ब्याज दर' },
+    fees_disbursal: { en: 'Fees & Charges', regional: 'शुल्क और शुल्क' },
+    processing_fee: { en: 'Processing Fee (2%)', regional: 'प्रसंस्करण शुल्क (2%)' },
+    gst: { en: 'GST (18%) on Fee', regional: 'शुल्क पर जीएसटी (18%)' },
+    net_disbursal: { en: 'Net Disbursal Amount', regional: 'शुद्ध संवितरण राशि' },
+    repayment_terms: { en: 'Repayment Terms', regional: 'चुकौती की शर्तें' },
+    emi_amount: { en: 'EMI Amount', regional: 'ईएमआई राशि' },
+    emi_start_date: { en: 'EMI Start Date', regional: 'ईएमआई प्रारंभ तिथि' },
+    repayment_mode: { en: 'Repayment Mode', regional: 'चुकौती मोड' },
+    legal_disclosure: { en: 'Legal & Regulatory Disclosures', regional: 'कानूनी और नियामक प्रकटीकरण' },
+    lender_disclosure1: { en: 'Loan provided by FairFinance NBFC (Regulated Entity - RE).', regional: 'फेयरफाइनेंस एनबीएफसी (विनियमित इकाई - आरई) द्वारा प्रदान किया गया ऋण।' },
+    lender_disclosure2: { en: 'Loan facilitated by LoanSwift (Lending Service Provider - LSP).', regional: 'लोनस्विफ्ट (उधार सेवा प्रदाता - एलएसपी) द्वारा सुगम ऋण।' },
+    lender_disclosure3: { en: 'Grievance Contact', regional: 'शिकायत संपर्क' },
+    declaration_title: { en: 'Declaration & Consent', regional: 'घोषणा और सहमति' },
+    declaration_content: { en: 'I have read, understood, and agree to the terms and conditions of this loan agreement.', regional: 'मैंने इस ऋण समझौते के नियमों और शर्तों को पढ़, समझ लिया है और उनसे सहमत हूं।' },
     sign_button: { en: 'Sign via Aadhaar OTP', regional: 'आधार ओटीपी के माध्यम से हस्ताक्षर करें' },
     otp_label: { en: 'Enter OTP sent to your Aadhaar-linked mobile', regional: 'अपने आधार-लिंक्ड मोबाइल पर भेजा गया ओटीपी दर्ज करें' },
     otp_placeholder: { en: 'Enter 6-digit OTP', regional: '6-अंकीय ओटीपी दर्ज करें' },
-    verify_button: { en: 'Verify & e-Sign', regional: 'सत्यापित करें और ई-साइन करें' },
+    verify_button: { en: 'Verify & e-Sign', regional: 'सत्यापित करें और ई-हस्ताक्षर करें' },
   },
   disbursement: {
-    success_title: { en: 'Congratulations!', regional: 'बधाई हो!' },
-    success_description: { en: 'Your loan has been disbursed.', regional: 'आपका ऋण वितरित कर दिया गया है।' },
+    success_title: { en: 'Disbursement Initiated', regional: 'संवितरण शुरू किया गया' },
+    processing_message: { en: 'Your loan request has been successfully processed.', regional: 'आपका ऋण अनुरोध सफलतापूर्वक संसाधित हो गया है।' },
+    credited_soon_message: { en: 'The approved amount will be credited to your bank account shortly (within 10-15 minutes).', regional: 'स्वीकृत राशि शीघ्र ही (10-15 मिनट के भीतर) आपके बैंक खाते में जमा कर दी जाएगी।' },
     details_title: { en: 'Disbursement Details', regional: 'संवितरण विवरण' },
     amount_label: { en: 'Amount:', regional: 'राशि:' },
     account_label: { en: 'Bank Account:', regional: 'बैंक खाता:' },
     ref_label: { en: 'Transaction Ref:', regional: 'लेन-देन संदर्भ:' },
-    credited_soon_message: { en: 'The amount will be credited to your account shortly. Your first EMI is due next month.', regional: 'राशि जल्द ही आपके खाते में जमा कर दी जाएगी। आपकी पहली ईएमआई अगले महीने देय है।' },
-    download_agreement_button: { en: 'Download Agreement', regional: 'समझौता डाउनलोड करें' },
     back_to_dashboard_button: { en: 'Back to Dashboard', regional: 'डैशबोर्ड पर वापस जाएं' },
     ready_title: { en: 'Ready for Disbursement', regional: 'संवितरण के लिए तैयार' },
-    ready_description: { en: 'All formalities are complete. The net loan amount will be transferred to your verified bank account.', regional: 'सभी औपचारिकताएं पूरी हो चुकी हैं। शुद्ध ऋण राशि आपके सत्यापित बैंक खाते में स्थानांतरित कर दी जाएगी।' },
+    ready_description: { en: 'All formalities are complete. Please confirm to receive the net loan amount in your verified bank account.', regional: 'सभी औपचारिकताएं पूरी हो चुकी हैं। कृपया अपने सत्यापित बैंक खाते में शुद्ध ऋण राशि प्राप्त करने की पुष्टि करें।' },
     final_disbursement_title: { en: 'Final Disbursement', regional: 'अंतिम संवितरण' },
-    net_amount_label: { en: 'Net Amount:', regional: 'शुद्ध राशि:' },
+    net_amount_label: { en: 'Net Amount to be Credited:', regional: 'जमा की जाने वाली शुद्ध राशि:' },
     to_account_label: { en: 'To Account:', regional: 'खाते में:' },
+    timeline_label: { en: 'Timeline:', regional: 'समयरेखा:' },
+    timeline_value: { en: '10-15 mins', regional: '10-15 मिनट' },
+    confirm_disbursement_button: { en: 'Confirm & Proceed', regional: 'पुष्टि करें और आगे बढ़ें' },
+    not_ready_button: { en: 'I am not ready to proceed', regional: 'मैं आगे बढ़ने के लिए तैयार नहीं हूं' },
     initiate_button: { en: 'Initiate Disbursement', regional: 'संवितरण आरंभ करें' },
-    processing_button: { en: 'Processing...', regional: 'प्रसंस्करण हो रहा है...' },
+    processing_button: { en: 'Processing Disbursement...', regional: 'संवितरण संसाधित हो रहा है...' },
+    assisted_title: { en: 'Application Paused', regional: 'आवेदन रोका गया' },
+    assisted_description: { en: 'Your loan application is almost complete. If you need more time or assistance before disbursement, our relationship manager will contact you shortly to guide you further.', regional: 'आपका ऋण आवेदन लगभग पूरा हो गया है। यदि आपको संवितरण से पहले अधिक समय या सहायता की आवश्यकता है, तो हमारे संबंध प्रबंधक आपको आगे मार्गदर्शन करने के लिए शीघ्र ही आपसे संपर्क करेंगे।' },
+    app_id_label: { en: 'Application ID', regional: 'आवेदन आईडी' },
   },
 };
 
@@ -984,36 +1054,59 @@ const mr: Dictionary = {
     sanctioned_amount: { en: 'Approved Loan Amount', regional: 'मंजूर कर्ज रक्कम' },
     support_contact: { en: 'Thank you for choosing LoanSwift.', regional: 'लोनस्विफ्ट निवडल्याबद्दल धन्यवाद.' },
   },
-    agreement: {
+  agreement: {
     title: { en: 'Digital Loan Agreement (e-Sign)', regional: 'डिजिटल कर्ज करार (ई-सही)' },
     description: { en: 'Review the terms and sign the agreement using an Aadhaar-based OTP.', regional: 'अटींचे पुनरावलोकन करा आणि आधार-आधारित ओटीपी वापरून करारावर सही करा.' },
-    agreement_title: { en: 'Loan Agreement', regional: 'कर्ज करार' },
-    agreement_content_line1: { en: 'This is a legally binding agreement between you (the Borrower) and FairFinance NBFC (the Lender)...', regional: 'हा तुमच्या (कर्जदार) आणि फेअर फायनान्स एनबीएफसी (कर्जदाता) यांच्यातील कायदेशीर बंधनकारक करार आहे...' },
-    agreement_content_line2: { en: '1. Loan Amount: ₹<amount>', regional: '१. कर्जाची रक्कम: ₹<amount>' },
-    agreement_content_line3: { en: '2. Tenure: <tenure> months', regional: '२. कालावधी: <tenure> महिने' },
-    agreement_content_line4: { en: '3. Repayment: You agree to repay the loan via monthly EMIs of ₹<emi> as per the e-mandate.', regional: '३. परतफेड: तुम्ही ई-मँडेटनुसार ₹<emi> च्या मासिक ईएमआयद्वारे कर्ज परतफेड करण्यास सहमत आहात.' },
+    borrower_details: { en: 'Borrower Details', regional: 'कर्जदाराचे तपशील' },
+    borrower_name: { en: 'Borrower Name', regional: 'कर्जदाराचे नाव' },
+    app_id: { en: 'Application ID', regional: 'अर्ज आयडी' },
+    pan: { en: 'PAN', regional: 'पॅन' },
+    loan_details: { en: 'Loan Details', regional: 'कर्ज तपशील' },
+    sanctioned_amount: { en: 'Sanctioned Amount', regional: 'मंजूर रक्कम' },
+    tenure: { en: 'Tenure', regional: 'कालावधी' },
+    interest_rate: { en: 'Interest Rate', regional: 'व्याज दर' },
+    fees_disbursal: { en: 'Fees & Charges', regional: 'शुल्क आणि आकार' },
+    processing_fee: { en: 'Processing Fee (2%)', regional: 'प्रक्रिया शुल्क (2%)' },
+    gst: { en: 'GST (18%) on Fee', regional: 'शुल्कावर जीएसटी (18%)' },
+    net_disbursal: { en: 'Net Disbursal Amount', regional: 'निव्वळ वितरण रक्कम' },
+    repayment_terms: { en: 'Repayment Terms', regional: 'परतफेड अटी' },
+    emi_amount: { en: 'EMI Amount', regional: 'ईएमआई रक्कम' },
+    emi_start_date: { en: 'EMI Start Date', regional: 'ईएमआई सुरू होण्याची तारीख' },
+    repayment_mode: { en: 'Repayment Mode', regional: 'परतफेड मोड' },
+    legal_disclosure: { en: 'Legal & Regulatory Disclosures', regional: 'कायदेशीर आणि नियामक प्रकटीकरण' },
+    lender_disclosure1: { en: 'Loan provided by FairFinance NBFC (Regulated Entity - RE).', regional: 'फेअर फायनान्स एनबीएफसी (नियामक संस्था - आरई) द्वारे प्रदान केलेले कर्ज.' },
+    lender_disclosure2: { en: 'Loan facilitated by LoanSwift (Lending Service Provider - LSP).', regional: 'लोनस्विफ्ट (कर्ज सेवा प्रदाता - एलएसपी) द्वारे सुलभ कर्ज.' },
+    lender_disclosure3: { en: 'Grievance Contact', regional: 'तक्रार संपर्क' },
+    declaration_title: { en: 'Declaration & Consent', regional: 'घोषणा आणि संमती' },
+    declaration_content: { en: 'I have read, understood, and agree to the terms and conditions of this loan agreement.', regional: 'मी या कर्ज कराराच्या अटी आणि शर्ती वाचल्या, समजून घेतल्या आहेत आणि त्यांना सहमत आहे.' },
     sign_button: { en: 'Sign via Aadhaar OTP', regional: 'आधार ओटीपीद्वारे सही करा' },
     otp_label: { en: 'Enter OTP sent to your Aadhaar-linked mobile', regional: 'तुमच्या आधार-लिंक्ड मोबाइलवर पाठवलेला ओटीपी प्रविष्ट करा' },
     otp_placeholder: { en: 'Enter 6-digit OTP', regional: '६-अंकी ओटीपी प्रविष्ट करा' },
     verify_button: { en: 'Verify & e-Sign', regional: 'सत्यापित करा आणि ई-सही करा' },
   },
   disbursement: {
-    success_title: { en: 'Congratulations!', regional: 'अभिनंदन!' },
-    success_description: { en: 'Your loan has been disbursed.', regional: 'तुमचे कर्ज वितरित केले गेले आहे.' },
+    success_title: { en: 'Disbursement Initiated', regional: 'वितरण सुरू केले' },
+    processing_message: { en: 'Your loan request has been successfully processed.', regional: 'तुमचा कर्ज विनंती यशस्वीरित्या प्रक्रिया केली गेली आहे.' },
+    credited_soon_message: { en: 'The approved amount will be credited to your bank account shortly (within 10-15 minutes).', regional: 'मंजूर रक्कम लवकरच (10-15 मिनिटांत) तुमच्या बँक खात्यात जमा केली जाईल.' },
     details_title: { en: 'Disbursement Details', regional: 'वितरण तपशील' },
     amount_label: { en: 'Amount:', regional: 'रक्कम:' },
     account_label: { en: 'Bank Account:', regional: 'बँक खाते:' },
     ref_label: { en: 'Transaction Ref:', regional: 'व्यवहार संदर्भ:' },
-    credited_soon_message: { en: 'The amount will be credited to your account shortly. Your first EMI is due next month.', regional: 'रक्कम लवकरच तुमच्या खात्यात जमा होईल. तुमचा पहिला ईएमआय पुढील महिन्यात देय आहे.' },
-    download_agreement_button: { en: 'Download Agreement', regional: 'करार डाउनलोड करा' },
     back_to_dashboard_button: { en: 'Back to Dashboard', regional: 'डॅशबोर्डवर परत जा' },
     ready_title: { en: 'Ready for Disbursement', regional: 'वितरणासाठी सज्ज' },
-    ready_description: { en: 'All formalities are complete. The net loan amount will be transferred to your verified bank account.', regional: 'सर्व औपचारिकता पूर्ण झाल्या आहेत. निव्वळ कर्ज रक्कम तुमच्या सत्यापित बँक खात्यात हस्तांतरित केली जाईल.' },
+    ready_description: { en: 'All formalities are complete. Please confirm to receive the net loan amount in your verified bank account.', regional: 'सर्व औपचारिकता पूर्ण झाल्या आहेत. कृपया तुमच्या सत्यापित बँक खात्यात निव्वळ कर्ज रक्कम प्राप्त करण्यासाठी पुष्टी करा.' },
     final_disbursement_title: { en: 'Final Disbursement', regional: 'अंतिम वितरण' },
-    net_amount_label: { en: 'Net Amount:', regional: 'निव्वळ रक्कम:' },
+    net_amount_label: { en: 'Net Amount to be Credited:', regional: 'जमा होणारी निव्वळ रक्कम:' },
     to_account_label: { en: 'To Account:', regional: 'खात्यात:' },
+    timeline_label: { en: 'Timeline:', regional: 'टाइमलाइन:' },
+    timeline_value: { en: '10-15 mins', regional: '10-15 मिनिटे' },
+    confirm_disbursement_button: { en: 'Confirm & Proceed', regional: 'पुष्टी करा आणि पुढे जा' },
+    not_ready_button: { en: 'I am not ready to proceed', regional: 'मी पुढे जाण्यासाठी तयार नाही' },
     initiate_button: { en: 'Initiate Disbursement', regional: 'वितरण सुरू करा' },
-    processing_button: { en: 'Processing...', regional: 'प्रक्रिया करत आहे...' },
+    processing_button: { en: 'Processing Disbursement...', regional: 'वितरण प्रक्रिया करत आहे...' },
+    assisted_title: { en: 'Application Paused', regional: 'अर्ज थांबवला आहे' },
+    assisted_description: { en: 'Your loan application is almost complete. If you need more time or assistance before disbursement, our relationship manager will contact you shortly to guide you further.', regional: 'तुमचा कर्ज अर्ज जवळजवळ पूर्ण झाला आहे. वितरणापूर्वी तुम्हाला अधिक वेळ किंवा मदतीची आवश्यकता असल्यास, आमचे संबंध व्यवस्थापक तुम्हाला पुढील मार्गदर्शन करण्यासाठी लवकरच संपर्क साधतील.' },
+    app_id_label: { en: 'Application ID', regional: 'अर्ज आयडी' },
   },
 };
 
@@ -1239,33 +1332,56 @@ const te: Dictionary = {
   agreement: {
     title: { en: 'Digital Loan Agreement (e-Sign)', regional: 'డిజిటల్ లోన్ ఒప్పందం (ఇ-సైన్)' },
     description: { en: 'Review the terms and sign the agreement using an Aadhaar-based OTP.', regional: 'నిబంధనలను సమీక్షించి, ఆధార్-ఆధారిత OTPని ఉపయోగించి ఒప్పందంపై సంతకం చేయండి.' },
-    agreement_title: { en: 'Loan Agreement', regional: 'లోన్ ఒప్పందం' },
-    agreement_content_line1: { en: 'This is a legally binding agreement between you (the Borrower) and FairFinance NBFC (the Lender)...', regional: 'ఇది మీకు (రుణగ్రహీత) మరియు ఫెయిర్‌ఫైనాన్స్ NBFC (రుణదాత) మధ్య చట్టబద్ధంగా కట్టుబడి ఉండే ఒప్పందం...' },
-    agreement_content_line2: { en: '1. Loan Amount: ₹<amount>', regional: '౧. లోన్ మొత్తం: ₹<amount>' },
-    agreement_content_line3: { en: '2. Tenure: <tenure> months', regional: '౨. కాలపరిమితి: <tenure> నెలలు' },
-    agreement_content_line4: { en: '3. Repayment: You agree to repay the loan via monthly EMIs of ₹<emi> as per the e-mandate.', regional: '౩. తిరిగి చెల్లింపు: మీరు ఇ-మాండేట్ ప్రకారం ₹<emi> నెలవారీ EMIల ద్వారా లోన్‌ను తిరిగి చెల్లించడానికి అంగీకరిస్తున్నారు.' },
+    borrower_details: { en: 'Borrower Details', regional: 'రుణగ్రహీత వివరాలు' },
+    borrower_name: { en: 'Borrower Name', regional: 'రుణగ్రహీత పేరు' },
+    app_id: { en: 'Application ID', regional: 'అప్లికేషన్ ఐడి' },
+    pan: { en: 'PAN', regional: 'పాన్' },
+    loan_details: { en: 'Loan Details', regional: 'లోన్ వివరాలు' },
+    sanctioned_amount: { en: 'Sanctioned Amount', regional: 'మంజూరు చేయబడిన మొత్తం' },
+    tenure: { en: 'Tenure', regional: 'కాలపరిమితి' },
+    interest_rate: { en: 'Interest Rate', regional: 'వడ్డీ రేటు' },
+    fees_disbursal: { en: 'Fees & Charges', regional: 'రుసుములు & ఛార్జీలు' },
+    processing_fee: { en: 'Processing Fee (2%)', regional: 'ప్రాసెసింగ్ ఫీజు (2%)' },
+    gst: { en: 'GST (18%) on Fee', regional: 'ఫీజుపై జీఎస్టీ (18%)' },
+    net_disbursal: { en: 'Net Disbursal Amount', regional: 'నికర పంపిణీ మొత్తం' },
+    repayment_terms: { en: 'Repayment Terms', regional: 'తిరిగి చెల్లింపు నిబంధనలు' },
+    emi_amount: { en: 'EMI Amount', regional: 'EMI మొత్తం' },
+    emi_start_date: { en: 'EMI Start Date', regional: 'EMI ప్రారంభ తేదీ' },
+    repayment_mode: { en: 'Repayment Mode', regional: 'తిరిగి చెల్లింపు విధానం' },
+    legal_disclosure: { en: 'Legal & Regulatory Disclosures', regional: 'చట్టపరమైన & నియంత్రణ బహిర్గతం' },
+    lender_disclosure1: { en: 'Loan provided by FairFinance NBFC (Regulated Entity - RE).', regional: 'ఫెయిర్‌ఫైనాన్స్ NBFC (నియంత్రిత సంస్థ - RE) ద్వారా అందించబడిన లోన్.' },
+    lender_disclosure2: { en: 'Loan facilitated by LoanSwift (Lending Service Provider - LSP).', regional: 'లోన్‌స్విఫ్ట్ (లెండింగ్ సర్వీస్ ప్రొవైడర్ - LSP) ద్వారా సులభతరం చేయబడిన లోన్.' },
+    lender_disclosure3: { en: 'Grievance Contact', regional: 'ఫిర్యాదుల సంప్రదింపు' },
+    declaration_title: { en: 'Declaration & Consent', regional: 'ప్రకటన & సమ్మతి' },
+    declaration_content: { en: 'I have read, understood, and agree to the terms and conditions of this loan agreement.', regional: 'నేను ఈ లోన్ ఒప్పందం యొక్క నిబంధనలు మరియు షరతులను చదివి, అర్థం చేసుకుని, అంగీకరిస్తున్నాను.' },
     sign_button: { en: 'Sign via Aadhaar OTP', regional: 'ఆధార్ OTP ద్వారా సైన్ చేయండి' },
     otp_label: { en: 'Enter OTP sent to your Aadhaar-linked mobile', regional: 'మీ ఆధార్-లింక్ చేయబడిన మొబైల్‌కు పంపిన OTPని నమోదు చేయండి' },
     otp_placeholder: { en: 'Enter 6-digit OTP', regional: '6-అంకెల OTPని నమోదు చేయండి' },
     verify_button: { en: 'Verify & e-Sign', regional: 'ధృవీకరించి ఇ-సైన్ చేయండి' },
   },
   disbursement: {
-    success_title: { en: 'Congratulations!', regional: 'అభినందనలు!' },
-    success_description: { en: 'Your loan has been disbursed.', regional: 'మీ లోన్ పంపిణీ చేయబడింది.' },
+    success_title: { en: 'Disbursement Initiated', regional: 'పంపిణీ ప్రారంభించబడింది' },
+    processing_message: { en: 'Your loan request has been successfully processed.', regional: 'మీ లోన్ అభ్యర్థన విజయవంతంగా ప్రాసెస్ చేయబడింది.' },
+    credited_soon_message: { en: 'The approved amount will be credited to your bank account shortly (within 10-15 minutes).', regional: 'ఆమోదించబడిన మొత్తం త్వరలో (10-15 నిమిషాల్లో) మీ బ్యాంక్ ఖాతాలో జమ చేయబడుతుంది.' },
     details_title: { en: 'Disbursement Details', regional: 'పంపిణీ వివరాలు' },
     amount_label: { en: 'Amount:', regional: 'మొత్తం:' },
     account_label: { en: 'Bank Account:', regional: 'బ్యాంక్ ఖాతా:' },
     ref_label: { en: 'Transaction Ref:', regional: 'లావాదేవీ రిఫరెన్స్:' },
-    credited_soon_message: { en: 'The amount will be credited to your account shortly. Your first EMI is due next month.', regional: 'మొత్తం త్వరలో మీ ఖాతాలో జమ చేయబడుతుంది. మీ మొదటి EMI వచ్చే నెలలో చెల్లించాలి.' },
-    download_agreement_button: { en: 'Download Agreement', regional: 'ఒప్పందాన్ని డౌన్‌లోడ్ చేయండి' },
     back_to_dashboard_button: { en: 'Back to Dashboard', regional: 'డాష్‌బోర్డ్‌కు తిరిగి వెళ్ళు' },
     ready_title: { en: 'Ready for Disbursement', regional: 'పంపిణీకి సిద్ధంగా ఉంది' },
-    ready_description: { en: 'All formalities are complete. The net loan amount will be transferred to your verified bank account.', regional: 'అన్ని లాంఛనాలు పూర్తయ్యాయి. నికర రుణ మొత్తం మీ ధృవీకరించబడిన బ్యాంక్ ఖాతాకు బదిలీ చేయబడుతుంది.' },
+    ready_description: { en: 'All formalities are complete. Please confirm to receive the net loan amount in your verified bank account.', regional: 'అన్ని లాంఛనాలు పూర్తయ్యాయి. దయచేసి మీ ధృవీకరించబడిన బ్యాంక్ ఖాతాలో నికర రుణ మొత్తాన్ని స్వీకరించడానికి నిర్ధారించండి.' },
     final_disbursement_title: { en: 'Final Disbursement', regional: 'తుది పంపిణీ' },
-    net_amount_label: { en: 'Net Amount:', regional: 'నికర మొత్తం:' },
+    net_amount_label: { en: 'Net Amount to be Credited:', regional: 'జమ చేయవలసిన నికర మొత్తం:' },
     to_account_label: { en: 'To Account:', regional: 'ఖాతాకు:' },
+    timeline_label: { en: 'Timeline:', regional: 'కాలక్రమం:' },
+    timeline_value: { en: '10-15 mins', regional: '10-15 నిమిషాలు' },
+    confirm_disbursement_button: { en: 'Confirm & Proceed', regional: 'నిర్ధారించి ముందుకు సాగండి' },
+    not_ready_button: { en: 'I am not ready to proceed', regional: 'నేను ముందుకు సాగడానికి సిద్ధంగా లేను' },
     initiate_button: { en: 'Initiate Disbursement', regional: 'పంపిణీని ప్రారంభించండి' },
-    processing_button: { en: 'Processing...', regional: 'ప్రాసెస్ చేస్తోంది...' },
+    processing_button: { en: 'Processing Disbursement...', regional: 'పంపిణీ ప్రాసెస్ చేస్తోంది...' },
+    assisted_title: { en: 'Application Paused', regional: 'అప్లికేషన్ పాజ్ చేయబడింది' },
+    assisted_description: { en: 'Your loan application is almost complete. If you need more time or assistance before disbursement, our relationship manager will contact you shortly to guide you further.', regional: 'మీ లోన్ దరఖాస్తు దాదాపు పూర్తయింది. పంపిణీకి ముందు మీకు ఎక్కువ సమయం లేదా సహాయం అవసరమైతే, మా రిలేషన్‌షిప్ మేనేజర్ మీకు తదుపరి మార్గనిర్దేశం చేయడానికి త్వరలో మిమ్మల్ని సంప్రదిస్తారు.' },
+    app_id_label: { en: 'Application ID', regional: 'అప్లికేషన్ ఐడి' },
   },
 };
 
@@ -1298,7 +1414,7 @@ const kn: Dictionary = {
     title: { en: 'Consent Hub', regional: 'ಸಮ್ಮತಿ ಕೇಂದ್ರ' },
     description: { en: 'As per RBI guidelines, we need your explicit consent for the following data processing activities.', regional: 'RBI ಮಾರ್ಗಸೂಚಿಗಳ ಪ್ರಕಾರ, ಈ ಕೆಳಗಿನ ಡೇಟಾ ಸಂಸ್ಕರಣಾ ಚಟುವಟಿಕೆಗಳಿಗೆ ನಮಗೆ ನಿಮ್ಮ ಸ್ಪಷ್ಟ ಸಮ್ಮತಿ ಬೇಕು.' },
     items: {
-        PAN_VERIFICATION: { en: 'I consent to verification of my PAN from issuing authority/NSDL.', regional: 'ನನ್ನ ಪ್ಯಾన్ ಅನ್ನು ನೀಡುವ ಪ್ರಾಧಿಕಾರ/NSDL ನಿಂದ ಪರಿಶೀಲಿಸಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
+        PAN_VERIFICATION: { en: 'I consent to verification of my PAN from issuing authority/NSDL.', regional: 'ನನ್ನ ಪ್ಯಾನ್ ಅನ್ನು ನೀಡುವ ಪ್ರಾಧಿಕಾರ/NSDL ನಿಂದ ಪರಿಶೀಲಿಸಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
         AADHAAR_AUTH: { en: 'I consent to Aadhaar OTP-based offline verification / e-KYC through authorized partners.', regional: 'ಅಧಿಕೃತ ಪಾಲುದಾರರ ಮೂಲಕ ಆಧಾರ್ ಒಟಿಪಿ-ಆಧಾರಿತ ಆಫ್‌ಲೈನ್ ಪರಿಶೀಲನೆ / ಇ-ಕೆವೈಸಿಗೆ ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
         DIGILOCKER_KYC: { en: 'I consent to fetch KYC documents from DigiLocker using my DigiLocker account.', regional: 'ನನ್ನ ಡಿಜಿಲಾಕರ್ ಖಾತೆಯನ್ನು ಬಳಸಿಕೊಂಡು ಡಿಜಿಲಾಕರ್‌ನಿಂದ ಕೆವೈಸಿ ದಾಖಲೆಗಳನ್ನು ಪಡೆಯಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
         BUREAU_PULL: { en: 'I consent to pull my credit report from credit bureaus for the purpose of this loan.', regional: 'ಈ ಸಾಲದ ಉದ್ದೇಶಕ್ಕಾಗಿ ಕ್ರೆಡಿಟ್ ಬ್ಯೂರೋಗಳಿಂದ ನನ್ನ ಕ್ರೆಡಿಟ್ ವರದಿಯನ್ನು ಎಳೆಯಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
@@ -1306,7 +1422,7 @@ const kn: Dictionary = {
         DATA_SHARING: { en: 'I consent to processing of my data by the NBFC/BANK (RE) and its authorized service providers, in line with RBI digital lending guidelines.', regional: 'RBI ಡಿಜಿಟಲ್ ಸಾಲ ಮಾರ್ಗಸೂಚಿಗಳಿಗೆ ಅನುಗುಣವಾಗಿ, NBFC/BANK (RE) ಮತ್ತು ಅದರ ಅಧಿಕೃತ ಸೇವಾ ಪೂರೈಕೆದಾರರಿಂದ ನನ್ನ ಡೇಟಾವನ್ನು ಸಂಸ್ಕರಿಸಲು ನಾನು ಸಮ್ಮತಿಸುತ್ತೇನೆ.' },
         AGREE_NOTICE: { en: 'I have read and agree to these consents and the privacy notice.', regional: 'ನಾನು ಈ ಸಮ್ಮತಿಗಳನ್ನು ಮತ್ತು ಗೌಪ್ಯತೆ ಸೂಚನೆಯನ್ನು ಓದಿದ್ದೇನೆ ಮತ್ತು ಒಪ್ಪುತ್ತೇನೆ.' },
     },
-    agree_notice_text: { en: 'By checking the boxes above and clicking "Accept & Continue", I, the applicant, hereby provide my explicit consent to LoanSwift (the LSP) and its partner FairFinance NBFC (the RE) to access, process, and store my personal and financial information for the purpose of this loan application. This includes sharing data with credit bureaus (e.g., CIBIL), and using third-party services for PAN, Aadhaar, and bank account verification. This consent is voluntary and can be revoked as per the terms outlined in our privacy policy.', regional: 'ಮೇಲಿನ ಬಾಕ್ಸ್‌ಗಳನ್ನು ಪರಿಶೀಲಿಸುವ ಮೂಲಕ ಮತ್ತು "ಒಪ್ಪಿ ಮತ್ತು ಮುಂದುವರಿಸಿ" ಕ್ಲಿಕ್ ಮಾಡುವ ಮೂಲಕ, ನಾನು, ಅರ್ಜಿದಾರ, ಈ ಸಾಲದ ಅರ್ಜಿಯ ಉದ್ದೇಶಕ್ಕಾಗಿ ನನ್ನ ವೈಯಕ್ತಿಕ ಮತ್ತು ಹಣಕಾಸು ಮಾಹಿತಿಯನ್ನು ಪ್ರವೇಶಿಸಲು, ಪ್ರಕ್ರಿಯೆಗೊಳಿಸಲು ಮತ್ತು ಸಂಗ್ರಹಿಸಲು ಲೋನ್‌ಸ್ವಿಫ್ಟ್ (LSP) ಮತ್ತು ಅದರ ಪಾಲುದಾರ ಫೇರ್‌ಫೈನಾನ್ಸ್ NBFC (RE) ಗೆ ನನ್ನ ಸ್ಪಷ್ಟ ಸಮ್ಮತಿಯನ್ನು ನೀಡುತ್ತೇನೆ. ಇದು ಕ್ರೆಡಿಟ್ ಬ್ಯೂರೋಗಳೊಂದಿಗೆ (ಉದಾಹರಣೆಗೆ, ಸಿಬಿಲ್) ಡೇಟಾವನ್ನು ಹಂಚಿಕೊಳ್ಳುವುದು ಮತ್ತು ಪ್ಯಾನ್, ಆಧಾರ್ ಮತ್ತು ಬ್ಯಾಂಕ್ ಖಾತೆ ಪರಿಶೀಲನೆಗಾಗಿ ತೃತೀಯ ಸೇವೆಗಳನ್ನು ಬಳಸುವುದು ಒಳಗೊಂಡಿರುತ್ತದೆ. ಈ ಸಮ್ಮತಿ ಸ್ವಯಂಪ್ರೇರಿತವಾಗಿದೆ ಮತ್ತು ನಮ್ಮ ಗೌಪ್ಯತೆ ನೀತಿಯಲ್ಲಿ ವಿವರಿಸಿದ ನಿಯಮಗಳ ಪ್ರಕಾರ ಅದನ್ನು ಹಿಂತೆಗೆದುಕೊಳ್ಳಬಹುದು.' },
+    agree_notice_text: { en: 'By checking the boxes above and clicking "Accept & Continue", I, the applicant, hereby provide my explicit consent to LoanSwift (the LSP) and its partner FairFinance NBFC (the RE) to access, process, and store my personal and financial information for the purpose of this loan application. This includes sharing data with credit bureaus (e.g., CIBIL), and using third-party services for PAN, Aadhaar, and bank account verification. This consent is voluntary and can be revoked as per the terms outlined in our privacy policy.', regional: 'ಮೇಲಿನ ಬಾಕ್ಸ್‌ಗಳನ್ನು ಪರಿಶೀಲಿಸುವ ಮೂಲಕ ಮತ್ತು "ಒಪ್ಪಿ ಮತ್ತು ಮುಂದುವರಿಸಿ" ಕ್ಲಿಕ್ ಮಾಡುವ ಮೂಲಕ, ನಾನು, ಅರ್ಜಿದಾರ, ಈ ಸಾಲದ ಅರ್ಜಿಯ ಉದ್ದೇಶಕ್ಕಾಗಿ ನನ್ನ ವೈಯಕ್ತಿಕ ಮತ್ತು ಹಣಕಾಸು ಮಾಹಿತಿಯನ್ನು ಪ್ರವೇಶಿಸಲು, ಪ್ರಕ್ರಿಯೆಗೊಳಿಸಲು ಮತ್ತು ಸಂಗ್ರಹಿಸಲು ಲೋನ್‌ಸ್ವಿಫ್ಟ್ (LSP) ಮತ್ತು ಅದರ ಪಾಲುದಾರ ಫೇರ್‌ಫೈನಾನ್ಸ್ NBFC (RE) ಗೆ ನನ್ನ ಸ್ಪಷ್ಟ ಸಮ್ಮತಿಯನ್ನು ನೀಡುತ್ತೇನೆ. ಇದು ಕ್ರೆಡಿಟ್ ಬ್ಯೂರೋಗಳೊಂದಿಗೆ (ಉದಾಹರಣೆಗೆ, ಸಿಬಿಲ್) ಡೇಟಾವನ್ನು ಹಂಚಿಕೊಳ್ಳುವುದು ಮತ್ತು ಪ್ಯಾన్, ಆಧಾರ್ ಮತ್ತು ಬ್ಯಾಂಕ್ ಖಾತೆ ಪರಿಶೀಲನೆಗಾಗಿ ತೃತೀಯ ಸೇವೆಗಳನ್ನು ಬಳಸುವುದು ಒಳಗೊಂಡಿರುತ್ತದೆ. ಈ ಸಮ್ಮತಿ ಸ್ವಯಂಪ್ರೇರಿತವಾಗಿದೆ ಮತ್ತು ನಮ್ಮ ಗೌಪ್ಯತೆ ನೀತಿಯಲ್ಲಿ ವಿವರಿಸಿದ ನಿಯಮಗಳ ಪ್ರಕಾರ ಅದನ್ನು ಹಿಂತೆಗೆದುಕೊಳ್ಳಬಹುದು.' },
     accept_button: { en: 'Accept & Continue', regional: 'ಒಪ್ಪಿ ಮತ್ತು ಮುಂದುವರಿಸಿ' },
     all_consents_required: { en: 'You must accept all consents to proceed.', regional: 'ಮುಂದುವರಿಯಲು ನೀವು ಎಲ್ಲಾ ಸಮ್ಮತಿಗಳನ್ನು ಒಪ್ಪಿಕೊಳ್ಳಬೇಕು.' },
   },
@@ -1333,11 +1449,11 @@ const kn: Dictionary = {
     save_button: { en: 'Save and Continue', regional: 'ಉಳಿಸಿ ಮತ್ತು ಮುಂದುವರಿಸಿ' },
   },
   kyc: {
-    pan_title: { en: 'PAN Verification', regional: 'ಪ್ಯಾನ್ ಪರಿಶೀಲನೆ' },
+    pan_title: { en: 'PAN Verification', regional: 'ಪ್ಯಾన్ ಪರಿಶೀಲನೆ' },
     pan_description: { en: 'Pre-filled based on earlier details. Please review and edit if required.', regional: 'ಹಿಂದಿನ ವಿವರಗಳ ಆಧಾರದ ಮೇಲೆ ಪೂರ್ವ-ಭರ್ತಿ ಮಾಡಲಾಗಿದೆ. ದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಅಗತ್ಯವಿದ್ದರೆ ಸಂಪಾದಿಸಿ.' },
-    pan_verified_title: { en: 'PAN Verified', regional: 'ಪ್ಯಾನ್ ಪರಿಶೀಲಿಸಲಾಗಿದೆ' },
-    pan_verified_description: { en: 'Your PAN has been successfully verified.', regional: 'ನಿಮ್ಮ ಪ್ಯಾನ್ ಯಶಸ್ವಿಯಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ.' },
-    pan_button: { en: 'Verify PAN', regional: 'ಪ್ಯಾನ್ ಪರಿಶೀಲಿಸಿ' },
+    pan_verified_title: { en: 'PAN Verified', regional: 'ಪ್ಯಾన్ ಪರಿಶೀಲಿಸಲಾಗಿದೆ' },
+    pan_verified_description: { en: 'Your PAN has been successfully verified.', regional: 'ನಿಮ್ಮ ಪ್ಯಾన్ ಯಶಸ್ವಿಯಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ.' },
+    pan_button: { en: 'Verify PAN', regional: 'ಪ್ಯಾన్ ಪರಿಶೀಲಿಸಿ' },
     aadhaar_title: { en: 'Aadhaar e-KYC', regional: 'ಆಧಾರ್ ಇ-ಕೆವೈಸಿ' },
     aadhaar_description: { en: 'Enter your Aadhaar to perform e-KYC via OTP.', regional: 'ಒಟಿಪಿ ಮೂಲಕ ಇ-ಕೆವೈಸಿ ಮಾಡಲು ನಿಮ್ಮ ಆಧಾರ್ ಅನ್ನು ನಮೂದಿಸಿ.' },
     aadhaar_verified_title: { en: 'Aadhaar Verified', regional: 'ಆಧಾರ್ ಪರಿಶೀಲಿಸಲಾಗಿದೆ' },
@@ -1491,33 +1607,56 @@ const kn: Dictionary = {
   agreement: {
     title: { en: 'Digital Loan Agreement (e-Sign)', regional: 'ಡಿಜಿಟల్ ಸಾಲ ಒಪ್ಪಂದ (ಇ-ಸಹಿ)' },
     description: { en: 'Review the terms and sign the agreement using an Aadhaar-based OTP.', regional: 'ನಿಯಮಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಆಧಾರ್-ಆಧಾರಿತ ಒಟಿಪಿ ಬಳಸಿ ಒಪ್ಪಂದಕ್ಕೆ ಸಹಿ ಮಾಡಿ.' },
-    agreement_title: { en: 'Loan Agreement', regional: 'ಸಾಲ ಒಪ್ಪಂದ' },
-    agreement_content_line1: { en: 'This is a legally binding agreement between you (the Borrower) and FairFinance NBFC (the Lender)...', regional: 'ಇದು ನಿಮ್ಮ (ಸಾಲಗಾರ) ಮತ್ತು ಫೇರ್‌ಫೈನಾನ್ಸ್ ಎನ್‌ಬಿಎಫ್‌ಸಿ (ಸಾಲದಾತ) ನಡುವಿನ ಕಾನೂನುಬದ್ಧ ಒಪ್ಪಂದವಾಗಿದೆ...' },
-    agreement_content_line2: { en: '1. Loan Amount: ₹<amount>', regional: '೧. ಸಾಲದ ಮೊತ್ತ: ₹<amount>' },
-    agreement_content_line3: { en: '2. Tenure: <tenure> months', regional: '೨. ಅವಧಿ: <tenure> ತಿಂಗಳುಗಳು' },
-    agreement_content_line4: { en: '3. Repayment: You agree to repay the loan via monthly EMIs of ₹<emi> as per the e-mandate.', regional: '೩. ಮರುಪಾವತಿ: ನೀವು ಇ-ಮ್ಯಾಂಡೇಟ್ ಪ್ರಕಾರ ₹<emi> ಮಾಸಿಕ ಇಎಂಐಗಳ ಮೂಲಕ ಸಾಲವನ್ನು ಮರುಪಾವತಿಸಲು ಒಪ್ಪುತ್ತೀರಿ.' },
+    borrower_details: { en: 'Borrower Details', regional: 'ಸಾಲಗಾರರ ವಿವರಗಳು' },
+    borrower_name: { en: 'Borrower Name', regional: 'ಸಾಲಗಾರರ ಹೆಸರು' },
+    app_id: { en: 'Application ID', regional: 'ಅರ್ಜಿ ಐಡಿ' },
+    pan: { en: 'PAN', regional: 'ಪ್ಯಾన్' },
+    loan_details: { en: 'Loan Details', regional: 'ಸಾಲದ ವಿವರಗಳು' },
+    sanctioned_amount: { en: 'Sanctioned Amount', regional: 'ಮಂಜೂರಾದ ಮೊತ್ತ' },
+    tenure: { en: 'Tenure', regional: 'ಅವಧಿ' },
+    interest_rate: { en: 'Interest Rate', regional: 'ಬಡ್ಡಿ ದರ' },
+    fees_disbursal: { en: 'Fees & Charges', regional: 'ಶುಲ್ಕಗಳು ಮತ್ತು ಶುಲ್ಕಗಳು' },
+    processing_fee: { en: 'Processing Fee (2%)', regional: 'ಸಂಸ್ಕರಣಾ ಶುಲ್ಕ (2%)' },
+    gst: { en: 'GST (18%) on Fee', regional: 'ಶುಲ್ಕದ ಮೇಲೆ ಜಿಎಸ್ಟಿ (18%)' },
+    net_disbursal: { en: 'Net Disbursal Amount', regional: 'ನಿವ್ವಳ ವಿತರಣಾ ಮೊತ್ತ' },
+    repayment_terms: { en: 'Repayment Terms', regional: 'ಮರುಪಾವತಿ ನಿಯಮಗಳು' },
+    emi_amount: { en: 'EMI Amount', regional: 'ಇಎಂಐ ಮೊತ್ತ' },
+    emi_start_date: { en: 'EMI Start Date', regional: 'ಇಎಂಐ ಪ್ರಾರಂಭ ದಿನಾಂಕ' },
+    repayment_mode: { en: 'Repayment Mode', regional: 'ಮರುಪಾವತಿ ವಿಧಾನ' },
+    legal_disclosure: { en: 'Legal & Regulatory Disclosures', regional: 'ಕಾನೂನು ಮತ್ತು ನಿಯಂತ್ರಕ ಪ್ರಕಟಣೆಗಳು' },
+    lender_disclosure1: { en: 'Loan provided by FairFinance NBFC (Regulated Entity - RE).', regional: 'ಫೇರ್‌ಫೈನಾನ್ಸ್ ಎನ್‌ಬಿಎಫ್‌ಸಿ (ನಿಯಂತ್ರಿತ ಘಟಕ - ಆರ್‌ಇ) ಒದಗಿಸಿದ ಸಾಲ.' },
+    lender_disclosure2: { en: 'Loan facilitated by LoanSwift (Lending Service Provider - LSP).', regional: 'ಲೋನ್‌ಸ್ವಿಫ್ಟ್ (ಸಾಲ ಸೇವಾ ಪೂರೈಕೆದಾರ - ಎಲ್‌ಎಸ್‌ಪಿ) ಮೂಲಕ ಸುಗಮಗೊಳಿಸಿದ ಸಾಲ.' },
+    lender_disclosure3: { en: 'Grievance Contact', regional: 'ದೂರು ಸಂಪರ್ಕ' },
+    declaration_title: { en: 'Declaration & Consent', regional: 'ಘೋಷಣೆ ಮತ್ತು ಸಮ್ಮತಿ' },
+    declaration_content: { en: 'I have read, understood, and agree to the terms and conditions of this loan agreement.', regional: 'ನಾನು ಈ ಸಾಲ ಒಪ್ಪಂದದ ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳನ್ನು ಓದಿದ್ದೇನೆ, ಅರ್ಥಮಾಡಿಕೊಂಡಿದ್ದೇನೆ ಮತ್ತು ಒಪ್ಪುತ್ತೇನೆ.' },
     sign_button: { en: 'Sign via Aadhaar OTP', regional: 'ಆಧಾರ್ ಒಟಿಪಿ ಮೂಲಕ ಸಹಿ ಮಾಡಿ' },
     otp_label: { en: 'Enter OTP sent to your Aadhaar-linked mobile', regional: 'ನಿಮ್ಮ ಆಧಾರ್-ಸಂಯೋಜಿತ ಮೊಬೈಲ್‌ಗೆ ಕಳುಹಿಸಿದ ಒಟಿಪಿ ನಮೂದಿಸಿ' },
     otp_placeholder: { en: 'Enter 6-digit OTP', regional: '6-ಅಂಕಿಯ ಒಟಿಪಿ ನಮೂದಿಸಿ' },
     verify_button: { en: 'Verify & e-Sign', regional: 'ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಇ-ಸಹಿ ಮಾಡಿ' },
   },
   disbursement: {
-    success_title: { en: 'Congratulations!', regional: 'ಅಭಿನಂದನೆಗಳು!' },
-    success_description: { en: 'Your loan has been disbursed.', regional: 'ನಿಮ್ಮ ಸಾಲವನ್ನು ವಿತರಿಸಲಾಗಿದೆ.' },
+    success_title: { en: 'Disbursement Initiated', regional: 'ವಿತರಣೆ ಪ್ರಾರಂಭಿಸಲಾಗಿದೆ' },
+    processing_message: { en: 'Your loan request has been successfully processed.', regional: 'ನಿಮ್ಮ ಸಾಲದ ವಿನಂತಿಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಪ್ರಕ್ರಿಯೆಗೊಳಿಸಲಾಗಿದೆ.' },
+    credited_soon_message: { en: 'The approved amount will be credited to your bank account shortly (within 10-15 minutes).', regional: 'ಅನುಮೋದಿತ ಮೊತ್ತವು ಶೀಘ್ರದಲ್ಲೇ (10-15 ನಿಮಿಷಗಳಲ್ಲಿ) ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ಖಾತೆಗೆ ಜಮಾ ಆಗಲಿದೆ.' },
     details_title: { en: 'Disbursement Details', regional: 'ವಿತರಣಾ ವಿವರಗಳು' },
     amount_label: { en: 'Amount:', regional: 'ಮೊತ್ತ:' },
     account_label: { en: 'Bank Account:', regional: 'ಬ್ಯಾಂಕ್ ಖಾತೆ:' },
     ref_label: { en: 'Transaction Ref:', regional: 'ವಹಿವಾಟು ಉಲ್ಲೇಖ:' },
-    credited_soon_message: { en: 'The amount will be credited to your account shortly. Your first EMI is due next month.', regional: 'ಮೊತ್ತವು ಶೀಘ್ರದಲ್ಲೇ ನಿಮ್ಮ ಖಾತೆಗೆ ಜಮಾ ಆಗಲಿದೆ. ನಿಮ್ಮ ಮೊದಲ ಇಎಂಐ ಮುಂದಿನ ತಿಂಗಳು ಪಾವತಿಸಬೇಕಾಗಿದೆ.' },
-    download_agreement_button: { en: 'Download Agreement', regional: 'ಒಪ್ಪಂದವನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ' },
     back_to_dashboard_button: { en: 'Back to Dashboard', regional: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ' },
     ready_title: { en: 'Ready for Disbursement', regional: 'ವಿತರಣೆಗೆ ಸಿದ್ಧವಾಗಿದೆ' },
-    ready_description: { en: 'All formalities are complete. The net loan amount will be transferred to your verified bank account.', regional: 'ಎಲ್ಲಾ ಔಪಚಾರಿಕತೆಗಳು ಪೂರ್ಣಗೊಂಡಿವೆ. ನಿವ್ವಳ ಸಾಲದ ಮೊತ್ತವನ್ನು ನಿಮ್ಮ ಪರಿಶೀಲಿಸಿದ ಬ್ಯಾಂಕ್ ಖಾತೆಗೆ ವರ್ಗಾಯಿಸಲಾಗುತ್ತದೆ.' },
-    final_disbursement_title: { en: 'Final Disbursement', regional: 'ಅಂತಿమ ವಿತರಣೆ' },
-    net_amount_label: { en: 'Net Amount:', regional: 'ನಿವ್ವಳ ಮೊತ್ತ:' },
+    ready_description: { en: 'All formalities are complete. Please confirm to receive the net loan amount in your verified bank account.', regional: 'ಎಲ್ಲಾ ಔಪಚಾರಿಕತೆಗಳು ಪೂರ್ಣಗೊಂಡಿವೆ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪರಿಶೀಲಿಸಿದ ಬ್ಯಾಂಕ್ ಖಾತೆಯಲ್ಲಿ ನಿವ್ವಳ ಸಾಲದ ಮೊತ್ತವನ್ನು ಸ್ವೀಕರಿಸಲು ಖಚಿತಪಡಿಸಿ.' },
+    final_disbursement_title: { en: 'Final Disbursement', regional: 'ಅಂತಿಮ ವಿತರಣೆ' },
+    net_amount_label: { en: 'Net Amount to be Credited:', regional: 'ಜಮಾ ಮಾಡಬೇಕಾದ ನಿವ್ವಳ ಮೊತ್ತ:' },
     to_account_label: { en: 'To Account:', regional: 'ಖಾತೆಗೆ:' },
+    timeline_label: { en: 'Timeline:', regional: 'ጊዜ ሰሌዳ:' },
+    timeline_value: { en: '10-15 mins', regional: '10-15 ನಿಮಿಷಗಳು' },
+    confirm_disbursement_button: { en: 'Confirm & Proceed', regional: 'ಖಚಿತಪಡಿಸಿ ಮತ್ತು ಮುಂದುವರಿಸಿ' },
+    not_ready_button: { en: 'I am not ready to proceed', regional: 'ನಾನು ಮುಂದುವರಿಯಲು ಸಿದ್ಧವಾಗಿಲ್ಲ' },
     initiate_button: { en: 'Initiate Disbursement', regional: 'ವಿತರಣೆಯನ್ನು ಪ್ರಾರಂಭಿಸಿ' },
-    processing_button: { en: 'Processing...', regional: 'ಸಂಸ್ಕರಿಸಲಾಗುತ್ತಿದೆ...' },
+    processing_button: { en: 'Processing Disbursement...', regional: 'ವಿತರಣೆ ಪ್ರಕ್ರಿಯೆಗೊಳಿಸಲಾಗುತ್ತಿದೆ...' },
+    assisted_title: { en: 'Application Paused', regional: 'ಅರ್ಜಿ ವಿರಾಮಗೊಳಿಸಲಾಗಿದೆ' },
+    assisted_description: { en: 'Your loan application is almost complete. If you need more time or assistance before disbursement, our relationship manager will contact you shortly to guide you further.', regional: 'ನಿಮ್ಮ ಸಾಲದ ಅರ್ಜಿ ಬಹುತೇಕ ಪೂರ್ಣಗೊಂಡಿದೆ. ವಿತರಣೆಯ ಮೊದಲು ನಿಮಗೆ ಹೆಚ್ಚಿನ ಸಮಯ ಅಥವಾ ಸಹಾಯ ಬೇಕಾದರೆ, ನಮ್ಮ ಸಂಬಂಧ ವ್ಯವಸ್ಥಾಪಕರು ನಿಮಗೆ ಮತ್ತಷ್ಟು ಮಾರ್ಗದರ್ಶನ ನೀಡಲು ಶೀಘ್ರದಲ್ಲೇ ನಿಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸುತ್ತಾರೆ.' },
+    app_id_label: { en: 'Application ID', regional: 'ಅರ್ಜಿ ಐಡಿ' },
   },
 };
 

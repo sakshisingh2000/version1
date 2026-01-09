@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useTransition, useEffect, useMemo, useRef } from "react";
-import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet, FileText, BadgeCheck, AlertCircle, UploadCloud, Info, XCircle, ChevronDown, FolderUp, Cloud } from "lucide-react";
+import { Loader2, FileCheck2, UserCheck, Landmark, Banknote, ShieldCheck, CheckCircle, Verified, Wallet, FileText, BadgeCheck, AlertCircle, UploadCloud, Info, XCircle, ChevronDown, FolderUp, Cloud, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -1578,7 +1578,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                     <CardContent className="space-y-4">
                         <div>
                           <div className="flex justify-between items-center mb-2">
-                             <div><BilingualText en={d.select_amount_label.en} regional={d.select_amount_label.regional}/></div>
+                             <BilingualText en={d.select_amount_label.en} regional={d.select_amount_label.regional}/>
                             <div>
                                 <Badge variant="default" className="bg-green-600">
                                 {d.recommended_badge.en}
@@ -2424,6 +2424,7 @@ export function AgreementStep({ onCompleted }: StepProps) {
         if (otp === '123456') {
           setApplication(prev => ({ 
             ...prev,
+            application_status: 'DISBURSEMENT_PENDING_CONFIRMATION',
             agreement: {
               isSigned: true,
               agreementUrl: '/simulated/agreement.pdf',
@@ -2438,6 +2439,23 @@ export function AgreementStep({ onCompleted }: StepProps) {
       }, 1500);
     });
   };
+  
+    const {
+    personalDetails,
+    loanApplicationId,
+    approved_amount,
+    selected_tenure_months,
+    selected_emi_amount,
+    firstEmiDate
+  } = application;
+
+  if (!personalDetails || !approved_amount || !selected_tenure_months || !selected_emi_amount || !firstEmiDate) {
+    return <p>Agreement details are not available. Please complete previous steps.</p>;
+  }
+  
+  const processingFee = approved_amount * 0.02;
+  const gst = processingFee * 0.18;
+  const netDisbursalAmount = approved_amount - processingFee - gst;
 
   return (
     <div className="space-y-6">
@@ -2453,19 +2471,68 @@ export function AgreementStep({ onCompleted }: StepProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-64 w-full rounded-md border p-4 text-xs text-muted-foreground">
-            <h3 className="font-bold mb-2">{d.agreement_title.en}</h3>
-            <p className="mb-2">{d.agreement_content_line1.en}</p>
-            <p>
-                {d.agreement_content_line2.en.replace('<amount>', `₹${application.approved_amount?.toLocaleString('en-IN')}`)}
-            </p>
-            <p>
-                {d.agreement_content_line3.en.replace('<tenure>', `${application.selected_tenure_months}`)}
-            </p>
-            <p>
-                {d.agreement_content_line4.en.replace('<emi>', `₹${application.selected_emi_amount?.toLocaleString('en-IN')}`)}
-            </p>
-            <p className="mt-4">By signing, you confirm your acceptance of all terms...</p>
+          <ScrollArea className="h-80 w-full rounded-md border p-4 text-sm">
+            <div className="space-y-6">
+               {/* Borrower Details */}
+              <div className="space-y-2">
+                <h3 className="font-semibold text-base">{d.borrower_details.en}</h3>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
+                  <span>{d.borrower_name.en}</span><span className="text-right font-medium text-foreground">{personalDetails.fullName}</span>
+                  <span>{d.app_id.en}</span><span className="text-right font-medium text-foreground">{loanApplicationId}</span>
+                  <span>{d.pan.en}</span><span className="text-right font-medium text-foreground">XXXXXX{personalDetails.pan.slice(-4)}</span>
+                </div>
+              </div>
+
+               {/* Loan Details */}
+              <div className="space-y-2">
+                <h3 className="font-semibold text-base">{d.loan_details.en}</h3>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
+                  <span>{d.sanctioned_amount.en}</span><span className="text-right font-medium text-foreground">₹{approved_amount.toLocaleString('en-IN')}</span>
+                  <span>{d.tenure.en}</span><span className="text-right font-medium text-foreground">{selected_tenure_months} Months</span>
+                  <span>{d.interest_rate.en}</span><span className="text-right font-medium text-foreground">24.00% p.a.</span>
+                </div>
+              </div>
+              
+              {/* Fees & Charges */}
+              <div className="space-y-2">
+                <h3 className="font-semibold text-base">{d.fees_disbursal.en}</h3>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
+                  <span>{d.processing_fee.en}</span><span className="text-right font-medium text-foreground">- ₹{processingFee.toLocaleString('en-IN')}</span>
+                  <span>{d.gst.en}</span><span className="text-right font-medium text-foreground">- ₹{gst.toLocaleString('en-IN')}</span>
+                  <Separator className="col-span-2 my-1" />
+                  <span className="font-bold">{d.net_disbursal.en}</span><span className="text-right font-bold text-foreground">₹{netDisbursalAmount.toLocaleString('en-IN')}</span>
+                </div>
+              </div>
+              
+                {/* Repayment Terms */}
+              <div className="space-y-2">
+                <h3 className="font-semibold text-base">{d.repayment_terms.en}</h3>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
+                  <span>{d.emi_amount.en}</span><span className="text-right font-medium text-foreground">₹{selected_emi_amount.toLocaleString('en-IN')}</span>
+                  <span>{d.emi_start_date.en}</span><span className="text-right font-medium text-foreground">{format(new Date(firstEmiDate), 'dd-MMM-yyyy')}</span>
+                   <span>{d.repayment_mode.en}</span><span className="text-right font-medium text-foreground">e-Mandate / Auto-Debit</span>
+                </div>
+              </div>
+              
+                {/* Legal & Regulatory */}
+              <div className="space-y-2">
+                 <h3 className="font-semibold text-base">{d.legal_disclosure.en}</h3>
+                 <p className="text-xs text-muted-foreground">
+                    {d.lender_disclosure1.en}<br/>
+                    {d.lender_disclosure2.en}<br/>
+                    {d.lender_disclosure3.en}: grievance@fairfinance.com<br/>
+                    Governing Law: India
+                 </p>
+              </div>
+
+               {/* Declaration */}
+              <div className="space-y-2 pt-4">
+                 <h3 className="font-semibold text-base">{d.declaration_title.en}</h3>
+                 <p className="text-xs text-muted-foreground">
+                    {d.declaration_content.en}
+                 </p>
+              </div>
+            </div>
           </ScrollArea>
         </CardContent>
       </Card>
@@ -2493,118 +2560,109 @@ export function AgreementStep({ onCompleted }: StepProps) {
 
 export function DisbursementStep({ onCompleted: _ }: StepProps) {
     const { application, setApplication } = useLoanApplication();
-    const [isDisbursing, setIsDisbursing] = useState(false);
-    const [isDisbursed, setIsDisbursed] = useState(application.isDisbursed);
+    const [view, setView] = useState<'confirmation' | 'processing' | 'assisted'>(application.isDisbursed ? 'processing' : 'confirmation');
+    const [isDisbursing, setIsDisbursing] = useState(application.isDisbursed || false);
     const { toast } = useToast();
     const { dict, language } = useLanguage();
     const d = dict.disbursement;
 
-    const handleDisburse = () => {
+    const netDisbursal = (application.approved_amount || 0) - ((application.approved_amount || 0) * 0.02);
+
+    const handleConfirm = () => {
         setIsDisbursing(true);
-        // disbursement process
+        setView('processing');
+        setApplication(prev => ({ ...prev, application_status: 'DISBURSEMENT_IN_PROGRESS' }));
+
+        // Simulate disbursement process
         setTimeout(() => {
             setApplication(prev => ({ ...prev, isDisbursed: true, application_status: 'DISBURSED' }));
-            setIsDisbursed(true);
-            setIsDisbursing(false);
             toast({ title: "Loan Disbursed!", description: "The amount has been sent to your bank account." });
-        }, 2000);
+        }, 3000);
+    };
+
+    const handleNotReady = () => {
+        setView('assisted');
+        setApplication(prev => ({ ...prev, application_status: 'APPROVED_ASSISTED_COMPLETION_REQUIRED' }));
+    };
+
+    if (view === 'assisted') {
+        return (
+             <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
+                <Info className="h-16 w-16 text-primary"/>
+                <h3 className="text-2xl font-headline font-bold">{d.assisted_title.en}</h3>
+                <p className="text-muted-foreground max-w-md whitespace-pre-wrap">
+                    {d.assisted_description.en}
+                </p>
+                 <div className="space-y-2 text-left w-full max-w-sm rounded-lg border p-4 bg-muted/50">
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">{d.app_id_label.en}:</span>
+                        <span className="font-mono">{application.loanApplicationId}</span>
+                    </div>
+                </div>
+            </div>
+        )
     }
 
-    if (isDisbursed) {
-         return (
+    if (isDisbursing) {
+        return (
             <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
-                <CheckCircle className="h-20 w-20 text-green-500"/>
-                <h3 className="text-3xl font-headline font-bold">
-                    {d.success_title.en}
-                    {language !== 'en' && <span className="block text-2xl font-normal text-muted-foreground mt-1">{d.success_title.regional}</span>}
-                </h3>
-                <p className="text-xl font-semibold text-muted-foreground">
-                   {d.success_description.en}
-                   {language !== 'en' && <span className="block text-lg font-normal mt-1">{d.success_description.regional}</span>}
-                </p>
-                <Card className="text-left w-full max-w-sm">
-                    <CardHeader>
-                        <CardTitle>
-                            {d.details_title.en}
-                            {language !== 'en' && <span className="block text-lg font-normal text-muted-foreground mt-1">{d.details_title.regional}</span>}
-                        </CardTitle>
-                    </CardHeader>
+                {application.isDisbursed ? (
+                    <>
+                        <CheckCircle className="h-20 w-20 text-green-500" />
+                        <h3 className="text-3xl font-headline font-bold">{d.success_title.en}</h3>
+                        <p className="text-xl font-semibold text-muted-foreground">{d.credited_soon_message.en}</p>
+                    </>
+                ) : (
+                    <>
+                        <Loader2 className="h-20 w-20 animate-spin text-primary" />
+                        <h3 className="text-3xl font-headline font-bold">{d.processing_button.en}</h3>
+                        <p className="text-xl font-semibold text-muted-foreground">{d.processing_message.en}</p>
+                    </>
+                )}
+                 <Card className="text-left w-full max-w-sm">
+                    <CardHeader><CardTitle>{d.details_title.en}</CardTitle></CardHeader>
                     <CardContent className="space-y-2">
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">{d.amount_label.en}</span>
-                            <span className="font-bold">₹{(application.approved_amount! - (application.approved_amount! * 0.02)).toLocaleString('en-IN')}</span>
-                        </div>
-                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">{d.account_label.en}</span>
-                            <span className="font-bold">...{application.bankDetails?.accountNumber.slice(-4)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">{d.ref_label.en}</span>
-                            <span className="font-bold">TXN123SIM</span>
-                        </div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">{d.amount_label.en}</span><span className="font-bold">₹{netDisbursal.toLocaleString('en-IN')}</span></div>
+                         <div className="flex justify-between"><span className="text-muted-foreground">{d.account_label.en}</span><span className="font-bold">...{application.bankDetails?.accountNumber.slice(-4)}</span></div>
                     </CardContent>
                 </Card>
-                <p className="text-muted-foreground max-w-md">
-                    {d.credited_soon_message.en}
-                    {language !== 'en' && <span className="block text-sm mt-1">{d.credited_soon_message.regional}</span>}
-                </p>
-                <div className="flex gap-4">
-                    <Button asChild variant="outline">
-                        <Link href="/simulated/agreement.pdf" download>
-                           {d.download_agreement_button.en}
-                           {language !== 'en' && ` / ${d.download_agreement_button.regional}`}
-                        </Link>
-                    </Button>
-                    <Button asChild>
-                        <Link href="/application">
-                            {d.back_to_dashboard_button.en}
-                            {language !== 'en' && ` / ${d.back_to_dashboard_button.regional}`}
-                        </Link>
-                    </Button>
-                </div>
+                 <Button asChild className="mt-6"><Link href="/application">{d.back_to_dashboard_button.en}</Link></Button>
             </div>
         );
     }
-
+    
     return (
        <div className="flex flex-col items-center justify-center space-y-6 p-8 text-center">
             <Wallet className="h-16 w-16 text-primary"/>
-            <h3 className="text-2xl font-headline font-bold">
-                {d.ready_title.en}
-                {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.ready_title.regional}</span>}
-            </h3>
-            <p className="text-muted-foreground max-w-md">
-                {d.ready_description.en}
-                {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.ready_description.regional}</span>}
-            </p>
+            <h3 className="text-2xl font-headline font-bold">{d.ready_title.en}</h3>
+            <p className="text-muted-foreground max-w-md">{d.ready_description.en}</p>
+            
              <Card className="text-left w-full max-w-sm">
-                <CardHeader>
-                    <CardTitle>
-                        {d.final_disbursement_title.en}
-                        {language !== 'en' && <span className="block text-lg font-normal text-muted-foreground mt-1">{d.final_disbursement_title.regional}</span>}
-                    </CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>{d.final_disbursement_title.en}</CardTitle></CardHeader>
                 <CardContent className="space-y-2">
                      <div className="flex justify-between">
                         <span className="text-muted-foreground">{d.net_amount_label.en}</span>
-                        <span className="font-bold">₹{(application.approved_amount! - (application.approved_amount! * 0.02)).toLocaleString('en-IN')}</span>
+                        <span className="font-bold">₹{netDisbursal.toLocaleString('en-IN')}</span>
                     </div>
                      <div className="flex justify-between">
                         <span className="text-muted-foreground">{d.to_account_label.en}</span>
                         <span className="font-bold">...{application.bankDetails?.accountNumber.slice(-4)}</span>
                     </div>
+                    <div className="flex justify-between items-center pt-2">
+                        <span className="text-muted-foreground">{d.timeline_label.en}</span>
+                        <Badge variant="outline"><Clock className="mr-2 h-4 w-4"/>{d.timeline_value.en}</Badge>
+                    </div>
                 </CardContent>
             </Card>
-            <Button onClick={handleDisburse} disabled={isDisbursing} size="lg">
-                {isDisbursing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isDisbursing ? d.processing_button.en : d.initiate_button.en}
-                {language !== 'en' && !isDisbursing && ` / ${d.initiate_button.regional}`}
-            </Button>
+
+            <div className="w-full max-w-sm space-y-2">
+                <Button onClick={handleConfirm} size="lg" className="w-full">
+                    {d.confirm_disbursement_button.en}
+                </Button>
+                 <Button variant="ghost" onClick={handleNotReady} className="w-full text-muted-foreground">
+                    {d.not_ready_button.en}
+                </Button>
+            </div>
         </div>
     )
 }
-
-
-
-
-    
