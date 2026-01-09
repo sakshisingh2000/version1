@@ -787,15 +787,22 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
             pan: pan
         };
         
-        let photoUrl = "https://picsum.photos/seed/other-person/200/300";
-        let photoHint = "person photo";
+        let photoUrl: string;
+        let photoHint: string;
 
-        if (gender === 'Male') {
-            photoUrl = "https://picsum.photos/seed/male-person/200/300";
-            photoHint = "male person";
-        } else if (gender === 'Female') {
-            photoUrl = "https://picsum.photos/seed/female-person/200/300";
-            photoHint = "female person";
+        switch (gender) {
+            case 'Male':
+                photoUrl = 'https://avatar.iran.liara.run/public/boy?username=Rohan';
+                photoHint = 'male avatar';
+                break;
+            case 'Female':
+                photoUrl = 'https://avatar.iran.liara.run/public/girl?username=Priya';
+                photoHint = 'female avatar';
+                break;
+            default:
+                photoUrl = 'https://avatar.iran.liara.run/public/username';
+                photoHint = 'neutral avatar';
+                break;
         }
 
 
@@ -839,7 +846,8 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
                            <Image 
                                 src={photoUrl}
                                 alt="Aadhaar Photo"
-                                layout="fill"
+                                width={80}
+                                height={96}
                                 objectFit="cover"
                                 data-ai-hint={photoHint}
                             />
@@ -2687,3 +2695,4 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
