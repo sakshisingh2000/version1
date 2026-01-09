@@ -41,6 +41,7 @@ export type LoanApplication = {
     fullName: string;
     pan: string;
     birthDate: Date;
+    gender: 'Male' | 'Female' | 'Other';
     loanAmount: number;
     employmentType: string;
     monthlyIncome: number;

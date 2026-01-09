@@ -57,6 +57,7 @@ const personalDetailsSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters.").regex(englishOnly, "Please enter details in English"),
   pan: z.string().regex(panRegex, "Invalid PAN format.").regex(englishOnly, "Please enter details in English"),
   birthDate: z.date({ required_error: "A date of birth is required." }),
+  gender: z.string({ required_error: "Please select a gender." }),
   loanAmount: z.coerce.number().min(10000, "Loan amount must be at least ₹10,000.").max(200000, "Maximum loan amount is ₹2,00,000."),
   employmentType: z.string({ required_error: "Please select an employment type." }),
   monthlyIncome: z.coerce.number().min(10000, "Monthly income must be at least ₹10,000."),
@@ -104,6 +105,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
       fullName: "Rohan Sharma",
       pan: "GKYPK1234A",
       birthDate: new Date("1990-05-15"),
+      gender: "Male",
       loanAmount: 50000,
       employmentType: "Salaried",
       monthlyIncome: 60000,
@@ -131,6 +133,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
         fullName: values.fullName,
         pan: values.pan,
         dateOfBirth: values.birthDate,
+        gender: values.gender,
         employmentType: values.employmentType,
         monthlyIncome: values.monthlyIncome,
         currentAddress: {
@@ -183,7 +186,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
               <FormMessage />
             </FormItem>
           )} />
-          <FormField
+           <FormField
               control={form.control}
               name="birthDate"
               render={({ field }) => (
@@ -198,6 +201,22 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
                 </FormItem>
               )}
             />
+            <FormField control={form.control} name="gender" render={({ field }) => (
+            <FormItem>
+              <BilingualLabel en={d.gender_label.en} regional={d.gender_label.regional} />
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger><SelectValue placeholder={language === 'en' ? d.gender_placeholder.en : `${d.gender_placeholder.en} / ${d.gender_placeholder.regional}`} /></SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Male">Male</SelectItem>
+                  <SelectItem value="Female">Female</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )} />
           <FormField control={form.control} name="employmentType" render={({ field }) => (
             <FormItem>
               <BilingualLabel en={d.employment_label.en} regional={d.employment_label.regional} />
@@ -465,16 +484,6 @@ export function KycStep({ onCompleted }: StepProps) {
                       <AlertDescription className="text-green-700 mb-4">
                           {d.aadhaar_verified_description.en}
                       </AlertDescription>
-                      <div className="relative h-24 w-20 rounded-md overflow-hidden bg-muted">
-                          <Image
-                              src="https://picsum.photos/seed/loanswift/200/300"
-                              alt="Aadhaar Photo"
-                              layout="fill"
-                              objectFit="cover"
-                              data-ai-hint="person photo"
-                          />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">Photo fetched from Aadhaar (Mock)</p>
                   </div>
                 </div>
             </Alert>
@@ -765,7 +774,7 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
         const { personalDetails } = application;
         if (!personalDetails) return null;
 
-        const { fullName, birthDate, addressLine1, city, pincode, pan } = personalDetails;
+        const { fullName, birthDate, addressLine1, city, pincode, pan, gender } = personalDetails;
 
         const aadhaarData = {
             name: fullName.toUpperCase(),
@@ -777,6 +786,18 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
             dob: birthDate,
             pan: pan
         };
+        
+        let photoUrl = "https://picsum.photos/seed/other-person/200/300";
+        let photoHint = "person photo";
+
+        if (gender === 'Male') {
+            photoUrl = "https://picsum.photos/seed/male-person/200/300";
+            photoHint = "male person";
+        } else if (gender === 'Female') {
+            photoUrl = "https://picsum.photos/seed/female-person/200/300";
+            photoHint = "female person";
+        }
+
 
         const nameMatch = fullName.toLowerCase() === aadhaarData.name.toLowerCase();
         const dobMatch = birthDate.toDateString() === aadhaarData.dob.toDateString();
@@ -816,11 +837,11 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
                     <div className="flex items-start gap-4 p-4 border rounded-lg">
                         <div className="relative h-24 w-20 rounded-md overflow-hidden bg-muted flex-shrink-0">
                            <Image 
-                                src="https://picsum.photos/seed/human-sketch/200/300"
+                                src={photoUrl}
                                 alt="Aadhaar Photo"
                                 layout="fill"
                                 objectFit="cover"
-                                data-ai-hint="dummy human sketch"
+                                data-ai-hint={photoHint}
                             />
                         </div>
                         <div className="space-y-1 flex-grow">

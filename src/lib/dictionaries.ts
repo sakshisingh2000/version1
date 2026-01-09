@@ -56,6 +56,8 @@ export interface Dictionary {
     pan_placeholder: BilingualText;
     dob_label: BilingualText;
     dob_placeholder: BilingualText;
+    gender_label: BilingualText;
+    gender_placeholder: BilingualText;
     employment_label: BilingualText;
     employment_placeholder: BilingualText;
     income_label: BilingualText;
@@ -332,6 +334,8 @@ const en: Dictionary = {
     pan_placeholder: { en: 'ABCDE1234F', regional: 'ABCDE1234F' },
     dob_label: { en: 'Date of Birth', regional: 'Date of Birth' },
     dob_placeholder: { en: 'Select your Date of Birth', regional: 'Select your Date of Birth' },
+    gender_label: { en: 'Gender', regional: 'Gender' },
+    gender_placeholder: { en: 'Select your gender', regional: 'Select your gender' },
     employment_label: { en: 'Employment Type', regional: 'Employment Type' },
     employment_placeholder: { en: 'Select your employment type', regional: 'Select your employment type' },
     income_label: { en: 'Monthly Net Income (₹)', regional: 'Monthly Net Income (₹)' },
@@ -608,6 +612,8 @@ const hi: Dictionary = {
     pan_placeholder: { en: 'ABCDE1234F', regional: 'ABCDE1234F' },
     dob_label: { en: 'Date of Birth', regional: 'जन्म तिथि' },
     dob_placeholder: { en: 'Select your Date of Birth', regional: 'अपनी जन्म तिथि चुनें' },
+    gender_label: { en: 'Gender', regional: 'लिंग' },
+    gender_placeholder: { en: 'Select your gender', regional: 'अपना लिंग चुनें' },
     employment_label: { en: 'Employment Type', regional: 'रोजगार का प्रकार' },
     employment_placeholder: { en: 'Select your employment type', regional: 'अपने रोजगार का प्रकार चुनें' },
     income_label: { en: 'Monthly Net Income (₹)', regional: 'मासिक शुद्ध आय (₹)' },
@@ -669,7 +675,7 @@ const hi: Dictionary = {
     summary_mismatch_badge: { en: 'Does Not Match', regional: 'मेल नहीं खाता' },
     summary_partial_match_badge: { en: 'Partial Match', regional: 'आंशिक मेल' },
   },
-  eligibility: {
+   eligibility: {
     rejected_title: { en: 'Application Not Approved', regional: 'आवेदन स्वीकृत नहीं' },
     rejected_description: { en: 'We are unable to proceed with your loan application at this time based on our current lending policies.', regional: 'हमारी वर्तमान ऋण नीतियों के आधार पर हम इस समय आपके ऋण आवेदन के साथ आगे बढ़ने में असमर्थ हैं।' },
     back_home_button: { en: 'Back to Home', regional: 'होम पर वापस जाएं' },
@@ -884,6 +890,8 @@ const mr: Dictionary = {
     pan_placeholder: { en: 'ABCDE1234F', regional: 'ABCDE1234F' },
     dob_label: { en: 'Date of Birth', regional: 'जन्म तारीख' },
     dob_placeholder: { en: 'Select your Date of Birth', regional: 'तुमची जन्म तारीख निवडा' },
+    gender_label: { en: 'Gender', regional: 'लिंग' },
+    gender_placeholder: { en: 'Select your gender', regional: 'तुमचे लिंग निवडा' },
     employment_label: { en: 'Employment Type', regional: 'रोजगाराचा प्रकार' },
     employment_placeholder: { en: 'Select your employment type', regional: 'तुमच्या रोजगाराचा प्रकार निवडा' },
     income_label: { en: 'Monthly Net Income (₹)', regional: 'मासिक निव्वळ उत्पन्न (₹)' },
@@ -1159,6 +1167,8 @@ const te: Dictionary = {
     pan_placeholder: { en: 'ABCDE1234F', regional: 'ABCDE1234F' },
     dob_label: { en: 'Date of Birth', regional: 'పుట్టిన తేది' },
     dob_placeholder: { en: 'Select your Date of Birth', regional: 'మీ పుట్టిన తేదీని ఎంచుకోండి' },
+    gender_label: { en: 'Gender', regional: 'లింగం' },
+    gender_placeholder: { en: 'Select your gender', regional: 'మీ లింగాన్ని ఎంచుకోండి' },
     employment_label: { en: 'Employment Type', regional: 'ఉద్యోగ రకం' },
     employment_placeholder: { en: 'Select your employment type', regional: 'మీ ఉద్యోగ రకాన్ని ఎంచుకోండి' },
     income_label: { en: 'Monthly Net Income (₹)', regional: 'నెలవారీ నికర ఆదాయం (₹)' },
@@ -1434,6 +1444,8 @@ const kn: Dictionary = {
     pan_placeholder: { en: 'ABCDE1234F', regional: 'ABCDE1234F' },
     dob_label: { en: 'Date of Birth', regional: 'ಹುಟ್ಟಿದ ದಿನಾಂಕ' },
     dob_placeholder: { en: 'Select your Date of Birth', regional: 'ನಿಮ್ಮ ಜನ್ಮ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ' },
+    gender_label: { en: 'Gender', regional: 'ಲಿಂಗ' },
+    gender_placeholder: { en: 'Select your gender', regional: 'ನಿಮ್ಮ ಲಿಂಗವನ್ನು ಆಯ್ಕೆಮಾಡಿ' },
     employment_label: { en: 'Employment Type', regional: 'ಉದ್ಯೋಗದ ಪ್ರಕಾರ' },
     employment_placeholder: { en: 'Select your employment type', regional: 'ನಿಮ್ಮ ಉದ್ಯೋಗದ ಪ್ರಕಾರವನ್ನು ಆಯ್ಕೆಮಾಡಿ' },
     income_label: { en: 'Monthly Net Income (₹)', regional: 'ಮಾಸಿಕ ನಿವ್ವಳ ಆದಾಯ (₹)' },
@@ -1605,12 +1617,12 @@ const kn: Dictionary = {
     support_contact: { en: 'Thank you for choosing LoanSwift.', regional: 'ಲೋನ್‌ಸ್ವಿಫ್ಟ್ ಅನ್ನು ಆಯ್ಕೆ ಮಾಡಿದ್ದಕ್ಕಾಗಿ ಧನ್ಯವಾದಗಳು.' },
   },
   agreement: {
-    title: { en: 'Digital Loan Agreement (e-Sign)', regional: 'ಡಿಜಿಟల్ ಸಾಲ ಒಪ್ಪಂದ (ಇ-ಸಹಿ)' },
+    title: { en: 'Digital Loan Agreement (e-Sign)', regional: 'ಡಿಜಿಟಲ್ ಸಾಲ ಒಪ್ಪಂದ (ಇ-ಸಹಿ)' },
     description: { en: 'Review the terms and sign the agreement using an Aadhaar-based OTP.', regional: 'ನಿಯಮಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಆಧಾರ್-ಆಧಾರಿತ ಒಟಿಪಿ ಬಳಸಿ ಒಪ್ಪಂದಕ್ಕೆ ಸಹಿ ಮಾಡಿ.' },
     borrower_details: { en: 'Borrower Details', regional: 'ಸಾಲಗಾರರ ವಿವರಗಳು' },
     borrower_name: { en: 'Borrower Name', regional: 'ಸಾಲಗಾರರ ಹೆಸರು' },
     app_id: { en: 'Application ID', regional: 'ಅರ್ಜಿ ಐಡಿ' },
-    pan: { en: 'PAN', regional: 'ಪ್ಯಾన్' },
+    pan: { en: 'PAN', regional: 'ಪ್ಯಾನ್' },
     loan_details: { en: 'Loan Details', regional: 'ಸಾಲದ ವಿವರಗಳು' },
     sanctioned_amount: { en: 'Sanctioned Amount', regional: 'ಮಂಜೂರಾದ ಮೊತ್ತ' },
     tenure: { en: 'Tenure', regional: 'ಅವಧಿ' },
