@@ -1488,7 +1488,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                  <div className="space-y-2 text-left w-full max-w-sm rounded-lg border p-4 bg-muted/50">
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">{d.app_id_label.en}:</span>
-                        <span className="font-mono">{application.loanApplicationId}</span>
+                        <span className="font-mono font-bold">{application.loanApplicationId}</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">{d.approved_amount_label.en}:</span>
@@ -2036,7 +2036,7 @@ export function SanctionLetterStep({ onCompleted }: StepProps) {
             {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.decline_title.regional}</span>}
         </h3>
         <p className="text-muted-foreground max-w-md">
-          {d.decline_description.en.replace('<ID>', loanApplicationId)}
+          Your application ID is <span className="font-bold">{loanApplicationId}</span>. Our relationship manager will contact you shortly to assist you further or clarify any questions.
           {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.decline_description.regional.replace('<ID>', loanApplicationId)}</span>}
         </p>
         <p className="text-sm text-muted-foreground">
@@ -2096,7 +2096,7 @@ export function SanctionLetterStep({ onCompleted }: StepProps) {
               <span>{d.borrower_name.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.borrower_name.regional}</span>}</span>
               <span className="text-right font-medium">{personalDetails.fullName}</span>
               <span>{d.app_id.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.app_id.regional}</span>}</span>
-              <span className="text-right font-medium">{loanApplicationId}</span>
+              <span className="text-right font-medium font-mono">{loanApplicationId}</span>
               <span>{d.pan.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.pan.regional}</span>}</span>
               <span className="text-right font-medium">XXXXXX{personalDetails.pan.slice(-4)}</span>
               <span>{d.sanction_date.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.sanction_date.regional}</span>}</span>
@@ -2370,7 +2370,7 @@ export function EMandateStep({ onCompleted }: StepProps) {
                 <div className="space-y-2 text-left w-full max-w-sm rounded-lg border p-4 bg-muted/50">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{d.app_id.en}:</span>
-                      <span className="font-mono">{application.loanApplicationId}</span>
+                      <span className="font-mono font-bold">{application.loanApplicationId}</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">{d.sanctioned_amount.en}:</span>
@@ -2518,7 +2518,7 @@ export function AgreementStep({ onCompleted }: StepProps) {
                 <h3 className="font-semibold text-base">{d.borrower_details.en}</h3>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
                   <span>{d.borrower_name.en}</span><span className="text-right font-medium text-foreground">{personalDetails.fullName}</span>
-                  <span>{d.app_id.en}</span><span className="text-right font-medium text-foreground">{loanApplicationId}</span>
+                  <span>{d.app_id.en}</span><span className="text-right font-bold text-foreground font-mono">{loanApplicationId}</span>
                   <span>{d.pan.en}</span><span className="text-right font-medium text-foreground">XXXXXX{personalDetails.pan.slice(-4)}</span>
                 </div>
               </div>
@@ -2636,7 +2636,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
                  <div className="space-y-2 text-left w-full max-w-sm rounded-lg border p-4 bg-muted/50">
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">{d.app_id_label.en}:</span>
-                        <span className="font-mono">{application.loanApplicationId}</span>
+                        <span className="font-mono font-bold">{application.loanApplicationId}</span>
                     </div>
                 </div>
             </div>
@@ -2706,6 +2706,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
 
 
 
