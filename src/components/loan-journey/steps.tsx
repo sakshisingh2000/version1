@@ -792,7 +792,7 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
 
         switch (gender) {
             case 'Male':
-                photoUrl = 'https://storage.googleapis.com/project-magnolia-build-results-prod/images/0c793136-2ada-434a-bb1c-839527961166.png';
+                photoUrl = 'https://storage.googleapis.com/project-magnolia-build-results-prod/images/503f752a-9038-4859-99a3-585a7304192b.png';
                 photoHint = 'male avatar';
                 break;
             case 'Female':
@@ -2095,7 +2095,7 @@ export function SanctionLetterStep({ onCompleted }: StepProps) {
               <span>{d.borrower_name.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.borrower_name.regional}</span>}</span>
               <span className="text-right font-medium">{personalDetails.fullName}</span>
               <span>{d.app_id.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.app_id.regional}</span>}</span>
-              <span className="text-right font-medium font-mono">{loanApplicationId}</span>
+              <span className="text-right font-bold font-mono">{loanApplicationId}</span>
               <span>{d.pan.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.pan.regional}</span>}</span>
               <span className="text-right font-medium">XXXXXX{personalDetails.pan.slice(-4)}</span>
               <span>{d.sanction_date.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.sanction_date.regional}</span>}</span>
@@ -2363,8 +2363,8 @@ export function EMandateStep({ onCompleted }: StepProps) {
                     {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.unable_title.regional}</span>}
                 </h3>
                 <p className="text-muted-foreground max-w-md whitespace-pre-wrap">
-                    {d.unable_description.en}
-                    {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.unable_description.regional}</span>}
+                    {d.unable_description.en.replace('<Application ID>', application.loanApplicationId)}
+                    {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.unable_description.regional.replace('<Application ID>', application.loanApplicationId)}</span>}
                 </p>
                 <div className="space-y-2 text-left w-full max-w-sm rounded-lg border p-4 bg-muted/50">
                     <div className="flex justify-between">
@@ -2598,7 +2598,10 @@ export function AgreementStep({ onCompleted }: StepProps) {
                     name="otp"
                     render={({ field }) => (
                         <FormItem>
-                            <BilingualLabel en={d.otp_label.en} regional={d.otp_label.regional} />
+                            <Label>
+                                {d.otp_label.en}
+                                {language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.otp_label.regional}</span>}
+                            </Label>
                             <FormControl>
                                 <Input {...field} placeholder={language === 'en' ? d.otp_placeholder.en : `${d.otp_placeholder.en} / ${d.otp_placeholder.regional}`} />
                             </FormControl>
@@ -2726,3 +2729,6 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
+
+    
