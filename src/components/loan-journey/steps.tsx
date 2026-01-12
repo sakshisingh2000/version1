@@ -1368,10 +1368,9 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
     
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const rawValue = event.target.value.replace(/[^0-9]/g, '');
-        const newAmount = Number(rawValue);
-        if (!isNaN(newAmount)) {
-          setFinalLoanAmount(newAmount);
-        }
+        let newAmount = Number(rawValue);
+        if (isNaN(newAmount)) newAmount = 0;
+        setFinalLoanAmount(newAmount);
     };
 
     const handleInputBlur = () => {
@@ -1635,10 +1634,10 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
                                 <Input
                                     type="text"
-                                    value={finalLoanAmount.toLocaleString('en-IN')}
+                                    value={finalLoanAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                                     onBlur={handleInputBlur}
                                     onChange={handleInputChange}
-                                    className="w-32 font-bold pl-6"
+                                    className="w-full font-bold pl-6"
                                 />
                             </div>
                           </div>
@@ -2036,7 +2035,7 @@ export function SanctionLetterStep({ onCompleted }: StepProps) {
             {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.decline_title.regional}</span>}
         </h3>
         <p className="text-muted-foreground max-w-md">
-          Your application ID is <span className="font-bold">{loanApplicationId}</span>. Our relationship manager will contact you shortly to assist you further or clarify any questions.
+          Your application ID is <span className="font-bold font-mono">{loanApplicationId}</span>. Our relationship manager will contact you shortly to assist you further or clarify any questions.
           {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.decline_description.regional.replace('<ID>', loanApplicationId)}</span>}
         </p>
         <p className="text-sm text-muted-foreground">
@@ -2439,14 +2438,22 @@ export function EMandateStep({ onCompleted }: StepProps) {
     );
 }
 
+const otpSchema = z.object({
+  otp: z.string().min(6, "OTP must be 6 digits").max(6, "OTP must be 6 digits"),
+});
+
 export function AgreementStep({ onCompleted }: StepProps) {
   const { setApplication, application } = useLoanApplication();
   const [isSigning, startTransition] = useTransition();
-  const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const { toast } = useToast();
   const { dict, language } = useLanguage();
   const d = dict.agreement;
+
+  const form = useForm<z.infer<typeof otpSchema>>({
+    resolver: zodResolver(otpSchema),
+    defaultValues: { otp: '' },
+  });
 
   const handleSendOtp = () => {
     startTransition(() => {
@@ -2457,12 +2464,11 @@ export function AgreementStep({ onCompleted }: StepProps) {
     });
   };
 
-  const handleVerifyOtp = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleVerifyOtp = (values: z.infer<typeof otpSchema>) => {
     startTransition(() => {
       setTimeout(() => {
-        if (otp === '123456') {
-          setApplication(prev => ({ 
+        if (values.otp === '123456') {
+          setApplication(prev => ({
             ...prev,
             application_status: 'DISBURSEMENT_PENDING_CONFIRMATION',
             agreement: {
@@ -2475,12 +2481,13 @@ export function AgreementStep({ onCompleted }: StepProps) {
           onCompleted();
         } else {
           toast({ variant: "destructive", title: "Invalid OTP" });
+          form.setError("otp", { message: "Invalid OTP" });
         }
       }, 1500);
     });
   };
-  
-    const {
+
+  const {
     personalDetails,
     loanApplicationId,
     approved_amount,
@@ -2492,7 +2499,7 @@ export function AgreementStep({ onCompleted }: StepProps) {
   if (!personalDetails || !approved_amount || !selected_tenure_months || !selected_emi_amount || !firstEmiDate) {
     return <p>Agreement details are not available. Please complete previous steps.</p>;
   }
-  
+
   const processingFee = approved_amount * 0.02;
   const gst = processingFee * 0.18;
   const netDisbursalAmount = approved_amount - processingFee - gst;
@@ -2584,15 +2591,28 @@ export function AgreementStep({ onCompleted }: StepProps) {
           {language !== 'en' && ` / ${d.sign_button.regional}`}
         </Button>
       ) : (
-        <form onSubmit={handleVerifyOtp} className="space-y-4 p-4 border rounded-lg">
-          <BilingualLabel en={d.otp_label.en} regional={d.otp_label.regional} />
-          <Input id="otp" value={otp} onChange={e => setOtp(e.target.value)} placeholder={language === 'en' ? d.otp_placeholder.en : `${d.otp_placeholder.en} / ${d.otp_placeholder.regional}`} />
-          <Button type="submit" disabled={isSigning} className="w-full">
-            {isSigning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {d.verify_button.en}
-            {language !== 'en' && ` / ${d.verify_button.regional}`}
-          </Button>
-        </form>
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleVerifyOtp)} className="space-y-4 p-4 border rounded-lg">
+                <FormField
+                    control={form.control}
+                    name="otp"
+                    render={({ field }) => (
+                        <FormItem>
+                            <BilingualLabel en={d.otp_label.en} regional={d.otp_label.regional} />
+                            <FormControl>
+                                <Input {...field} placeholder={language === 'en' ? d.otp_placeholder.en : `${d.otp_placeholder.en} / ${d.otp_placeholder.regional}`} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+              <Button type="submit" disabled={isSigning} className="w-full">
+                {isSigning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {d.verify_button.en}
+                {language !== 'en' && ` / ${d.verify_button.regional}`}
+              </Button>
+            </form>
+        </Form>
       )}
     </div>
   );
@@ -2706,8 +2726,3 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
-
-
-
-
-
