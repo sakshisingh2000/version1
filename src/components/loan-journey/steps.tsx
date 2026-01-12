@@ -792,15 +792,15 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
 
         switch (gender) {
             case 'Male':
-                photoUrl = 'https://avatar.iran.liara.run/public/boy?username=Rohan';
+                photoUrl = 'https://storage.googleapis.com/project-magnolia-build-results-prod/images/0c793136-2ada-434a-bb1c-839527961166.png';
                 photoHint = 'male avatar';
                 break;
             case 'Female':
-                photoUrl = 'https://avatar.iran.liara.run/public/girl?username=Priya';
+                photoUrl = 'https://storage.googleapis.com/project-magnolia-build-results-prod/images/422329e4-c5a4-4424-a74c-4740e69b910b.png';
                 photoHint = 'female avatar';
                 break;
             default:
-                photoUrl = 'https://avatar.iran.liara.run/public/username';
+                photoUrl = 'https://avatar.iran.liara.run/public';
                 photoHint = 'neutral avatar';
                 break;
         }
@@ -848,7 +848,7 @@ export function DocumentVerificationStep({ onCompleted }: StepProps) {
                                 alt="Aadhaar Photo"
                                 width={80}
                                 height={96}
-                                objectFit="cover"
+                                style={{ objectFit: "cover" }}
                                 data-ai-hint={photoHint}
                             />
                         </div>
@@ -2695,4 +2695,5 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
 
