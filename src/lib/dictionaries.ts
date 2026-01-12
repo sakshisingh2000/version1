@@ -158,6 +158,7 @@ export interface Dictionary {
     confirm_button: BilingualText;
     validation_message: BilingualText;
     approved_amount_label: BilingualText;
+    amount_validation_error: BilingualText;
   },
   kfs: {
     title: BilingualText;
@@ -397,7 +398,7 @@ const en: Dictionary = {
     summary_mismatch_badge: { en: 'Does Not Match', regional: 'Does Not Match' },
     summary_partial_match_badge: { en: 'Partial Match', regional: 'Partial Match' },
   },
-  eligibility: {
+   eligibility: {
     rejected_title: { en: 'Application Not Approved', regional: 'Application Not Approved' },
     rejected_description: { en: 'We are unable to proceed with your loan application at this time based on our current lending policies.', regional: 'We are unable to proceed with your loan application at this time based on our current lending policies.' },
     back_home_button: { en: 'Back to Home', regional: 'Back to Home' },
@@ -436,6 +437,7 @@ const en: Dictionary = {
     confirm_button: { en: 'Confirm Loan Amount & Continue', regional: 'Confirm Loan Amount & Continue' },
     validation_message: { en: 'Please select a tenure and confirm your choice to proceed.', regional: 'Please select a tenure and confirm your choice to proceed.' },
     approved_amount_label: { en: 'Approved Loan Amount', regional: 'Approved Loan Amount' },
+    amount_validation_error: { en: 'Please enter an amount between <min> and <max>.', regional: 'Please enter an amount between <min> and <max>.'},
   },
   kfs: {
     title: { en: 'Your Loan Offer Summary', regional: 'Your Loan Offer Summary' },
@@ -714,6 +716,7 @@ const hi: Dictionary = {
     confirm_button: { en: 'Confirm Loan Amount & Continue', regional: 'ऋण राशि की पुष्टि करें और जारी रखें' },
     validation_message: { en: 'Please select a tenure and confirm your choice to proceed.', regional: 'आगे बढ़ने के लिए कृपया एक अवधि चुनें और अपनी पसंद की पुष्टि करें।' },
     approved_amount_label: { en: 'Approved Loan Amount', regional: 'स्वीकृत ऋण राशि' },
+    amount_validation_error: { en: 'Please enter an amount between <min> and <max>.', regional: 'कृपया <min> और <max> के बीच एक राशि दर्ज करें।'},
   },
   kfs: {
     title: { en: 'Your Loan Offer Summary', regional: 'आपके ऋण प्रस्ताव का सारांश' },
@@ -992,6 +995,7 @@ const mr: Dictionary = {
     confirm_button: { en: 'Confirm Loan Amount & Continue', regional: 'कर्ज रक्कम निश्चित करा आणि पुढे जा' },
     validation_message: { en: 'Please select a tenure and confirm your choice to proceed.', regional: 'कृपया एक कालावधी निवडा आणि पुढे जाण्यासाठी तुमच्या निवडीची पुष्टी करा.' },
     approved_amount_label: { en: 'Approved Loan Amount', regional: 'मंजूर कर्ज रक्कम' },
+    amount_validation_error: { en: 'Please enter an amount between <min> and <max>.', regional: 'कृपया <min> आणि <max> दरम्यान रक्कम प्रविष्ट करा.'},
   },
   kfs: {
     title: { en: 'Your Loan Offer Summary', regional: 'तुमच्या कर्ज प्रस्तावाचा सारांश' },
@@ -1269,6 +1273,7 @@ const te: Dictionary = {
     confirm_button: { en: 'Confirm Loan Amount & Continue', regional: 'రుణ మొత్తాన్ని నిర్ధారించి కొనసాగించండి' },
     validation_message: { en: 'Please select a tenure and confirm your choice to proceed.', regional: 'ముందుకు సాగడానికి దయచేసి ఒక కాలపరిమితిని ఎంచుకుని, మీ ఎంపికను నిర్ధారించండి.' },
     approved_amount_label: { en: 'Approved Loan Amount', regional: 'ఆమోదించబడిన రుణ మొత్తం' },
+    amount_validation_error: { en: 'Please enter an amount between <min> and <max>.', regional: 'దయచేసి <min> మరియు <max> మధ్య మొత్తాన్ని నమోదు చేయండి.' },
   },
   kfs: {
     title: { en: 'Your Loan Offer Summary', regional: 'మీ లోన్ ఆఫర్ సారాంశం' },
@@ -1464,7 +1469,7 @@ const kn: Dictionary = {
     pan_title: { en: 'PAN Verification', regional: 'ಪ್ಯಾన్ ಪರಿಶೀಲನೆ' },
     pan_description: { en: 'Pre-filled based on earlier details. Please review and edit if required.', regional: 'ಹಿಂದಿನ ವಿವರಗಳ ಆಧಾರದ ಮೇಲೆ ಪೂರ್ವ-ಭರ್ತಿ ಮಾಡಲಾಗಿದೆ. ದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಅಗತ್ಯವಿದ್ದರೆ ಸಂಪಾದಿಸಿ.' },
     pan_verified_title: { en: 'PAN Verified', regional: 'ಪ್ಯಾన్ ಪರಿಶೀಲಿಸಲಾಗಿದೆ' },
-    pan_verified_description: { en: 'Your PAN has been successfully verified.', regional: 'ನಿಮ್ಮ ಪ್ಯಾన్ ಯಶಸ್ವಿಯಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ.' },
+    pan_verified_description: { en: 'Your PAN has been successfully verified.', regional: 'ನಿಮ್ಮ ಪ್ಯಾನ್ ಯಶಸ್ವಿಯಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ.' },
     pan_button: { en: 'Verify PAN', regional: 'ಪ್ಯಾన్ ಪರಿಶೀಲಿಸಿ' },
     aadhaar_title: { en: 'Aadhaar e-KYC', regional: 'ಆಧಾರ್ ಇ-ಕೆವೈಸಿ' },
     aadhaar_description: { en: 'Enter your Aadhaar to perform e-KYC via OTP.', regional: 'ಒಟಿಪಿ ಮೂಲಕ ಇ-ಕೆವೈಸಿ ಮಾಡಲು ನಿಮ್ಮ ಆಧಾರ್ ಅನ್ನು ನಮೂದಿಸಿ.' },
@@ -1546,6 +1551,7 @@ const kn: Dictionary = {
     confirm_button: { en: 'Confirm Loan Amount & Continue', regional: 'ಸಾಲದ ಮೊತ್ತವನ್ನು ಖಚಿತಪಡಿಸಿ ಮತ್ತು ಮುಂದುವರಿಸಿ' },
     validation_message: { en: 'Please select a tenure and confirm your choice to proceed.', regional: 'ಮುಂದುವರಿಯಲು ದಯವಿಟ್ಟು ಅವಧಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ ಮತ್ತು ನಿಮ್ಮ ಆಯ್ಕೆಯನ್ನು ಖಚಿತಪಡಿಸಿ.' },
     approved_amount_label: { en: 'Approved Loan Amount', regional: 'ಅನುಮೋದಿತ ಸಾಲದ ಮೊತ್ತ' },
+    amount_validation_error: { en: 'Please enter an amount between <min> and <max>.', regional: 'ದಯವಿಟ್ಟು <min> ಮತ್ತು <max> ನಡುವೆ ಮೊತ್ತವನ್ನು ನಮೂದಿಸಿ.' },
   },
   kfs: {
     title: { en: 'Your Loan Offer Summary', regional: 'ನಿಮ್ಮ ಸಾಲದ ಕೊಡುಗೆಯ ಸಾರಾಂಶ' },

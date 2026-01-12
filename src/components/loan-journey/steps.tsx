@@ -1332,30 +1332,25 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
     const { dict, language } = useLanguage();
     const d = dict.eligibility;
 
-    // State for LOS-driven amount choice
     const [finalLoanAmount, setFinalLoanAmount] = useState(application.approved_amount || 0);
-
+    const [amountError, setAmountError] = useState<string | null>(null);
     const [selectedTenure, setSelectedTenure] = useState<number | null>(null);
     const [calculatedEmi, setCalculatedEmi] = useState<number | null>(null);
     const [paymentSchedulePreview, setPaymentSchedulePreview] = useState<PaymentScheduleItem[]>([]);
     const [consentChecked, setConsentChecked] = useState(false);
     const [view, setView] = useState<'offer' | 'assisted_closure'>('offer');
 
-    
     const ANNUAL_INTEREST_RATE = 24; // 24% p.a.
     const tenureOptions = application.approved_tenure_options?.map(opt => opt.tenure_months) || [3, 6, 9, 12];
-
     const requestedAmount = application.requested_amount || 0;
     const eligibleAmount = application.eligible_amount || 0;
     
-    // This effect handles initializing the state when the component mounts or application data changes
     useEffect(() => {
-        if (eligibleAmount > 0) {
-           setFinalLoanAmount(eligibleAmount);
+        if (eligibleAmount > 0 && finalLoanAmount === 0) {
+           setFinalLoanAmount(application.approved_amount || eligibleAmount);
         }
-    }, [eligibleAmount, requestedAmount]);
+    }, [eligibleAmount, application.approved_amount, finalLoanAmount]);
 
-    // Recalculate EMI whenever amount or tenure changes
     useEffect(() => {
       if (selectedTenure && finalLoanAmount > 0) {
         calculateEmiAndSchedule(finalLoanAmount, selectedTenure);
@@ -1367,29 +1362,36 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
 
     const handleAmountChange = (value: number[]) => {
       const newAmount = value[0];
-      if (newAmount >= requestedAmount && newAmount <= eligibleAmount) {
-        setFinalLoanAmount(newAmount);
-      }
+      setFinalLoanAmount(newAmount);
+      setAmountError(null);
     };
     
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const rawValue = event.target.value.replace(/[^0-9]/g, '');
-        let newAmount = Number(rawValue);
-
-        if (isNaN(newAmount)) return;
-        
-        // Clamp the value to be within the allowed range
-        if (newAmount < requestedAmount && rawValue !== '') newAmount = requestedAmount;
-        if (newAmount > eligibleAmount) newAmount = eligibleAmount;
-
-        setFinalLoanAmount(newAmount);
+        const newAmount = Number(rawValue);
+        if (!isNaN(newAmount)) {
+          setFinalLoanAmount(newAmount);
+        }
     };
 
+    const handleInputBlur = () => {
+        let clampedAmount = finalLoanAmount;
+        if (clampedAmount < requestedAmount) {
+            clampedAmount = requestedAmount;
+            setAmountError(d.amount_validation_error.en.replace('<min>', `₹${requestedAmount.toLocaleString('en-IN')}`).replace('<max>', `₹${eligibleAmount.toLocaleString('en-IN')}`));
+        } else if (clampedAmount > eligibleAmount) {
+            clampedAmount = eligibleAmount;
+            setAmountError(d.amount_validation_error.en.replace('<min>', `₹${requestedAmount.toLocaleString('en-IN')}`).replace('<max>', `₹${eligibleAmount.toLocaleString('en-IN')}`));
+        } else {
+            setAmountError(null);
+        }
+        setFinalLoanAmount(clampedAmount);
+    };
 
     const calculateEmiAndSchedule = (amount: number, tenure: number) => {
       if (amount > 0) {
         const P = amount;
-        const r = (ANNUAL_INTEREST_RATE / 12) / 100; // Monthly interest rate
+        const r = (ANNUAL_INTEREST_RATE / 12) / 100;
         const n = tenure;
         const emiValue = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
         setCalculatedEmi(Math.round(emiValue));
@@ -1434,7 +1436,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
             );
 
             const appUpdate = {
-                approved_amount: finalLoanAmount, // This is the crucial update
+                approved_amount: finalLoanAmount,
                 selected_tenure_months: selectedTenure,
                 selected_emi_amount: calculatedEmi,
                 offer_status: 'OFFER_GENERATED' as const,
@@ -1610,12 +1612,14 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                         <div>
                           <div className="flex justify-between items-center mb-2">
                              <BilingualText en={d.select_amount_label.en} regional={d.select_amount_label.regional}/>
-                            <div>
-                                <Badge variant="default" className="bg-green-600">
-                                {d.recommended_badge.en}
-                                {language !== 'en' && ` / ${d.recommended_badge.regional}`}
-                                </Badge>
-                            </div>
+                            {finalLoanAmount === eligibleAmount && (
+                                <div>
+                                    <Badge variant="default" className="bg-green-600">
+                                    {d.recommended_badge.en}
+                                    {language !== 'en' && ` / ${d.recommended_badge.regional}`}
+                                    </Badge>
+                                </div>
+                            )}
                           </div>
                           <div className="flex items-center gap-4">
                             <Slider
@@ -1632,14 +1636,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                                 <Input
                                     type="text"
                                     value={finalLoanAmount.toLocaleString('en-IN')}
-                                    onBlur={(e) => {
-                                        // When user leaves the input, clamp the value
-                                        const rawValue = e.target.value.replace(/[^0-9]/g, '');
-                                        let newAmount = Number(rawValue);
-                                        if (newAmount < requestedAmount) newAmount = requestedAmount;
-                                        if (newAmount > eligibleAmount) newAmount = eligibleAmount;
-                                        setFinalLoanAmount(newAmount);
-                                    }}
+                                    onBlur={handleInputBlur}
                                     onChange={handleInputChange}
                                     className="w-32 font-bold pl-6"
                                 />
@@ -1649,6 +1646,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                             <span>₹{requestedAmount.toLocaleString('en-IN')}</span>
                             <span>₹{eligibleAmount.toLocaleString('en-IN')}</span>
                           </div>
+                          {amountError && <p className="text-sm text-destructive mt-2">{amountError}</p>}
                         </div>
                     </CardContent>
                 </Card>
@@ -2708,6 +2706,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
 
 
 
