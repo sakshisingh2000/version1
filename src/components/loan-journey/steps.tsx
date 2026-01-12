@@ -1373,11 +1373,13 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
     };
     
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        let newAmount = Number(event.target.value);
+        const rawValue = event.target.value.replace(/[^0-9]/g, '');
+        let newAmount = Number(rawValue);
+
         if (isNaN(newAmount)) return;
         
         // Clamp the value to be within the allowed range
-        if (newAmount < requestedAmount) newAmount = requestedAmount;
+        if (newAmount < requestedAmount && rawValue !== '') newAmount = requestedAmount;
         if (newAmount > eligibleAmount) newAmount = eligibleAmount;
 
         setFinalLoanAmount(newAmount);
@@ -1625,12 +1627,23 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
                                 onValueChange={handleAmountChange}
                                 className="flex-1"
                             />
-                            <Input
-                                type="text"
-                                value={`₹${finalLoanAmount.toLocaleString('en-IN')}`}
-                                onChange={handleInputChange}
-                                className="w-32 font-bold"
-                            />
+                             <div className="relative w-32">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
+                                <Input
+                                    type="text"
+                                    value={finalLoanAmount.toLocaleString('en-IN')}
+                                    onBlur={(e) => {
+                                        // When user leaves the input, clamp the value
+                                        const rawValue = e.target.value.replace(/[^0-9]/g, '');
+                                        let newAmount = Number(rawValue);
+                                        if (newAmount < requestedAmount) newAmount = requestedAmount;
+                                        if (newAmount > eligibleAmount) newAmount = eligibleAmount;
+                                        setFinalLoanAmount(newAmount);
+                                    }}
+                                    onChange={handleInputChange}
+                                    className="w-32 font-bold pl-6"
+                                />
+                            </div>
                           </div>
                           <div className="flex justify-between text-xs text-muted-foreground mt-1">
                             <span>₹{requestedAmount.toLocaleString('en-IN')}</span>
@@ -2695,5 +2708,6 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
+
 
 
