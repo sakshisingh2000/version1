@@ -104,7 +104,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
     defaultValues: {
       fullName: "Rohan Sharma",
       pan: "GKYPK1234A",
-      birthDate: new Date("1990-05-15"),
+      birthDate: new Date("1971-12-16"),
       gender: "Male",
       loanAmount: 50000,
       employmentType: "Salaried",
@@ -1340,7 +1340,7 @@ export function EligibilityResultStep({ onCompleted }: StepProps) {
     const [consentChecked, setConsentChecked] = useState(false);
     const [view, setView] = useState<'offer' | 'assisted_closure'>('offer');
 
-    const ANNUAL_INTEREST_RATE = 24; // 24% p.a.
+    const ANNUAL_INTEREST_RATE = 10; // 10% p.a.
     const tenureOptions = application.approved_tenure_options?.map(opt => opt.tenure_months) || [3, 6, 9, 12];
     const requestedAmount = application.requested_amount || 0;
     const eligibleAmount = application.eligible_amount || 0;
@@ -1791,10 +1791,11 @@ export function KfsStep({ onCompleted }: StepProps) {
 
   const { approved_amount, selected_tenure_months, selected_emi_amount } = application;
   const processingFee = approved_amount * 0.02; // 2% processing fee
-  const disbursedAmount = approved_amount - processingFee;
+  const gst = processingFee * 0.18; // 18% GST
+  const disbursedAmount = approved_amount - processingFee - gst;
   const totalInterest = (application.totalInterestPayable) || 0;
   const totalRepayment = (application.totalPaymentDue) || 0;
-  const apr = (((totalInterest + processingFee) / approved_amount) / (selected_tenure_months/12)) * 100;
+  const apr = (((totalInterest + processingFee + gst) / approved_amount) / (selected_tenure_months/12)) * 100;
 
   const handleAccept = (data: { consent: boolean }) => {
     if (!kfsViewed) {
@@ -1850,6 +1851,7 @@ export function KfsStep({ onCompleted }: StepProps) {
                   <h3 className="font-semibold">Fees & Charges</h3>
                   <div className="grid grid-cols-2 text-sm">
                     <p>Processing Fee:</p><p className="font-medium">₹{processingFee.toLocaleString('en-IN')}</p>
+                    <p>GST on Fee:</p><p className="font-medium">₹{gst.toLocaleString('en-IN')}</p>
                     <p>Annual Percentage Rate (APR):</p><p className="font-medium">{apr.toFixed(2)}%</p>
                     <p>Penal Charges:</p><p className="font-medium">2% per month on overdue amount</p>
                   </div>
@@ -1911,6 +1913,8 @@ export function KfsStep({ onCompleted }: StepProps) {
             <p className="font-semibold text-right">₹{approved_amount.toLocaleString('en-IN')}</p>
             <p className="text-muted-foreground">{d.processing_fee.en}{language !== 'en' && <><br/><span className="text-xs">{d.processing_fee.regional}</span></> }</p>
             <p className="font-semibold text-right">- ₹{processingFee.toLocaleString('en-IN')}</p>
+            <p className="text-muted-foreground">GST (18% on fee)</p>
+            <p className="font-semibold text-right">- ₹{gst.toLocaleString('en-IN')}</p>
             <Separator className="col-span-2 my-1" />
             <p className="text-muted-foreground font-bold">{d.net_disbursed.en}{language !== 'en' && <><br/><span className="text-xs">{d.net_disbursed.regional}</span></> }</p>
             <p className="font-bold text-right text-lg">₹{disbursedAmount.toLocaleString('en-IN')}</p>
@@ -2114,7 +2118,7 @@ export function SanctionLetterStep({ onCompleted }: StepProps) {
               <span>{d.tenure.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.tenure.regional}</span>}</span>
               <span className="text-right font-medium">{selected_tenure_months} Months</span>
               <span>{d.interest_rate.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.interest_rate.regional}</span>}</span>
-              <span className="text-right font-medium">24.00% p.a.</span>
+              <span className="text-right font-medium">10.00% p.a.</span>
               <span>{d.emi_amount.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.emi_amount.regional}</span>}</span>
               <span className="text-right font-medium">₹{selected_emi_amount.toLocaleString('en-IN')}</span>
               <span>{d.emi_start_date.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.emi_start_date.regional}</span>}</span>
@@ -2536,7 +2540,7 @@ export function AgreementStep({ onCompleted }: StepProps) {
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
                   <span>{d.sanctioned_amount.en}</span><span className="text-right font-medium text-foreground">₹{approved_amount.toLocaleString('en-IN')}</span>
                   <span>{d.tenure.en}</span><span className="text-right font-medium text-foreground">{selected_tenure_months} Months</span>
-                  <span>{d.interest_rate.en}</span><span className="text-right font-medium text-foreground">24.00% p.a.</span>
+                  <span>{d.interest_rate.en}</span><span className="text-right font-medium text-foreground">10.00% p.a.</span>
                 </div>
               </div>
               
@@ -2598,10 +2602,7 @@ export function AgreementStep({ onCompleted }: StepProps) {
                     name="otp"
                     render={({ field }) => (
                         <FormItem>
-                            <Label>
-                                {d.otp_label.en}
-                                {language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.otp_label.regional}</span>}
-                            </Label>
+                          <BilingualLabel en={d.otp_label.en} regional={d.otp_label.regional} />
                             <FormControl>
                                 <Input {...field} placeholder={language === 'en' ? d.otp_placeholder.en : `${d.otp_placeholder.en} / ${d.otp_placeholder.regional}`} />
                             </FormControl>
@@ -2629,7 +2630,10 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
     const { dict, language } = useLanguage();
     const d = dict.disbursement;
 
-    const netDisbursal = (application.approved_amount || 0) - ((application.approved_amount || 0) * 0.02);
+    const approved_amount = application.approved_amount || 0;
+    const processingFee = approved_amount * 0.02;
+    const gst = processingFee * 0.18;
+    const netDisbursalAmount = approved_amount - processingFee - gst;
 
     const handleConfirm = () => {
         setIsDisbursing(true);
@@ -2685,7 +2689,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
                  <Card className="text-left w-full max-w-sm">
                     <CardHeader><CardTitle>{d.details_title.en}</CardTitle></CardHeader>
                     <CardContent className="space-y-2">
-                        <div className="flex justify-between"><span className="text-muted-foreground">{d.amount_label.en}</span><span className="font-bold">₹{netDisbursal.toLocaleString('en-IN')}</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">{d.amount_label.en}</span><span className="font-bold">₹{netDisbursalAmount.toLocaleString('en-IN')}</span></div>
                          <div className="flex justify-between"><span className="text-muted-foreground">{d.account_label.en}</span><span className="font-bold">...{application.bankDetails?.accountNumber.slice(-4)}</span></div>
                     </CardContent>
                 </Card>
@@ -2705,7 +2709,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
                 <CardContent className="space-y-2">
                      <div className="flex justify-between">
                         <span className="text-muted-foreground">{d.net_amount_label.en}</span>
-                        <span className="font-bold">₹{netDisbursal.toLocaleString('en-IN')}</span>
+                        <span className="font-bold">₹{netDisbursalAmount.toLocaleString('en-IN')}</span>
                     </div>
                      <div className="flex justify-between">
                         <span className="text-muted-foreground">{d.to_account_label.en}</span>
