@@ -102,16 +102,16 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
   const form = useForm<z.infer<typeof personalDetailsSchema>>({
     resolver: zodResolver(personalDetailsSchema),
     defaultValues: {
-      fullName: "Rohan Sharma",
-      pan: "GKYPK1234A",
-      birthDate: new Date("1971-12-16"),
-      gender: "Male",
+      fullName: "",
+      pan: "",
+      birthDate: undefined,
+      gender: undefined,
       loanAmount: 50000,
       employmentType: "Salaried",
       monthlyIncome: 60000,
-      addressLine1: "123, Rose Villa",
-      city: "Mumbai",
-      pincode: "400050",
+      addressLine1: "",
+      city: "",
+      pincode: "",
       consent: true
     },
   });
@@ -2602,7 +2602,7 @@ export function AgreementStep({ onCompleted }: StepProps) {
                     name="otp"
                     render={({ field }) => (
                         <FormItem>
-                          <BilingualLabel en={d.otp_label.en} regional={d.otp_label.regional} />
+                            <BilingualLabel en={d.otp_label.en} regional={d.otp_label.regional} />
                             <FormControl>
                                 <Input {...field} placeholder={language === 'en' ? d.otp_placeholder.en : `${d.otp_placeholder.en} / ${d.otp_placeholder.regional}`} />
                             </FormControl>

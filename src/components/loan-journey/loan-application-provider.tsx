@@ -25,7 +25,7 @@ type LoanApplicationContextType = {
 const LoanApplicationContext = createContext<LoanApplicationContextType | null>(null);
 
 const initialApplicationState: LoanApplication = {
-  loanApplicationId: generateReadableId(), 
+  loanApplicationId: "15", 
   personalDetails: undefined,
   requested_amount: 0,
   kyc: {
