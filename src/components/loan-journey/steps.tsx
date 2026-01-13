@@ -106,13 +106,13 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
       pan: "",
       birthDate: undefined,
       gender: undefined,
-      loanAmount: 50000,
-      employmentType: "Salaried",
-      monthlyIncome: 60000,
+      loanAmount: undefined,
+      employmentType: undefined,
+      monthlyIncome: undefined,
       addressLine1: "",
       city: "",
       pincode: "",
-      consent: true
+      consent: false
     },
   });
 
@@ -2736,3 +2736,4 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
 
 
     
+
