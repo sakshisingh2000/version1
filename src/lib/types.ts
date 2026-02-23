@@ -1,5 +1,4 @@
 
-
 import type { User } from 'firebase/auth';
 
 export type DigiLockerDocument = {
@@ -37,6 +36,7 @@ export type PaymentScheduleItem = {
 export type LoanApplication = {
   loanApplicationId: string;
   borrowerId?: string;
+  prefilledFromKyc?: boolean;
   personalDetails?: {
     fullName: string;
     pan: string;
@@ -49,6 +49,7 @@ export type LoanApplication = {
     city: string;
     pincode: string;
     consent: boolean;
+    aadhaarNumber?: string;
   };
   kyc?: {
     panStatus?: 'PENDING' | 'VERIFIED' | 'MISMATCH' | 'FAILED';

@@ -12,12 +12,12 @@ import { useAppState } from '@/components/app-state-provider';
 import { useEffect } from 'react';
 
 const applicationSteps = [
-  { id: 'profile', title: 'Profile & Loan Details', icon: User, status: 'COMPLETED' },
-  { id: 'pan_aadhaar', title: 'PAN & Aadhaar KYC', icon: FileText, status: 'PENDING' },
-  { id: 'digilocker', title: 'DigiLocker KYC', icon: ShieldCheck, status: 'PENDING' },
-  { id: 'credit_check', title: 'Credit Check', icon: FileText, status: 'PENDING' },
-  { id: 'bank_mandate', title: 'Bank Account & Mandate', icon: Landmark, status: 'PENDING' },
+  { id: 'kyc_initial', title: 'KYC Verification (Aadhaar & PAN)', icon: ShieldCheck, status: 'PENDING' },
+  { id: 'profile', title: 'Personal & Loan Details', icon: User, status: 'PENDING' },
+  { id: 'digilocker', title: 'Document Verification', icon: ShieldCheck, status: 'PENDING' },
+  { id: 'credit_check', title: 'Eligibility Result', icon: FileText, status: 'PENDING' },
   { id: 'offer_kfs', title: 'Offer & KFS', icon: Banknote, status: 'PENDING' },
+  { id: 'bank_mandate', title: 'Bank Account & Mandate', icon: Landmark, status: 'PENDING' },
   { id: 'agreement_disbursement', title: 'Agreement & Disbursement', icon: CheckCircle, status: 'PENDING' },
 ];
 

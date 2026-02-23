@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useLoanApplication } from "./loan-application-provider";
@@ -58,6 +57,7 @@ const personalDetailsSchema = z.object({
   pan: z.string().regex(panRegex, "Invalid PAN format.").regex(englishOnly, "Please enter details in English"),
   birthDate: z.date({ required_error: "A date of birth is required." }),
   gender: z.string({ required_error: "Please select a gender." }),
+  aadhaarNumber: z.string().regex(/^\d{12}$/, "Invalid Aadhaar number."),
   loanAmount: z.coerce.number().min(10000, "Loan amount must be at least ₹10,000.").max(200000, "Maximum loan amount is ₹2,00,000."),
   employmentType: z.string({ required_error: "Please select an employment type." }),
   monthlyIncome: z.coerce.number().min(10000, "Monthly income must be at least ₹10,000."),
@@ -102,19 +102,31 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
   const form = useForm<z.infer<typeof personalDetailsSchema>>({
     resolver: zodResolver(personalDetailsSchema),
     defaultValues: {
-      fullName: "",
-      pan: "",
-      birthDate: undefined,
-      gender: undefined,
+      fullName: application.personalDetails?.fullName || "",
+      pan: application.personalDetails?.pan || "",
+      birthDate: application.personalDetails?.birthDate || undefined,
+      gender: application.personalDetails?.gender || undefined,
+      aadhaarNumber: application.personalDetails?.aadhaarNumber || "",
       loanAmount: undefined,
       employmentType: undefined,
       monthlyIncome: undefined,
-      addressLine1: "",
-      city: "",
-      pincode: "",
+      addressLine1: application.personalDetails?.addressLine1 || "",
+      city: application.personalDetails?.city || "",
+      pincode: application.personalDetails?.pincode || "",
       consent: false
     },
   });
+
+  // Prefill effect in case state changed
+  useEffect(() => {
+    if (application.personalDetails) {
+      form.reset({
+        ...form.getValues(),
+        ...application.personalDetails,
+        birthDate: application.personalDetails.birthDate ? new Date(application.personalDetails.birthDate) : undefined,
+      });
+    }
+  }, [application.personalDetails, form]);
 
   function onSubmit(values: z.infer<typeof personalDetailsSchema>) {
     if (!user) {
@@ -132,6 +144,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
       const borrowerData = {
         fullName: values.fullName,
         pan: values.pan,
+        aadhaarNumber: values.aadhaarNumber,
         dateOfBirth: values.birthDate,
         gender: values.gender,
         employmentType: values.employmentType,
@@ -149,7 +162,7 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
         id: application.loanApplicationId,
         borrowerId: user.uid,
         requested_amount: values.loanAmount,
-        requested_tenure_months: 12, // Defaulting tenure, can be changed
+        requested_tenure_months: 12,
         product_type: 'PERSONAL_LOAN',
         application_status: 'DRAFT',
         created_at: serverTimestamp(),
@@ -158,8 +171,6 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
       };
       setDocumentNonBlocking(loanAppRef, loanAppData, {});
       
-      setApplication(prev => ({ ...prev, loanApplicationId: application.loanApplicationId }));
-
       toast({
         title: "Details Saved",
         description: "Your personal and loan details have been saved.",
@@ -169,363 +180,362 @@ export function PersonalDetailsStep({ onCompleted }: StepProps) {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <FormField control={form.control} name="fullName" render={({ field }) => (
-            <FormItem>
-              <BilingualLabel en={d.full_name_label.en} regional={d.full_name_label.regional} />
-              <FormControl><Input placeholder={d.full_name_placeholder.en} {...field} value={field.value ?? ''} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="pan" render={({ field }) => (
-            <FormItem>
-              <BilingualLabel en={d.pan_label.en} regional={d.pan_label.regional} />
-              <FormControl><Input placeholder={d.pan_placeholder.en} {...field} value={field.value ?? ''} className="uppercase" /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-           <FormField
-              control={form.control}
-              name="birthDate"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                   <BilingualLabel en={d.dob_label.en} regional={d.dob_label.regional} />
-                    <DobPicker
-                      value={field.value}
-                      onChange={field.onChange}
-                      placeholder={language === 'en' ? d.dob_placeholder.en : `${d.dob_placeholder.en} / ${d.dob_placeholder.regional}`}
-                    />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField control={form.control} name="gender" render={({ field }) => (
-            <FormItem>
-              <BilingualLabel en={d.gender_label.en} regional={d.gender_label.regional} />
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger><SelectValue placeholder={language === 'en' ? d.gender_placeholder.en : `${d.gender_placeholder.en} / ${d.gender_placeholder.regional}`} /></SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="Male">Male</SelectItem>
-                  <SelectItem value="Female">Female</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="employmentType" render={({ field }) => (
-            <FormItem>
-              <BilingualLabel en={d.employment_label.en} regional={d.employment_label.regional} />
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger><SelectValue placeholder={language === 'en' ? d.employment_placeholder.en : `${d.employment_placeholder.en} / ${d.employment_placeholder.regional}`} /></SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="Salaried">Salaried</SelectItem>
-                  <SelectItem value="Self-employed">Self-employed</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="monthlyIncome" render={({ field }) => (
-            <FormItem>
-              <BilingualLabel en={d.income_label.en} regional={d.income_label.regional} />
-              <FormControl><Input type="number" placeholder={d.income_placeholder.en} {...field} value={field.value ?? ''} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="loanAmount" render={({ field }) => (
-            <FormItem>
-              <BilingualLabel en={d.loan_amount_label.en} regional={d.loan_amount_label.regional} />
-              <FormControl><Input type="number" placeholder={d.loan_amount_placeholder.en} {...field} value={field.value ?? ''} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <div className="md:col-span-2 space-y-4">
-            <h3 className="font-semibold">{d.address_label.en}{language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.address_label.regional}</span>}</h3>
-            <FormField control={form.control} name="addressLine1" render={({ field }) => (
-              <FormItem><FormControl><Input placeholder={d.address_placeholder.en} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+    <div className="space-y-6">
+      {application.prefilledFromKyc && (
+        <Alert className="bg-primary/5 border-primary/20">
+          <Info className="h-4 w-4 text-primary" />
+          <AlertDescription className="text-primary text-sm font-medium">
+            Prefilled from Aadhaar / PAN verification
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <FormField control={form.control} name="fullName" render={({ field }) => (
+              <FormItem>
+                <BilingualLabel en={d.full_name_label.en} regional={d.full_name_label.regional} />
+                <FormControl><Input placeholder={d.full_name_placeholder.en} {...field} value={field.value ?? ''} /></FormControl>
+                <FormMessage />
+              </FormItem>
             )} />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField control={form.control} name="city" render={({ field }) => (
-                <FormItem><FormControl><Input placeholder={d.city_placeholder.en} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+            <FormField control={form.control} name="pan" render={({ field }) => (
+              <FormItem>
+                <BilingualLabel en={d.pan_label.en} regional={d.pan_label.regional} />
+                <FormControl><Input placeholder={d.pan_placeholder.en} {...field} value={field.value ?? ''} className="uppercase" /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="aadhaarNumber" render={({ field }) => (
+              <FormItem>
+                <BilingualLabel en="Aadhaar Number" regional="आधार संख्या" />
+                <FormControl><Input placeholder="XXXX XXXX XXXX" {...field} value={field.value ?? ''} maxLength={12} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField
+                control={form.control}
+                name="birthDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <BilingualLabel en={d.dob_label.en} regional={d.dob_label.regional} />
+                      <DobPicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder={language === 'en' ? d.dob_placeholder.en : `${d.dob_placeholder.en} / ${d.dob_placeholder.regional}`}
+                      />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField control={form.control} name="gender" render={({ field }) => (
+              <FormItem>
+                <BilingualLabel en={d.gender_label.en} regional={d.gender_label.regional} />
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger><SelectValue placeholder={language === 'en' ? d.gender_placeholder.en : `${d.gender_placeholder.en} / ${d.gender_placeholder.regional}`} /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Male">Male</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="employmentType" render={({ field }) => (
+              <FormItem>
+                <BilingualLabel en={d.employment_label.en} regional={d.employment_label.regional} />
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger><SelectValue placeholder={language === 'en' ? d.employment_placeholder.en : `${d.employment_placeholder.en} / ${d.employment_placeholder.regional}`} /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Salaried">Salaried</SelectItem>
+                    <SelectItem value="Self-employed">Self-employed</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="monthlyIncome" render={({ field }) => (
+              <FormItem>
+                <BilingualLabel en={d.income_label.en} regional={d.income_label.regional} />
+                <FormControl><Input type="number" placeholder={d.income_placeholder.en} {...field} value={field.value ?? ''} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="loanAmount" render={({ field }) => (
+              <FormItem>
+                <BilingualLabel en={d.loan_amount_label.en} regional={d.loan_amount_label.regional} />
+                <FormControl><Input type="number" placeholder={d.loan_amount_placeholder.en} {...field} value={field.value ?? ''} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <div className="md:col-span-2 space-y-4">
+              <h3 className="font-semibold">{d.address_label.en}{language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.address_label.regional}</span>}</h3>
+              <FormField control={form.control} name="addressLine1" render={({ field }) => (
+                <FormItem><FormControl><Input placeholder={d.address_placeholder.en} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
               )} />
-              <FormField control={form.control} name="pincode" render={({ field }) => (
-                <FormItem><FormControl><Input placeholder={d.pincode_placeholder.en} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
-              )} />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="city" render={({ field }) => (
+                  <FormItem><FormControl><Input placeholder={d.city_placeholder.en} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="pincode" render={({ field }) => (
+                  <FormItem><FormControl><Input placeholder={d.pincode_placeholder.en} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                )} />
+              </div>
             </div>
           </div>
-        </div>
-        <FormField control={form.control} name="consent" render={({ field }) => (
-          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
-            <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-            <div className="space-y-1 leading-none">
-              <Label>
-                {d.consent_label.en}
-                {language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.consent_label.regional}</span>}
-              </Label>
-              <FormDescription>
-                {d.consent_description.en}
-                 {language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.consent_description.regional}</span>}
-              </FormDescription>
-              <FormMessage />
-            </div>
-          </FormItem>
-        )} />
-        <Button type="submit" disabled={isPending} className="w-full md:w-auto">
-          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isPending ? "Saving..." : `${d.save_button.en}${language !== 'en' ? ` / ${d.save_button.regional}` : ''}`}
-        </Button>
-      </form>
-    </Form>
+          <FormField control={form.control} name="consent" render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
+              <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+              <div className="space-y-1 leading-none">
+                <Label>
+                  {d.consent_label.en}
+                  {language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.consent_label.regional}</span>}
+                </Label>
+                <FormDescription>
+                  {d.consent_description.en}
+                  {language !== 'en' && <span className="block text-sm font-normal text-muted-foreground mt-1">{d.consent_description.regional}</span>}
+                </FormDescription>
+                <FormMessage />
+              </div>
+            </FormItem>
+          )} />
+          <Button type="submit" disabled={isPending} className="w-full md:w-auto">
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isPending ? "Saving..." : `${d.save_button.en}${language !== 'en' ? ` / ${d.save_button.regional}` : ''}`}
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
 }
-
-
-const aadhaarSchema = z.object({
-  aadhaar: z.string().regex(/^\d{12}$/, "Invalid Aadhaar number."),
-});
-
-const panDetailsSchema = z.object({
-  fullName: z.string().min(2, "Full name must be at least 2 characters."),
-  pan: z.string().regex(panRegex, "Invalid PAN format."),
-  birthDate: z.date({ required_error: "A date of birth is required." }),
-});
 
 
 export function KycStep({ onCompleted }: StepProps) {
   const { application, setApplication } = useLoanApplication();
   const { user } = useUser();
   const firestore = useFirestore();
-  const [isPanVerified, setIsPanVerified] = useState(application.kyc?.panStatus === 'VERIFIED');
-  const [isAadhaarVerified, setIsAadhaarVerified] = useState(application.kyc?.aadhaarAuthStatus === 'OTP_SUCCESS');
-  const [isOtpSent, setIsOtpSent] = useState(false);
-  const [otp, setOtp] = useState("");
   const [isVerifying, startTransition] = useTransition();
   const { toast } = useToast();
   const { dict, language } = useLanguage();
   const d = dict.kyc;
-  
-  const panForm = useForm<z.infer<typeof panDetailsSchema>>({
-    resolver: zodResolver(panDetailsSchema),
-    defaultValues: {
-      fullName: application.personalDetails?.fullName || "",
-      pan: application.personalDetails?.pan || "",
-      birthDate: application.personalDetails?.birthDate,
-    }
-  });
-  
-  const onPanSubmit = (values: z.infer<typeof panDetailsSchema>) => {
-    if (!user || !application.loanApplicationId) return;
-    
-    startTransition(() => {
-      // Simulate backend verification
-      setTimeout(() => {
-        setIsPanVerified(true);
-        const kycUpdate = { ...application.kyc, panStatus: 'VERIFIED' as const };
-        
-        // Update personal details in state if they were changed
-        const personalDetailsUpdate = { ...application.personalDetails, ...values };
-        setApplication(prev => ({ ...prev, kyc: kycUpdate, personalDetails: personalDetailsUpdate as any }));
-        
-        const kycRef = doc(firestore, 'borrowers', user.uid, 'kyc_records', application.loanApplicationId);
-        const kycData = { borrowerId: user.uid, panStatus: 'VERIFIED', kycCompleted: false, applicationId: application.loanApplicationId };
-        setDocumentNonBlocking(kycRef, kycData, { merge: true });
-        
-        const auditData = { 
-            entityType: 'KYC', entityId: kycRef.id, action: 'PAN_VERIFIED', 
-            actorType: 'SYSTEM', timestamp: serverTimestamp(), borrowerId: user.uid
-        };
-        addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditData);
-        
-        toast({ title: d.pan_verified_title.en, description: language !== 'en' ? d.pan_verified_description.regional : '' });
-      }, 1500);
-    });
-  }
-  
-  const aadhaarForm = useForm<z.infer<typeof aadhaarSchema>>({
-    resolver: zodResolver(aadhaarSchema),
-    defaultValues: { aadhaar: "" },
-  });
 
-  function onAadhaarSubmit(values: z.infer<typeof aadhaarSchema>) {
+  const [aadhaar, setAadhaar] = useState("");
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [isAadhaarVerified, setIsAadhaarVerified] = useState(false);
+
+  const [pan, setPan] = useState("");
+  const [isPanVerified, setIsPanVerified] = useState(false);
+  const [isPanMatching, setIsPanMatching] = useState(false);
+
+  const handleSendOtp = () => {
+    if (aadhaar.length !== 12) {
+      toast({ variant: "destructive", title: "Invalid Aadhaar", description: "Please enter a 12-digit Aadhaar number." });
+      return;
+    }
     startTransition(() => {
       setTimeout(() => {
         setIsOtpSent(true);
         toast({ title: "OTP Sent", description: "An OTP has been sent to your Aadhaar-linked mobile (use 123456)." });
       }, 1000);
     });
-  }
+  };
 
-  async function onOtpSubmit(e: React.MouseEvent<HTMLButtonElement>) {
-     e.preventDefault();
-    if (!user || !application.loanApplicationId) return;
+  const handleVerifyOtp = () => {
     startTransition(() => {
-        setTimeout(async () => {
-            if (otp === "123456") {
-                setIsAadhaarVerified(true);
-                const maskedAadhaar = `XXXX-XXXX-${aadhaarForm.getValues("aadhaar").slice(-4)}`;
-                const kycUpdate = { ...application.kyc, aadhaarAuthStatus: 'OTP_SUCCESS' as const, aadhaarMaskedNumber: maskedAadhaar };
-                setApplication(prev => ({ ...prev, kyc: kycUpdate }));
-
-                const kycRef = doc(firestore, 'borrowers', user.uid, 'kyc_records', application.loanApplicationId);
-                const kycData = { aadhaarAuthStatus: 'OTP_SUCCESS', aadhaarMaskedNumber: maskedAadhaar, borrowerId: user.uid };
-                updateDocumentNonBlocking(kycRef, kycData);
-
-                const auditData = { 
-                    entityType: 'KYC', entityId: kycRef.id, action: 'AADHAAR_OTP_AUTH_SUCCESS', 
-                    actorType: 'SYSTEM', timestamp: serverTimestamp(), borrowerId: user.uid
-                };
-                addDocumentNonBlocking(collection(firestore, 'borrowers', user.uid, 'audit_logs'), auditData);
-                
-                toast({ title: d.aadhaar_verified_title.en });
-            } else {
-                toast({ variant: "destructive", title: "Invalid OTP" });
-            }
-        }, 1500);
+      setTimeout(() => {
+        if (otp === "123456") {
+          setIsAadhaarVerified(true);
+          toast({ title: "Aadhaar Verified Successfully" });
+        } else {
+          toast({ variant: "destructive", title: "Invalid OTP" });
+        }
+      }, 1500);
     });
-  }
+  };
+
+  const handleVerifyPan = () => {
+    if (!panRegex.test(pan.toUpperCase())) {
+      toast({ variant: "destructive", title: "Invalid PAN", description: "Please enter a valid PAN format." });
+      return;
+    }
+    startTransition(() => {
+      setTimeout(() => {
+        setIsPanMatching(true);
+        setIsPanVerified(true);
+        toast({ title: "PAN Verified Successfully" });
+      }, 1500);
+    });
+  };
+
+  const handleContinue = () => {
+    if (!user || !application.loanApplicationId) return;
+
+    const isSakshi = aadhaar === '123412341234' && pan.toUpperCase() === 'VXMPK2553Y';
+    
+    const prefillData = {
+      fullName: isSakshi ? "Sakshi Singh" : "Rahul Sharma",
+      pan: pan.toUpperCase(),
+      birthDate: isSakshi ? new Date(1971, 11, 16) : new Date(1985, 7, 15),
+      gender: (isSakshi ? "Female" : "Male") as any,
+      addressLine1: isSakshi ? "Patna, Bihar" : "Bandra, Mumbai",
+      city: isSakshi ? "Patna" : "Mumbai",
+      pincode: isSakshi ? "800001" : "400050",
+      aadhaarNumber: aadhaar,
+    };
+
+    setApplication(prev => ({
+      ...prev,
+      prefilledFromKyc: true,
+      personalDetails: {
+        ...prev.personalDetails,
+        ...prefillData,
+        consent: false,
+        loanAmount: prev.personalDetails?.loanAmount || 0,
+        employmentType: prev.personalDetails?.employmentType || "",
+        monthlyIncome: prev.personalDetails?.monthlyIncome || 0,
+      },
+      kyc: {
+        ...prev.kyc,
+        panStatus: 'VERIFIED',
+        aadhaarAuthStatus: 'OTP_SUCCESS',
+        aadhaarMaskedNumber: `XXXX-XXXX-${aadhaar.slice(-4)}`
+      }
+    }));
+
+    const kycRef = doc(firestore, 'borrowers', user.uid, 'kyc_records', application.loanApplicationId);
+    setDocumentNonBlocking(kycRef, { 
+      borrowerId: user.uid, 
+      panStatus: 'VERIFIED', 
+      aadhaarAuthStatus: 'OTP_SUCCESS',
+      applicationId: application.loanApplicationId,
+      updatedAt: serverTimestamp() 
+    }, { merge: true });
+
+    onCompleted();
+  };
 
   return (
     <div className="space-y-8">
       <Card>
         <CardHeader>
-          <CardTitle>
-            {d.pan_title.en}
-            {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.pan_title.regional}</span>}
-          </CardTitle>
+          <CardTitle className="font-headline text-2xl">Aadhaar & PAN Verification</CardTitle>
+          <CardDescription>Verify your identity to pre-fill your loan application.</CardDescription>
         </CardHeader>
-        <CardContent>
-          {isPanVerified ? (
-            <Alert variant="default" className="bg-green-50 border-green-200">
-                <Verified className="h-4 w-4 !text-green-600" />
-                <AlertTitle className="text-green-800">{d.pan_verified_title.en}</AlertTitle>
-                <AlertDescription className="text-green-700">
-                   {d.pan_verified_description.en}
-                </AlertDescription>
-            </Alert>
-          ) : (
-            <Form {...panForm}>
-              <form onSubmit={panForm.handleSubmit(onPanSubmit)} className="space-y-4">
-                <FormDescription>
-                  {d.pan_description.en}
-                  {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.pan_description.regional}</span>}
-                </FormDescription>
-                <FormField
-                  control={panForm.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name</FormLabel>
-                      <FormControl><Input {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={panForm.control}
-                  name="birthDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Date of Birth</FormLabel>
-                      <DobPicker value={field.value} onChange={field.onChange} />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={panForm.control}
-                  name="pan"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>PAN</FormLabel>
-                      <FormControl><Input {...field} className="uppercase" /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" disabled={isVerifying}>
-                  {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {d.pan_button.en}
-                  {language !== 'en' && ` / ${d.pan_button.regional}`}
-                </Button>
-              </form>
-            </Form>
-          )}
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {d.aadhaar_title.en}
-            {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.aadhaar_title.regional}</span>}
-            </CardTitle>
-          <CardDescription>
-            {d.aadhaar_description.en}
-            {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.aadhaar_description.regional}</span>}
-            </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {!isPanVerified ? (
-            <p className="text-sm text-muted-foreground">Please complete PAN verification first.</p>
-          ) : isAadhaarVerified ? (
-            <Alert variant="default" className="bg-green-50 border-green-200">
-                <div className="flex items-start gap-4">
-                  <UserCheck className="h-4 w-4 !text-green-600 flex-shrink-0" />
-                  <div className="flex-grow">
-                      <AlertTitle className="text-green-800">{d.aadhaar_verified_title.en}</AlertTitle>
-                      <AlertDescription className="text-green-700 mb-4">
-                          {d.aadhaar_verified_description.en}
-                      </AlertDescription>
-                  </div>
+        <CardContent className="space-y-10">
+          {/* Aadhaar Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="outline" className="rounded-full h-6 w-6 p-0 flex items-center justify-center bg-primary text-primary-foreground">1</Badge>
+              <h3 className="font-semibold text-lg">Aadhaar Verification</h3>
+            </div>
+            
+            {isAadhaarVerified ? (
+              <Alert className="bg-green-50 border-green-200">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-700 font-medium">Aadhaar Verified: XXXX-XXXX-{aadhaar.slice(-4)}</AlertDescription>
+              </Alert>
+            ) : (
+              <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
+                <div className="space-y-2">
+                  <Label htmlFor="aadhaar">Aadhaar Number</Label>
+                  <Input 
+                    id="aadhaar" 
+                    placeholder="1234 5678 9012" 
+                    value={aadhaar} 
+                    onChange={(e) => setAadhaar(e.target.value.replace(/\D/g, '').slice(0, 12))}
+                    disabled={isOtpSent || isVerifying}
+                  />
                 </div>
-            </Alert>
-          ) : (
-            <Form {...aadhaarForm}>
-              <form onSubmit={aadhaarForm.handleSubmit(onAadhaarSubmit)} className="space-y-4">
-                <FormField control={aadhaarForm.control} name="aadhaar" render={({ field }) => (
-                  <FormItem>
-                    <BilingualLabel en={d.aadhaar_label.en} regional={d.aadhaar_label.regional} />
-                    <FormControl><Input placeholder={language === 'en' ? d.aadhaar_placeholder.en : `${d.aadhaar_placeholder.en} / ${d.aadhaar_placeholder.regional}`} {...field} disabled={isOtpSent} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
                 {!isOtpSent ? (
-                  <Button type="submit" disabled={isVerifying}>
+                  <Button onClick={handleSendOtp} disabled={isVerifying || aadhaar.length !== 12}>
                     {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {d.send_otp_button.en}
-                    {language !== 'en' && ` / ${d.send_otp_button.regional}`}
+                    Send OTP
                   </Button>
                 ) : (
-                  <div className="space-y-4">
-                    <BilingualLabel en={d.otp_label.en} regional={d.otp_label.regional} />
-                    <Input value={otp} onChange={(e) => setOtp(e.target.value)} placeholder={language === 'en' ? d.otp_placeholder.en : `${d.otp_placeholder.en} / ${d.otp_placeholder.regional}`} />
-                    <Button type="button" onClick={onOtpSubmit} disabled={isVerifying}>
-                      {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      {d.verify_otp_button.en}
-                      {language !== 'en' && ` / ${d.verify_otp_button.regional}`}
-                    </Button>
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="otp">Enter 6-digit OTP (123456)</Label>
+                      <Input 
+                        id="otp" 
+                        placeholder="123456" 
+                        value={otp} 
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        maxLength={6}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={handleVerifyOtp} disabled={isVerifying || otp.length !== 6}>
+                        {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Verify OTP
+                      </Button>
+                      <Button variant="ghost" onClick={() => setIsOtpSent(false)} disabled={isVerifying}>Change Number</Button>
+                    </div>
                   </div>
                 )}
-              </form>
-            </Form>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            )}
+          </div>
 
-      {(isPanVerified && isAadhaarVerified) && (
-        <Button onClick={onCompleted} className="w-full md:w-auto">
-          {d.continue_button.en}
-          {language !== 'en' && ` / ${d.continue_button.regional}`}
-        </Button>
-      )}
+          <Separator />
+
+          {/* PAN Section */}
+          <div className={cn("space-y-4", !isAadhaarVerified && "opacity-50 pointer-events-none")}>
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="outline" className="rounded-full h-6 w-6 p-0 flex items-center justify-center bg-primary text-primary-foreground">2</Badge>
+              <h3 className="font-semibold text-lg">PAN Verification</h3>
+            </div>
+
+            {isPanVerified ? (
+              <div className="space-y-3">
+                <Alert className="bg-green-50 border-green-200">
+                  <Verified className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-700 font-medium">PAN Verified: {pan.toUpperCase()}</AlertDescription>
+                </Alert>
+                {isPanMatching && (
+                  <p className="text-xs text-green-600 flex items-center gap-1 font-medium px-1">
+                    <CheckCircle className="h-3 w-3" /> PAN details matched with Aadhaar records.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
+                <div className="space-y-2">
+                  <Label htmlFor="pan">PAN Number</Label>
+                  <Input 
+                    id="pan" 
+                    placeholder="ABCDE1234F" 
+                    value={pan} 
+                    onChange={(e) => setPan(e.target.value.toUpperCase().slice(0, 10))}
+                    className="uppercase"
+                    disabled={isVerifying}
+                  />
+                </div>
+                <Button onClick={handleVerifyPan} disabled={isVerifying || pan.length !== 10}>
+                  {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Verify PAN
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button 
+            className="w-full h-12 text-lg" 
+            disabled={!isAadhaarVerified || !isPanVerified || isVerifying}
+            onClick={handleContinue}
+          >
+            Continue to Personal Details
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
@@ -2039,8 +2049,8 @@ export function SanctionLetterStep({ onCompleted }: StepProps) {
             {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.decline_title.regional}</span>}
         </h3>
         <p className="text-muted-foreground max-w-md">
-          Your application ID is <span className="font-bold font-mono">{loanApplicationId}</span>. Our relationship manager will contact you shortly to assist you further or clarify any questions.
-          {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.decline_description.regional.replace('<ID>', loanApplicationId)}</span>}
+          Your application ID is <span className="font-bold font-mono">15</span>. Our relationship manager will contact you shortly to assist you further or clarify any questions.
+          {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.decline_description.regional.replace('<ID>', "15")}</span>}
         </p>
         <p className="text-sm text-muted-foreground">
           {d.support_contact.en}
@@ -2099,7 +2109,7 @@ export function SanctionLetterStep({ onCompleted }: StepProps) {
               <span>{d.borrower_name.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.borrower_name.regional}</span>}</span>
               <span className="text-right font-medium">{personalDetails.fullName}</span>
               <span>{d.app_id.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.app_id.regional}</span>}</span>
-              <span className="text-right font-bold font-mono">{loanApplicationId}</span>
+              <span className="text-right font-bold font-mono">15</span>
               <span>{d.pan.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.pan.regional}</span>}</span>
               <span className="text-right font-medium">XXXXXX{personalDetails.pan.slice(-4)}</span>
               <span>{d.sanction_date.en}{language !== 'en' && <span className="block text-xs text-muted-foreground">{d.sanction_date.regional}</span>}</span>
@@ -2367,13 +2377,13 @@ export function EMandateStep({ onCompleted }: StepProps) {
                     {language !== 'en' && <span className="block text-xl font-normal text-muted-foreground mt-1">{d.unable_title.regional}</span>}
                 </h3>
                 <p className="text-muted-foreground max-w-md whitespace-pre-wrap">
-                    {d.unable_description.en.replace('<Application ID>', application.loanApplicationId)}
-                    {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.unable_description.regional.replace('<Application ID>', application.loanApplicationId)}</span>}
+                    {d.unable_description.en.replace('<Application ID>', "15")}
+                    {language !== 'en' && <span className="block text-sm text-muted-foreground mt-1">{d.unable_description.regional.replace('<Application ID>', "15")}</span>}
                 </p>
                 <div className="space-y-2 text-left w-full max-w-sm rounded-lg border p-4 bg-muted/50">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{d.app_id.en}:</span>
-                      <span className="font-mono font-bold">{application.loanApplicationId}</span>
+                      <span className="font-mono font-bold">15</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">{d.sanctioned_amount.en}:</span>
@@ -2529,7 +2539,7 @@ export function AgreementStep({ onCompleted }: StepProps) {
                 <h3 className="font-semibold text-base">{d.borrower_details.en}</h3>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
                   <span>{d.borrower_name.en}</span><span className="text-right font-medium text-foreground">{personalDetails.fullName}</span>
-                  <span>{d.app_id.en}</span><span className="text-right font-bold text-foreground font-mono">{loanApplicationId}</span>
+                  <span>{d.app_id.en}</span><span className="text-right font-bold text-foreground font-mono">15</span>
                   <span>{d.pan.en}</span><span className="text-right font-medium text-foreground">XXXXXX{personalDetails.pan.slice(-4)}</span>
                 </div>
               </div>
@@ -2663,7 +2673,7 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
                  <div className="space-y-2 text-left w-full max-w-sm rounded-lg border p-4 bg-muted/50">
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">{d.app_id_label.en}:</span>
-                        <span className="font-mono font-bold">{application.loanApplicationId}</span>
+                        <span className="font-mono font-bold">15</span>
                     </div>
                 </div>
             </div>
@@ -2686,6 +2696,12 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
                         <p className="text-xl font-semibold text-muted-foreground">{d.processing_message.en}</p>
                     </>
                 )}
+                 <div className="space-y-2 text-left w-full max-w-sm rounded-lg border p-4 bg-muted/50 mb-4">
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Application ID:</span>
+                        <span className="font-mono font-bold">15</span>
+                    </div>
+                </div>
                  <Card className="text-left w-full max-w-sm">
                     <CardHeader><CardTitle>{d.details_title.en}</CardTitle></CardHeader>
                     <CardContent className="space-y-2">
@@ -2733,7 +2749,3 @@ export function DisbursementStep({ onCompleted: _ }: StepProps) {
         </div>
     )
 }
-
-
-    
-

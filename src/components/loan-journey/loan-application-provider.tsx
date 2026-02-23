@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import type { LoanApplication } from '@/lib/types';
@@ -27,6 +26,7 @@ const LoanApplicationContext = createContext<LoanApplicationContextType | null>(
 const initialApplicationState: LoanApplication = {
   loanApplicationId: "15", 
   personalDetails: undefined,
+  prefilledFromKyc: false,
   requested_amount: 0,
   kyc: {
     panStatus: 'PENDING',
@@ -44,7 +44,7 @@ export function LoanApplicationProvider({ children }: { children: ReactNode }) {
   const { user } = useUser();
   const firestore = useFirestore();
   const [application, setApplication] = useState<LoanApplication>(initialApplicationState);
-  const [step, setStep] = useState(0); // Start at personal details (index 0)
+  const [step, setStep] = useState(0); // Start at index 0
 
   const nextStep = () => setStep(prev => prev + 1);
   const prevStep = () => setStep(prev => prev - 1);
@@ -74,8 +74,8 @@ export function useLoanApplication() {
 }
 
 const STEPS = [
-  { title: "Personal Details", component: PersonalDetailsStep },
   { title: "KYC Verification", component: KycStep },
+  { title: "Personal Details", component: PersonalDetailsStep },
   { title: "Document Verification", component: DocumentVerificationStep },
   { title: "Eligibility Result", component: EligibilityResultStep },
   { title: "Key Facts", component: KfsStep },
@@ -90,8 +90,8 @@ export function LoanJourney() {
   const { step, nextStep, prevStep, application } = useLoanApplication();
   
   const handleStepCompletion = () => {
-    if(step === 2 && application.application_status === 'REJECTED') { // Step 2 is now Doc Verification
-      // If rejected, we move to the next step (Eligibility) which will show the rejection message.
+    if(step === 2 && application.application_status === 'REJECTED') { 
+      // If rejected at Doc Verification, move to Eligibility which handles rejection
       nextStep();
       return; 
     }
